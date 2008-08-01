@@ -1,0 +1,68 @@
+#!/usr/bin/make -f
+
+#export DH_VERBOSE=1
+
+include /usr/share/quilt/quilt.make
+
+DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+
+GTKVER = $(shell pkg-config --variable=gtk_binary_version gtk+-2.0)
+
+config.status: configure patch
+	dh_testdir
+	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info CFLAGS="$(CFLAGS)" LDFLAGS="-Wl,-z,defs" \
+	--new_gtk_im=Y \
+	--use_i18n=Y
+
+build: build-stamp
+
+build-stamp:  config.status
+	dh_testdir
+	$(MAKE)
+	touch $@
+
+clean: clean-patched unpatch
+clean-patched:
+	dh_testdir
+	dh_testroot
+	rm -fr build-stamp debian/tmp
+	touch .depend
+	[ ! -f Makefile ] || $(MAKE) clean
+	rm -f .depend
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
+	mkdir -p debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules
+	mv debian/tmp/usr/lib/gtk-2.0/immodules/* debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules/
+	mv debian/tmp/usr/share/doc/gcin/README debian/gcin/usr/share/doc/gcin/README.zh_TW
+
+binary-indep: build install
+
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs Changelog
+	dh_installdocs
+	dh_install
+	LD_LIBRARY_PATH=debian/gcin/usr/lib/gcin:$(LD_LIBRARY_PATH) dh_gtkmodules
+	dh_installmenu
+	dh_link
+	dh_strip
+	# /usr/bin/gcin-setup needs README.zh_TW uncompressed.
+	dh_compress --exclude=README.zh_TW
+	dh_fixperms
+	dh_makeshlibs -n
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install patch unpatch clean-patched

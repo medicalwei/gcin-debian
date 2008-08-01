@@ -1,0 +1,337 @@
+Debianized-By: Wen-Yen Chuang <caleb@calno.com>
+Debianized-Date: Sat, 15 Apr 2006 21:35:29 +0800.
+Source-Downloaded-From: http://cle.linux.org.tw/gcin/download/
+Upstream-Author: Edward Der-Hua Liu <cp76@csie.nctu.edu.tw>
+
+Files: eggtrayicon.[ch]
+Copyright:  2002 Anders Carlsson <andersca@gnu.org>
+Licence: LGPL-2 or any later version
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the
+    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston MA  02110-1301 USA.
+
+On Debian systems, the complete text of the GNU Lesser General
+Public License can be found in '/usr/share/common-licenses/LGPL-2'
+
+Files: gcin2tab.c, gtab-merge.c, gtab.c, intcode.c, kbmcv.c, pho.[ch],
+       phod2a.c, phrase.c, tsa2d32.c, tsd2a.c, tsin-util.c, tsin.c
+Copyright:  1994-2008 Edward Der-Hua Liu, Hsin-Chu, Taiwan
+Licence: LGPL-2 or any later version
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston MA  02110-1301 USA
+
+On Debian systems, the complete text of the GNU Lesser General
+Public License can be found in '/usr/share/common-licenses/LGPL-2'
+
+Files: data/jyutping.cin
+Copyright:  Linguistic Society of Hong Kong
+Licence: other
+    This cin file is originally converted from the "phrase box" file
+    available on the Linguistic Society of Hong Kong's website:
+    
+         http://www.hku.hk/linguist/lshk/
+
+    You are free to use and redistribute this file; the author only
+    wishes you keep the following notice intact:
+
+    "The copyright of the Jyutping phrase box belongs to the Linguistic
+    Society of Hong Kong.  We would like to thank the Jyutping Group of
+    the Linguistic Society of Hong Kong for permission to use the
+    electronic file in our research and/or product development."
+
+    For more information about the Jyutping system, visit the above
+    website.  The romanisation system is a little bit different from
+    common Hong Kong usage, but this system is a lot more systematic.
+
+Files: gtk-im/gtkimcontextgcin.[ch], gtk-im/imgcin.c
+Copyright:  2000 Red Hat, Inc.
+Licence: LGPL-2 or any later version
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the
+    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston MA  02110-1301 USA.
+
+On Debian systems, the complete text of the GNU Lesser General
+Public License can be found in '/usr/share/common-licenses/LGPL-2'
+
+Files: qt-im/qgcininputcontextplugin_my.cpp, qt-im/qgcininputcontextplugin.h
+Copyright:  2004 immodule for Qt Project.
+Licence: GPL-2
+    This file is written to contribute to Trolltech AS under their own
+    licence. You may use this file under your Qt license. Following
+    description is copied from their original file headers. Contact
+    immodule-qt@freedesktop.org if any conditions of this licensing are
+    not clear to you.
+
+    This file is part of the input method module of the Qt GUI Toolkit.
+
+    This file may be distributed under the terms of the Q Public License
+    as defined by Trolltech AS of Norway and appearing in the file
+    LICENSE.QPL included in the packaging of this file.
+
+    This file may be distributed and/or modified under the terms of the
+    GNU General Public License version 2 as published by the Free Software
+    Foundation and appearing in the file LICENSE.GPL included in the
+    packaging of this file.
+
+    Licensees holding valid Qt Enterprise Edition or Qt Professional Edition
+    licenses may use this file in accordance with the Qt Commercial License
+    Agreement provided with the Software.
+
+    This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+    WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+    See http://www.trolltech.com/pricing.html or email sales@trolltech.com for
+      information about Qt Commercial License Agreements.
+    See http://www.trolltech.com/qpl/ for QPL licensing information.
+    See http://www.trolltech.com/gpl/ for GPL licensing information.
+
+    Contact info@trolltech.com if any conditions of this licensing are
+    not clear to you.
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in '/usr/share/common-licenses/GPL-2'
+
+Files: qt-im/qgcininputcontext.h
+Copyright:  1992-2002 Trolltech AS.
+Licence: GPL-2
+    This file is part of the input method module of the Qt GUI Toolkit.
+
+    This file may be distributed under the terms of the Q Public License
+    as defined by Trolltech AS of Norway and appearing in the file
+    LICENSE.QPL included in the packaging of this file.
+
+    This file may be distributed and/or modified under the terms of the
+    GNU General Public License version 2 as published by the Free Software
+    Foundation and appearing in the file LICENSE.GPL included in the
+    packaging of this file.
+
+    Licensees holding valid Qt Enterprise Edition or Qt Professional Edition
+    licenses may use this file in accordance with the Qt Commercial License
+    Agreement provided with the Software.
+
+    This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+    WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+    See http://www.trolltech.com/pricing.html or email sales@trolltech.com for
+      information about Qt Commercial License Agreements.
+    See http://www.trolltech.com/qpl/ for QPL licensing information.
+    See http://www.trolltech.com/gpl/ for GPL licensing information.
+
+    Contact info@trolltech.com if any conditions of this licensing are
+    not clear to you.
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in '/usr/share/common-licenses/GPL-2'
+
+Files: IC.[ch], IMdkit/include/IMdkit.h, IMdkit/include/Xi18n.h,
+       IMdkit/lib/IMConn.c, IMdkit/lib/IMMethod.c, IMdkit/lib/IMValues.c,
+       IMdkit/lib/Xi18n.h, IMdkit/lib/Xi18nX.h, IMdkit/lib/XimFunc.h,
+       IMdkit/lib/i18nAttr.c, IMdkit/lib/i18nClbk.c, IMdkit/lib/i18nIc.c,
+       IMdkit/lib/i18nMethod.c, IMdkit/lib/i18nPtHdr.c, IMdkit/lib/i18nUtil.c,
+       IMdkit/lib/i18nX.c
+Copyright:  1993-1994 Hewlett-Packard Company
+            1994-1995 Sun Microsystems, Inc.
+Licence: other-BSD
+    Permission to use, copy, modify, distribute, and sell this software
+    and its documentation for any purpose is hereby granted without fee,
+    provided that the above copyright notice appear in all copies and
+    that both that copyright notice and this permission notice appear
+    in supporting documentation, and that the name of Sun Microsystems, Inc.
+    and Hewlett-Packard not be used in advertising or publicity pertaining to
+    distribution of the software without specific, written prior permission.
+    Sun Microsystems, Inc. and Hewlett-Packard make no representations about
+    the suitability of this software for any purpose.  It is provided "as is"
+    without express or implied warranty.
+
+    SUN MICROSYSTEMS INC. AND HEWLETT-PACKARD COMPANY DISCLAIMS ALL
+    WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
+    SUN MICROSYSTEMS, INC. AND HEWLETT-PACKARD COMPANY BE LIABLE FOR ANY
+    SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
+    RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
+    CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+    IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+      Author: Hidetoshi Tajima(tajima@Eng.Sun.COM) Sun Microsystems, Inc.
+
+Files: IMdkit/lib/FrameMgr.[ch]
+Copyright:  1993-1994 Digital Equipment Corporation, Maynard, Massachusetts,
+Licence: other-BSD
+                            All Rights Reserved
+
+    Permission to use, copy, modify, and distribute this software and its 
+    documentation for any purpose and without fee is hereby granted, 
+    provided that the above copyright notice appear in all copies and that
+    both that copyright notice and this permission notice appear in 
+    supporting documentation, and that the names of Digital or MIT not be
+    used in advertising or publicity pertaining to distribution of the
+    software without specific, written prior permission.  
+
+    DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
+    ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
+    DIGITAL BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR
+    ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+    WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+    ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+    SOFTWARE.
+
+      Author: Hiroyuki Miyamoto  Digital Equipment Corporation
+                                 miyamoto@jrd.dec.com
+
+        This version tidied and debugged by Steve Underwood May 1999
+
+Files: IMdkit/include/XimProto.h
+Copyright:  1992-1994 FUJITSU LIMITED
+Licence: other-BSD
+    Permission to use, copy, modify, distribute, and sell this software
+    and its documentation for any purpose is hereby granted without fee,
+    provided that the above copyright notice appear in all copies and
+    that both that copyright notice and this permission notice appear
+    in supporting documentation, and that the name of FUJITSU LIMITED
+    not be used in advertising or publicity pertaining to distribution
+    of the software without specific, written prior permission.
+    FUJITSU LIMITED makes no representations about the suitability of
+    this software for any purpose. 
+    It is provided "as is" without express or implied warranty.
+
+    FUJITSU LIMITED DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+    INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+    EVENT SHALL FUJITSU LIMITED BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+    CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+    USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+    OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+    PERFORMANCE OF THIS SOFTWARE.
+      Author: Takashi Fujiwara     FUJITSU LIMITED 
+                                   fujiwara@a80.tech.yk.fujitsu.co.jp
+
+        This version tidied and debugged by Steve Underwood May 1999
+
+Files: IMdkit/lib/Xtrans.h
+Copyright:  1993-1994 X Consortium
+            1993-1994 NCR Corporation - Dayton, Ohio, USA
+Licence: other-BSD
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+    OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+    OTHER DEALINGS IN THE SOFTWARE.
+
+    Except as contained in this notice, the name of the X Consortium shall
+    not be used in advertising or otherwise to promote the sale, use or
+    other dealings in this Software without prior written authorization
+    from the X Consortium.
+
+    All Rights Reserved
+
+    Permission to use, copy, modify, and distribute this software and its
+    documentation for any purpose and without fee is hereby granted, provided
+    that the above copyright notice appear in all copies and that both that
+    copyright notice and this permission notice appear in supporting
+    documentation, and that the name NCR not be used in advertising
+    or publicity pertaining to distribution of the software without specific,
+    written prior permission.  NCR makes no representations about the
+    suitability of this software for any purpose.  It is provided "as is"
+    without express or implied warranty.
+
+    NCR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+    INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN
+    NO EVENT SHALL NCR BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+    CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+    OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+    NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+    CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+Files: IMdkit/lib/i18nIMProto.c
+Copyright:  1993-1994 Digital Equipment Corporation, Maynard, Massachusetts,
+            1993-1994 Hewlett-Packard Company
+            1994-1995 Sun Microsystems, Inc.
+Licence: other-BSD
+                            All Rights Reserved
+
+    Permission to use, copy, modify, and distribute this software and its 
+    documentation for any purpose and without fee is hereby granted, 
+    provided that the above copyright notice appear in all copies and that
+    both that copyright notice and this permission notice appear in 
+    supporting documentation, and that the names of Digital or MIT not be
+    used in advertising or publicity pertaining to distribution of the
+    software without specific, written prior permission.  
+
+    DIGITAL AND HEWLETT-PACKARD COMPANY DISCLAIMS ALL WARRANTIES WITH REGARD
+    TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+    FITNESS, IN NO EVENT SHALL DIGITAL AND HEWLETT-PACKARD COMPANY BE LIABLE
+    FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
+    RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
+    CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+    CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+      Author: Hiroyuki Miyamoto  Digital Equipment Corporation
+                                 miyamoto@jrd.dec.com
+              Hidetoshi Tajima(tajima@Eng.Sun.COM) Sun Microsystems, Inc.
+
+        This version tidied and debugged by Steve Underwood May 1999
+
+Files: debian/*
+Copyright:  2008 Wen-Yen Chuang <caleb@calno.com>
+Licence: GPL-2
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License version 2 as
+    published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in '/usr/share/common-licenses/GPL-2'

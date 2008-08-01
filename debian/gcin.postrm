@@ -1,0 +1,8 @@
+#!/bin/sh
+# postrm script for gcin
+
+set -e
+
+#DEBHELPER# 
+
+exit 0

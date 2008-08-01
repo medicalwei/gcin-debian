@@ -1,0 +1,4 @@
+fix_FTBFS_on_64_bit_and_paths.diff
+fix_QT_detection.diff
+fix_rpath_and_icon_path.diff
+rename_README_for_Chinese.diff

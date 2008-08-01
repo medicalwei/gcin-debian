@@ -1,0 +1,10 @@
+XIM=gcin
+XIM_PROGRAM=/usr/bin/gcin
+XIM_ARGS=
+GTK_IM_MODULE=gcin
+if [ -e /usr/lib/qt3/plugins/inputmethods/libqgcin.so ]; then
+    QT_IM_MODULE=gcin
+else
+    QT_IM_MODULE=xim
+fi
+DEPENDS=

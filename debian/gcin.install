@@ -1,0 +1,5 @@
+debian/tmp/usr/bin usr
+debian/tmp/usr/lib/gcin usr/lib
+debian/tmp/usr/share/[aglmp]* usr/share
+debian/im-switch/gcin etc/X11/xinit/xinput.d
+debian/gcin.xpm usr/share/pixmaps

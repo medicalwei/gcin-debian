@@ -1,0 +1,22 @@
+--- gcin-1.4.0.orig/gcin-setup-tab.c
++++ gcin-1.4.0/gcin-setup-tab.c
+@@ -934,7 +934,7 @@
+ 
+ static void cb_help()
+ {
+-  utf8_editor(DOC_DIR"/README");
++  utf8_editor(DOC_DIR"/README.zh_TW");
+ }
+ 
+ 
+--- gcin-1.3.4.orig/gcin-setup.c
++++ gcin-1.3.4/gcin-setup.c
+@@ -207,7 +207,7 @@
+ 
+ static void cb_help()
+ {
+-  utf8_editor(DOC_DIR"/README");
++  utf8_editor(DOC_DIR"/README.zh_TW");
+ }
+ 
+ static GtkWidget *spinner_gcin_font_size, *spinner_gcin_font_size_tsin_presel,

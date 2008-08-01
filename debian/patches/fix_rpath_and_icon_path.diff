@@ -1,0 +1,63 @@
+--- gcin-1.3.9.orig/Makefile
++++ gcin-1.3.9/Makefile
+@@ -11,14 +11,16 @@
+ GCIN_SO= gcin1.so gcin2.so
+ 
+ OBJS=gcin.o eve.o util.o gcin-conf.o gcin-settings.o locale.o gcin-icon.o \
+-     gcin-switch.o gcin-exec-script.o $(GCIN_SO) pho-play.o \
++     gcin-switch.o gcin-exec-script.o pho-play.o win-sym.o intcode.o \
++     win-int.o phrase.o win-inmd-switch.o win-message.o pinyin.o \
++     win-pho-near.o win-kbm.o t2s-lookup.o \
+      $(gcin_pho_o) $(gcin_gtab_o) gcin-common.o
+ 
+ OBJS_TSLEARN=tslearn.o util.o gcin-conf.o pho-util.o tsin-util.o gcin-send.o pho-sym.o \
+              table-update.o locale.o gcin-settings.o gcin-common.o
+ OBJS_JUYIN_LEARN=juyin-learn.o locale.o util.o pho-util.o pho-sym.o \
+                  gcin-settings.o gcin-conf.o table-update.o pinyin.o
+-OBJS_sim2trad=sim2trad.o util.o gcin2.so locale.o gcin-conf.o
++OBJS_sim2trad=sim2trad.o util.o t2s-lookup.o locale.o gcin-conf.o
+ OBJS_phod2a=phod2a.o pho-util.o gcin-conf.o pho-sym.o table-update.o pho-dbg.o locale.o \
+              gcin-settings.o util.o
+ OBJS_tsa2d32=tsa2d32.o gcin-send.o util.o pho-sym.o gcin-conf.o locale.o pho-lookup.o
+@@ -95,7 +97,6 @@
+ 	if [ $(QT_IM) = 'Y' ]; then $(MAKE) -C qt-im; fi
+ 
+ gcin:   $(OBJS) $(IMdkitLIB) $(im-srv)
+-	LD_RUN_PATH=.:$(gcinlibdir) \
+ 	$(CC) $(EXTRA_LDFLAGS) -o $@ $(OBJS) $(IMdkitLIB) $(im-srv) -lXtst $(LDFLAGS) -L/usr/X11R6/lib
+ 	rm -f core.*
+ 	ln -sf $@ $@.test
+@@ -107,7 +108,6 @@
+ 	$(CC) -o $@ $(OBJS_JUYIN_LEARN) $(LDFLAGS)
+ 	rm -f core.*
+ sim2trad:        $(OBJS_sim2trad)
+-	LD_RUN_PATH=.:$(gcinlibdir) \
+ 	$(CC) -o $@ $(OBJS_sim2trad) $(LDFLAGS)
+ 	rm -f core.*
+ trad2sim:	sim2trad
+@@ -192,14 +192,11 @@
+ ibin:
+ 	install $(PROGS) $(bindir); \
+ 	rm -f $(bindir)/trad2sim; ln -sf sim2trad $(bindir)/trad2sim
+-	install $(GCIN_SO) $(gcinlibdir)
+ 
+ install:
+-	install -d $(datadir)/icons
+-	install gcin.png $(datadir)/icons
++	install -d $(datadir)/pixmaps
++	install -m 644 gcin.png $(datadir)/pixmaps
+ 	$(MAKE) -C icons install
+-	install -d $(gcinlibdir)
+-	install $(GCIN_SO) $(gcinlibdir)
+ 	install -d $(bindir)
+ 	$(MAKE) -C data install
+ 	$(MAKE) -C im-client install
+@@ -214,7 +211,7 @@
+ 	else \
+ 	   install -d $(DOC_DIR_i); \
+ 	   install -m 644 README Changelog $(DOC_DIR_i); \
+-	   install -s $(PROGS) $(bindir); \
++	   install $(PROGS) $(bindir); \
+ 	   rm -f $(bindir)/trad2sim; ln -sf sim2trad $(bindir)/trad2sim; \
+ 	fi
+ 	$(MAKE) -C scripts install
