@@ -1,0 +1,47 @@
+#!/bin/bash
+
+if [ -z "$1" -o -z "$2" ]; then
+  echo "please specify gcin_table_dir gcin_bin_dir"
+fi
+
+cd
+
+if [ ! -d .gcin ]; then
+  mkdir .gcin
+fi
+
+if [ ! -d .gcin/config ]; then
+  mkdir .gcin/config
+fi
+
+cd ~/.gcin
+
+if [ -f tsin -a ! -f tsin32 ]; then
+  echo "covert to new tsin32"
+  $2/tsd2a tsin > tmpfile
+  $2/tsa2d32 tmpfile
+fi
+
+diff1=''
+diff tsin-1.src $1/tsin-1.src >& /dev/null
+if [ $? != 0 ]; then
+diff1='Y'
+fi
+
+
+if [ ! -f tsin-1.src -o -n "$diff1" ]; then
+  echo "merge tsin-1.src"
+  cp $1/tsin-1.src .
+  $2/tsd2a32 tsin32 > tmpfile
+  cat tsin-1.src >> tmpfile
+  $2/tsa2d32 tmpfile
+fi
+
+cd $1 || echo "$1 is not a gcin table dir"
+
+for i in pho.tab pho-huge.tab tsin* symbol-table phrase.table
+do
+  if [ ! -f ~/.gcin/$i ]; then
+     cp $i ~/.gcin
+  fi
+done

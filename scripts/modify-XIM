@@ -1,0 +1,129 @@
+#!/bin/bash
+
+QT_IM="xim"
+if [ -f /usr/lib/qt3/plugins/inputmethods/libqgcin.so ]; then
+  QT_IM="gcin"
+fi
+
+xinitdir=/etc/X11/xinit
+ximorig=XIM.orig.gcin
+if  [ -d $xinitdir ]; then
+  cd $xinitdir
+  if [ -f XIM ]; then
+    [ -f $ximorig ] || mv XIM $ximorig
+
+    sed -e "s/xcin/gcin/g" < $ximorig | sed -e "s/scim/gcin/g" > XIM
+    chmod 755 XIM
+  # RH9, contributed by xacid.bbs@wretch.twbbs.org
+  elif [ -f xinitrc.d/xinput ]; then
+    cd xinitrc.d
+    if [ ! -f xinput.orig.gcin ]; then
+      mv xinput xinput.orig.gcin
+    fi
+    sed -e "s/XIM_PROGRAM=xcin/XIM_PROGRAM=gcin/" < xinput.orig.gcin > \
+      xinput
+    chmod 755 xinput
+  # others
+  else
+    echo "Please modify your XIM settings manually"
+  fi
+else
+  echo "Directory $xinitdir does not exist"
+fi
+
+cd /etc/sysconfig
+
+## below is for Mandrake 10.1
+[ -f i18n.orig.gcin ] || mv i18n i18n.orig.gcin
+
+sed -e "s/im=SCIM/im=gcin/" < i18n.orig.gcin |
+sed -e "s/scim -d/gcin/" | \
+sed -e "s/GTK_IM_MODULE=scim/GTK_IM_MODULE=gcin/" | \
+sed -e "s/QT_IM_MODULE=.*/QT_IM_MODULE=$QT_IM/" > i18n
+
+
+#add GTK_IM_MODULE=gcin if necessary
+egrep '^GTK_IM_MODULE=gcin' i18n >& /dev/null
+if [ $? != 0 ]; then
+  echo "GTK_IM_MODULE=gcin" >> i18n
+fi
+
+egrep '^QT_IM_MODULE' i18n
+if [ $? != 0 ]; then
+  echo "QT_IM_MODULE=$QT_IM" >> i18n
+fi
+
+egrep '^XIM_PROGRAM=gcin' i18n >& /dev/null
+if [ $? != 0 ]; then
+  echo "XIM_PROGRAM=gcin" >> i18n
+fi
+
+#egrep '^XIM=gcin' i18n >& /dev/null
+#if [ $? != 0 ]; then
+#  echo "XIM=gcin" >> i18n
+#fi
+
+#egrep '^XMODIFIERS=@im=gcin' i18n >& /dev/null
+#if [ $? != 0 ]; then
+#  echo "XMODIFIERS=@im=gcin" >> i18n
+#fi
+
+
+cd /usr/X11R6/bin
+grep -i scim crxvt >& /dev/null
+if [ $? = 0 ]; then
+  [ -f crxvt.orig.cin ] || mv crxvt crxvt.orig.cin
+
+  sed -e "s/XIM=SCIM/#XIM=xim/" < crxvt.orig.cin > crxvt
+  chmod 755 crxvt
+fi
+
+# Mandrake 10.0 & 9.2 have this problem.
+grep xcin-zh_TW crxvt >& /dev/null
+if [ $? = 0 ]; then
+  [ -f crxvt.orig.cin ] || mv crxvt crxvt.orig.cin
+
+  sed -e "s/XIM=xcin-zh_TW/#XIM=xcin/" < crxvt.orig.cin > crxvt
+  chmod 755 crxvt
+fi
+
+
+# below is for Fedora Core 3
+cd /etc/alternatives
+if [ -f xinput-zh_TW ]; then
+  [ -f xinput-zh_TW.orig.gcin ] || mv xinput-zh_TW xinput-zh_TW.orig.gcin
+  cat > xinput-zh_TW << __END
+XIM=gcin
+XIM_PROGRAM=gcin
+XIM_ARGS=""
+GTK_IM_MODULE=gcin
+__END
+fi
+
+# install gtk IM module
+
+# SUSE
+PATH=$PATH:/opt/gnome/bin
+
+for i in gtk-query-immodules-2.0 gtk-query-immodules-2.0-32 gtk-query-immodules-2.0-64
+do
+  which $i >& /dev/null
+  if [ $? = 0 ]; then
+    GTK_QUERY_IM=$i
+    break
+  fi
+done
+
+if [ $GTK_QUERY_IM ]; then
+  GTK_ETC=/etc/gtk-2.0
+  if [ ! -d $GTK_ETC ]; then
+    GTK_ETC=/etc/opt/gnome/gtk-2.0
+  fi
+  cd $GTK_ETC
+
+  imlib=gtk.immodules.lib
+  [ -f gtk.immodules.lib64 ] &&  imlib=gtk.immodules.lib64
+
+  $GTK_QUERY_IM > $imlib
+  cp gtk.immodules.lib gtk.immodules
+fi

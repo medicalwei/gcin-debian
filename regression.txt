@@ -1,0 +1,29 @@
+cj:   yhmbc, then 2, should be able to select
+      yhmbc, type a, should put the first one automatically and enter 'a'
+
+      turn off pre_select, disp_partial_match, press_full_auto_send    afmbc -> should be able to select
+
+
+
+
+dayi: 6 keypad6
+
+hsu.kbm: v吃  c失  a疵  ld兒   mj按  jel經   jem間  kgf可  gxij怪  nef你   mef米  hwf好  hnf很  hid還 NYF哪  NYD拿  MYS嗎
+
+
+tsin:
+	怎麼走
+	鹹豬  select 鹹豬肉、鹹豬手
+	試試新的 開始用 是為什麼
+	有試過XXXXXX嗎？
+	由於雨水是集中一個角落流出來
+	排便時流血
+	實驗中只有
+	賣一種
+	惜提。
+	晚上有新光三越
+	自己所用
+	
+
+簡易:
+       aa space -> should be able to skip to next page

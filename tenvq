@@ -1,0 +1,14 @@
+#!/bin/bash
+export PATH=.:$PATH
+export GCIN_TABLE_DIR=./data
+echo "GCIN_TABLE_DIR=$GCIN_TABLE_DIR"
+export GCIN_IM_CLIENT_NO_AUTO_EXEC=
+pkill gcin.test
+export LC_CTYPE=zh_TW.Big5
+export XMODIFIERS=@im=gcin_test
+export QT_IM_MODULE=gcin
+./gcin.test &
+gcinpid=$!
+sleep 1
+export LD_PRELOAD=./im-client/libgcin-im-client.so
+kedit

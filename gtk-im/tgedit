@@ -1,0 +1,9 @@
+#/bin/sh -f
+
+#export LC_ALL=zh_TW.Big5
+export XMODIFIERS=@im=gcin
+export LD_LIBRARY_PATH="../im-client"
+
+export LD_PRELOAD=./im-gcin.so
+gedit
+#valgrind gedit

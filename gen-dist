@@ -1,0 +1,31 @@
+if [ -d /root2/$HOME/gcin ]; then
+  rm -fr /root2/$HOME/gcin
+  cp -a ~/gcin /root2/$HOME
+  cp ~/.gcin/tsin32 /root2/$HOME/.gcin
+fi
+
+GCIN_VERSION="gcin-`cat VERSION.gcin`"
+rm -f tags core.*
+cd ..
+rm -fr $GCIN_VERSION
+cp -a gcin $GCIN_VERSION
+cd $GCIN_VERSION
+make clean
+cd ..
+
+/usr/local/bin/tsd2a32 -nousecount ~/.gcin/tsin32 > $GCIN_VERSION/data/tsin.src
+tar cvfj $GCIN_VERSION.tar.bz2 $GCIN_VERSION
+
+cd gcin; ./configure
+
+cd ~/rpm/SOURCES
+
+if [ ! -f $GCIN_VERSION.tar.bz2 ]; then
+  ln -sf ~/$GCIN_VERSION.tar.bz2 .
+fi
+
+cd
+
+export GCIN_USE_XIM=Y
+
+rpm -ba gcin.spec
