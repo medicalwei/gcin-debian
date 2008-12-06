@@ -1,3 +1,14 @@
+gcin (1.4.2-2) unstable; urgency=low
+
+  * Upload to unstable
+  * [ef36b0e] New maintainer (Closes: #505501)
+  * [4861a1e] Replace dh_clean -k with dh_prep.
+  * [5b60cca] Add Vcs-Git and Vcs-Browser field.
+  * [5dafdd8] Add README.source
+  * [63892e6] Add patch ld_only_link_needed.diff
+
+ -- Kanru Chen <koster@debian.org.tw>  Sat, 06 Dec 2008 14:58:33 +0800
+
 gcin (1.4.2-1) experimental; urgency=low
 
   * New upstream release
