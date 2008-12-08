@@ -1,5 +1,13 @@
---- gcin-1.4.0.orig/gcin-setup-tab.c
-+++ gcin-1.4.0/gcin-setup-tab.c
+Rename README file.
+---
+ gcin-setup-tab.c |    2 +-
+ gcin-setup.c     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+Index: gcin/gcin-setup-tab.c
+===================================================================
+--- gcin.orig/gcin-setup-tab.c	2008-12-08 16:53:10.334679146 +0800
++++ gcin/gcin-setup-tab.c	2008-12-08 16:53:52.532679087 +0800
 @@ -934,7 +934,7 @@
  
  static void cb_help()
@@ -9,8 +17,10 @@
  }
  
  
---- gcin-1.3.4.orig/gcin-setup.c
-+++ gcin-1.3.4/gcin-setup.c
+Index: gcin/gcin-setup.c
+===================================================================
+--- gcin.orig/gcin-setup.c	2008-12-08 16:53:10.329679417 +0800
++++ gcin/gcin-setup.c	2008-12-08 16:53:52.532679087 +0800
 @@ -207,7 +207,7 @@
  
  static void cb_help()

@@ -1,7 +1,13 @@
+Add -Wl,--as-needed
+---
+ configure      |    5 +++--
+ qt-im/Makefile |    2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
 Index: gcin/configure
 ===================================================================
---- gcin.orig/configure	2008-12-06 14:28:01.589493548 +0800
-+++ gcin/configure	2008-12-06 14:28:01.667493782 +0800
+--- gcin.orig/configure	2008-12-08 16:53:52.505679489 +0800
++++ gcin/configure	2008-12-08 16:53:52.541679465 +0800
 @@ -155,9 +155,10 @@
  
  OPTFLAGS="-g"
@@ -25,8 +31,8 @@ Index: gcin/configure
  echo "GCIN_OGG_DIR=\$(datadir_r)/gcin/ogg" >> config.mak
 Index: gcin/qt-im/Makefile
 ===================================================================
---- gcin.orig/qt-im/Makefile	2008-12-06 14:28:01.608493456 +0800
-+++ gcin/qt-im/Makefile	2008-12-06 14:29:25.788493516 +0800
+--- gcin.orig/qt-im/Makefile	2008-12-08 16:53:52.514679448 +0800
++++ gcin/qt-im/Makefile	2008-12-08 16:53:52.541679465 +0800
 @@ -10,7 +10,7 @@
  CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT_THREAD_SUPPORT -DQT_PLUGIN -DQT_SHARED -DQT_NO_DEBUG
  OBJS=qgcininputcontextplugin.o qgcininputcontextplugin_my.o qgcininputcontext.o qgcininputcontext_x11.o

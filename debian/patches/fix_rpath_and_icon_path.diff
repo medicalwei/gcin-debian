@@ -1,5 +1,12 @@
---- gcin-1.3.9.orig/Makefile
-+++ gcin-1.3.9/Makefile
+Fix rpath.
+---
+ Makefile |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
+
+Index: gcin/Makefile
+===================================================================
+--- gcin.orig/Makefile	2008-12-08 16:53:10.419679147 +0800
++++ gcin/Makefile	2008-12-08 16:53:52.523679896 +0800
 @@ -11,14 +11,16 @@
  GCIN_SO= gcin1.so gcin2.so
  

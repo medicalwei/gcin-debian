@@ -1,3 +1,4 @@
+Fix gdm crashes
 ---
  gtk-im/imgcin.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
