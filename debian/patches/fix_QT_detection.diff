@@ -5,9 +5,9 @@ Fix qt detection
 
 Index: gcin/qt-im/Makefile
 ===================================================================
---- gcin.orig/qt-im/Makefile	2008-12-08 16:53:10.530679458 +0800
-+++ gcin/qt-im/Makefile	2008-12-08 17:00:30.384679380 +0800
-@@ -6,7 +6,7 @@
+--- gcin.orig/qt-im/Makefile	2008-12-08 22:01:37.180313262 +0800
++++ gcin/qt-im/Makefile	2008-12-08 22:41:51.114313481 +0800
+@@ -7,7 +7,7 @@
  else
  	IMMODULES_LOCAL=/usr/lib/$(QTIM)
  endif
@@ -16,7 +16,7 @@ Index: gcin/qt-im/Makefile
  CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT_THREAD_SUPPORT -DQT_PLUGIN -DQT_SHARED -DQT_NO_DEBUG
  OBJS=qgcininputcontextplugin.o qgcininputcontextplugin_my.o qgcininputcontext.o qgcininputcontext_x11.o
  .SUFFIXES:	.c .cpp .a .so .E .h
-@@ -18,7 +18,7 @@
+@@ -19,7 +19,7 @@
  .cpp.E:
  	$(CXX) -E $(CFLAGS) $(INCS) $< > $@
  .h.o:

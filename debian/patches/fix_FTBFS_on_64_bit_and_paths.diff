@@ -5,9 +5,9 @@ Fix 64bit builds
 
 Index: gcin/configure
 ===================================================================
---- gcin.orig/configure	2008-12-08 16:53:10.669679144 +0800
-+++ gcin/configure	2008-12-08 17:00:30.363679709 +0800
-@@ -107,14 +107,11 @@
+--- gcin.orig/configure	2008-12-08 22:01:37.115313292 +0800
++++ gcin/configure	2008-12-08 22:40:59.228314107 +0800
+@@ -107,12 +107,9 @@
  fi
  
  LIB='lib'
@@ -16,14 +16,21 @@ Index: gcin/configure
 -fi
  
  QT_IM='N'
- for i in qt3 qt4
- do
--  QT_IM_DIR=/usr/lib/$i/plugins/$LIB/inputmethods
-+  QT_IM_DIR=/usr/lib/$i/plugins/inputmethods
-   echo "testing if you have QT_IM_MODULE dir:$QT_IM_DIR support"
-   if [ -d  $QT_IM_DIR ]; then
-     QT_IM='Y'
-@@ -184,11 +181,11 @@
+-QT_IM_DIR=/usr/lib/qt3/plugins/lib/inputmethods
++QT_IM_DIR=/usr/lib/qt3/plugins/inputmethods
+ echo "testing if you have qt3 support"
+ if [ -d  $QT_IM_DIR ]; then
+   QT_IM='Y'
+@@ -126,7 +123,7 @@
+ 
+ 
+ QT4_IM='N'
+-QT4_IM_DIR=/usr/lib/qt4/plugins/lib/inputmethods
++QT4_IM_DIR=/usr/lib/qt4/plugins/inputmethods
+ echo "testing if you have qt4 support"
+ if [ -d  $QT4_IM_DIR ]; then
+   QT4_IM='Y'
+@@ -199,11 +196,11 @@
  echo "GCIN_SCRIPT_DIR=\$(datadir_r)/gcin/script" >> config.mak
  echo "GCIN_SCRIPT_DIR_i=\$(datadir)/gcin/script" >> config.mak
  echo "OPTFLAGS=$OPTFLAGS" >> config.mak

@@ -6,9 +6,9 @@ Add -Wl,--as-needed
 
 Index: gcin/configure
 ===================================================================
---- gcin.orig/configure	2008-12-08 16:53:52.505679489 +0800
-+++ gcin/configure	2008-12-08 16:53:52.541679465 +0800
-@@ -155,9 +155,10 @@
+--- gcin.orig/configure	2008-12-08 22:46:57.527313362 +0800
++++ gcin/configure	2008-12-08 22:55:25.985314891 +0800
+@@ -170,9 +170,10 @@
  
  OPTFLAGS="-g"
  if [ $prefix = /usr ]; then
@@ -16,24 +16,15 @@ Index: gcin/configure
 +  OPTFLAGS="-g -O2"
  fi
  
-+LDFLAGS="-Wl,--as-needed -lX11 $GTKLDFLAGS"
++LDFLAGS="-Wl,--as-needed -lX11"
  
  echo "CC=gcc" > config.mak
  echo "MAKE=$MAKE" >> config.mak
-@@ -173,7 +174,7 @@
- echo "gcinlibdir=\$(libdir)/gcin" >> config.mak
- echo "includedir=\$(DESTDIR)$includedir" >> config.mak
- 
--echo "LDFLAGS=$GTKLDFLAGS" >> config.mak
-+echo "LDFLAGS=$LDFLAGS" >> config.mak
- echo "GCIN_VERSION=$GCIN_VERSION" >> config.mak
- echo "GCIN_TABLE_DIR=\$(datadir_r)/gcin/table" >> config.mak
- echo "GCIN_OGG_DIR=\$(datadir_r)/gcin/ogg" >> config.mak
 Index: gcin/qt-im/Makefile
 ===================================================================
---- gcin.orig/qt-im/Makefile	2008-12-08 16:53:52.514679448 +0800
-+++ gcin/qt-im/Makefile	2008-12-08 16:53:52.541679465 +0800
-@@ -10,7 +10,7 @@
+--- gcin.orig/qt-im/Makefile	2008-12-08 22:46:59.128313753 +0800
++++ gcin/qt-im/Makefile	2008-12-08 22:54:37.620313466 +0800
+@@ -11,7 +11,7 @@
  CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT_THREAD_SUPPORT -DQT_PLUGIN -DQT_SHARED -DQT_NO_DEBUG
  OBJS=qgcininputcontextplugin.o qgcininputcontextplugin_my.o qgcininputcontext.o qgcininputcontext_x11.o
  .SUFFIXES:	.c .cpp .a .so .E .h
