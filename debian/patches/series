@@ -3,3 +3,4 @@ fix_QT_detection.diff
 fix_rpath_and_icon_path.diff
 rename_README_for_Chinese.diff
 ld_only_link_needed.diff
+fix_gdm_crash_498619.diff

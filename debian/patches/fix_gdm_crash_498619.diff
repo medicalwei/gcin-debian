@@ -1,0 +1,17 @@
+---
+ gtk-im/imgcin.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: gcin/gtk-im/imgcin.c
+===================================================================
+--- gcin.orig/gtk-im/imgcin.c	2008-12-08 16:55:26.065681773 +0800
++++ gcin/gtk-im/imgcin.c	2008-12-08 16:55:34.660680176 +0800
+@@ -27,7 +27,7 @@
+   N_("gcin Input Method"),            /* Human readable name */
+   GETTEXT_PACKAGE,		   /* Translation domain */
+   GTK_LOCALEDIR,		   /* Dir for bindtextdomain (not strictly needed for "gtk+") */
+-  "*"		           /* Languages for which this module is the default */
++  ""		           /* Languages for which this module is the default */
+ //  "zh_TW"		           /* Languages for which this module is the default */
+ };
+ 
