@@ -6,8 +6,8 @@ Add -Wl,--as-needed
 
 Index: gcin/configure
 ===================================================================
---- gcin.orig/configure	2008-12-08 22:46:57.527313362 +0800
-+++ gcin/configure	2008-12-08 22:55:25.985314891 +0800
+--- gcin.orig/configure	2008-12-08 23:19:50.052314387 +0800
++++ gcin/configure	2008-12-08 23:21:49.728313645 +0800
 @@ -170,9 +170,10 @@
  
  OPTFLAGS="-g"
@@ -22,8 +22,8 @@ Index: gcin/configure
  echo "MAKE=$MAKE" >> config.mak
 Index: gcin/qt-im/Makefile
 ===================================================================
---- gcin.orig/qt-im/Makefile	2008-12-08 22:46:59.128313753 +0800
-+++ gcin/qt-im/Makefile	2008-12-08 22:54:37.620313466 +0800
+--- gcin.orig/qt-im/Makefile	2008-12-08 23:19:53.632313851 +0800
++++ gcin/qt-im/Makefile	2008-12-08 23:21:49.728313645 +0800
 @@ -11,7 +11,7 @@
  CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT_THREAD_SUPPORT -DQT_PLUGIN -DQT_SHARED -DQT_NO_DEBUG
  OBJS=qgcininputcontextplugin.o qgcininputcontextplugin_my.o qgcininputcontext.o qgcininputcontext_x11.o
@@ -33,3 +33,16 @@ Index: gcin/qt-im/Makefile
  -lXrender -lXrandr  -lXft -lfontconfig -lgcin-im-client \
  -lXext -lX11 -lm -lSM -lICE -ldl -lpthread
  all:	libqgcin.so
+Index: gcin/qt4-im/Makefile
+===================================================================
+--- gcin.orig/qt4-im/Makefile	2008-12-08 23:21:59.171313496 +0800
++++ gcin/qt4-im/Makefile	2008-12-08 23:22:14.792314958 +0800
+@@ -14,7 +14,7 @@
+ -DQT_IMMODULE -DPIC
+ OBJS= moc_gcin-qt.o gcin-qt.o im-gcin-qt.o gcin-imcontext-qt.o
+ .SUFFIXES:	.c .cpp .a .so .E .h
+-LDFLAGS=-L/usr/lib/$(QT)/$(LIB) -L/usr/X11R6/$(LIB) -L../im-client -lQtGui -lQtCore -lmng -ljpeg -lpng -lz \
++LDFLAGS=-Wl,--as-need -L/usr/lib/$(QT)/$(LIB) -L/usr/X11R6/$(LIB) -L../im-client -lQtGui -lQtCore -lmng -ljpeg -lpng -lz \
+ -lXrender -lXrandr  -lXft -lfontconfig -lgcin-im-client \
+ -lXext -lX11 -lm -lSM -lICE -ldl -lpthread
+ all:    im-gcin.so

@@ -5,8 +5,8 @@ Fix qt detection
 
 Index: gcin/qt-im/Makefile
 ===================================================================
---- gcin.orig/qt-im/Makefile	2008-12-08 22:01:37.180313262 +0800
-+++ gcin/qt-im/Makefile	2008-12-08 22:41:51.114313481 +0800
+--- gcin.orig/qt-im/Makefile	2008-12-08 23:27:25.641313514 +0800
++++ gcin/qt-im/Makefile	2008-12-08 23:34:09.102313613 +0800
 @@ -7,7 +7,7 @@
  else
  	IMMODULES_LOCAL=/usr/lib/$(QTIM)
@@ -25,3 +25,33 @@ Index: gcin/qt-im/Makefile
  	$(CXX) -c -pipe $(CXXFLAGS) $(INCS) $<_moc.cpp -o $@
  
  libqgcin.so: $(OBJS)
+Index: gcin/qt4-im/Makefile
+===================================================================
+--- gcin.orig/qt4-im/Makefile	2008-12-08 23:27:25.635313518 +0800
++++ gcin/qt4-im/Makefile	2008-12-08 23:34:35.415314740 +0800
+@@ -1,13 +1,13 @@
+ include ../config.mak
+ QT=qt4
+-QTIM=$(QT)/plugins/lib/inputmethods
++QTIM=$(QT)/plugins/inputmethods
+ IMMODULES=$(libdir)/$(QTIM)
+ ifeq ($(LIB), lib64)
+-	IMMODULES_LOCAL=/usr/lib/qt4/plugins/lib64/inputmethods
++	IMMODULES_LOCAL=/usr/lib/$(QT)/plugins/lib64/inputmethods
+ else
+ 	IMMODULES_LOCAL=/usr/lib/$(QTIM)
+ endif
+-QTINC=/usr/lib/$(QT)/include
++QTINC=/usr/include/$(QT)
+ 
+ INCS=-I../im-client -I$(QTINC) -I/usr/include/X11 -I$(QTINC)/QtGui -I$(QTINC)/QtCore
+ CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT4 -DQT_SHARED \
+@@ -23,7 +23,7 @@
+ 	$(CXX) -E $(CFLAGS) $(INCS) $< > $@
+ 
+ moc_gcin-qt.cpp:	gcin-qt.h
+-	/usr/lib/$(QT)/bin/moc $< -o moc_gcin-qt.cpp
++	/usr/bin/moc-$(QT) $< -o moc_gcin-qt.cpp
+ 
+ im-gcin.so: $(OBJS)
+ 	export LD_RUN_PATH=$(gcinlibdir) ;\
