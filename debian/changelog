@@ -1,3 +1,10 @@
+gcin (1.4.3~pre11-1) UNRELEASED; urgency=low
+
+  * New upstream snapshot. 
+  * [a18995c] Refresh patches.
+
+ -- Kanru Chen <koster@debian.org.tw>  Mon, 08 Dec 2008 23:11:34 +0800
+
 gcin (1.4.2-2) unstable; urgency=low
 
   * Upload to unstable
