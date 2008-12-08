@@ -284,14 +284,15 @@ static void reload_data()
 {
   dbg("reload_data\n");
   load_setttings();
-  load_tsin_db();
+//  load_tsin_db();
   change_win0_style();
   change_win_gtab_style();
-  change_win_pho_style();
+//  change_win_pho_style();
   load_tab_pho_file();
   change_tsin_color();
   if (win_kbm_inited)
     update_win_kbm();
+  gcb_main();
 }
 
 void change_tsin_font_size();
@@ -309,7 +310,7 @@ static void change_font_size()
   change_win_sym_font_size();
   change_win0_style();
   change_win_gtab_style();
-  change_win_pho_style();
+//  change_win_pho_style();
 }
 
 static int xerror_handler(Display *d, XErrorEvent *eve)
@@ -536,6 +537,10 @@ int main(int argc, char **argv)
   }
 #endif
 
+#if 1
+  if (gcb_position)
+    gcb_main();
+#endif
 
   gtk_main();
 

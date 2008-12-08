@@ -43,7 +43,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,0755)
-%doc README Changelog AUTHORS
+%doc README.html Changelog.html AUTHORS
 %{_bindir}/*
 %{_includedir}/*
 %{_datadir}/gcin/*
@@ -55,6 +55,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/menu/*
 %{_libdir}/gtk-2.0/*
 %{_libdir}/qt3/plugins/inputmethods/*
+%{_libdir}/qt4/plugins/lib/inputmethods/*
 %{_libdir}/gcin/*
 
 %post

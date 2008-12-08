@@ -27,7 +27,6 @@ int gtab_capslock_in_eng;
 int gtab_vertical_select;
 int gtab_unique_auto_send;
 int gtab_que_wild_card;
-int gtab_edit_buffer;
 
 int tsin_phrase_pre_select, tsin_tone_char_input;
 int tsin_capslock_upper;
@@ -55,6 +54,8 @@ int gcin_status_tray;
 #endif
 
 int pho_hide_row2, pho_in_row1;
+int gcb_position, gcb_position_x, gcb_position_y;
+
 
 int get_gcin_conf_int(char *name, int default_value);
 
@@ -97,7 +98,7 @@ void load_setttings()
 
   gtab_dup_select_bell = get_gcin_conf_int(GTAB_DUP_SELECT_BELL, 0);
   gtab_space_auto_first = get_gcin_conf_int(GTAB_SPACE_AUTO_FIRST, GTAB_space_auto_first_none);
-  gtab_auto_select_by_phrase = get_gcin_conf_int(GTAB_AUTO_SELECT_BY_PHRASE, 1);
+  gtab_auto_select_by_phrase = get_gcin_conf_int(GTAB_AUTO_SELECT_BY_PHRASE, 0);
   gtab_pre_select = get_gcin_conf_int(GTAB_PRE_SELECT, 1);
   gtab_press_full_auto_send = get_gcin_conf_int(GTAB_PRESS_FULL_AUTO_SEND, 1);
   gtab_disp_partial_match = get_gcin_conf_int(GTAB_DISP_PARTIAL_MATCH, 1);
@@ -112,7 +113,6 @@ void load_setttings()
   gtab_vertical_select = get_gcin_conf_int(GTAB_VERTICAL_SELECT, 0);
   gtab_unique_auto_send = get_gcin_conf_int(GTAB_UNIQUE_AUTO_SEND, 0);
   gtab_que_wild_card = get_gcin_conf_int(GTAB_QUE_WILD_CARD, 0);
-  gtab_edit_buffer = get_gcin_conf_int(GTAB_EDIT_BUFFER, 0);
 
   tsin_phrase_pre_select = get_gcin_conf_int(TSIN_PHRASE_PRE_SELECT, 1);
   tsin_chinese_english_toggle_key = get_gcin_conf_int(TSIN_CHINESE_ENGLISH_TOGGLE_KEY,
@@ -141,4 +141,9 @@ void load_setttings()
   get_gcin_conf_str(GCIN_WIN_COLOR_FG, &gcin_win_color_fg, "white");
   get_gcin_conf_str(GCIN_WIN_COLOR_BG, &gcin_win_color_bg, "#005BFF");
   gcin_win_color_use = get_gcin_conf_int(GCIN_WIN_COLOR_USE, 0);
+
+
+  gcb_position = get_gcin_conf_int(GCB_POSITION, 4);
+  gcb_position_x = get_gcin_conf_int(GCB_POSITION_X, 0);
+  gcb_position_y = get_gcin_conf_int(GCB_POSITION_Y, 0);
 }

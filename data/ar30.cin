@@ -4,6 +4,7 @@
 %endkey 1234567890
 %space_style 4
 #%keep_key_case
+%phase_auto_skip_endkey
 %keyname begin
 a 1-
 b 5v
@@ -25975,7 +25976,7 @@ IBM IBM
 linux Linux
 gnome GNOME
 kde KDE
-gaim gaim
+pidgin pidgin
 gcin gcin
 xmms xmms
 xine xine

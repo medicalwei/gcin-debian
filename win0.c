@@ -233,15 +233,20 @@ void get_char_index_xy(int index, int *rx, int *ry)
 #endif
 #if 0
   GtkWidget *widget = chars[index].label;
-#endif
-#if 1
+#else
   GtkWidget *widget = chars[index].vbox;
 #endif
 
-  gtk_widget_show(widget);
+  gtk_widget_show_all(widget);
+  gdk_flush();
 
   GtkRequisition sz;
   gtk_widget_size_request(widget, &sz);
+
+  wx=wy=0;
+
+  gtk_widget_translate_coordinates(widget, gwin0,
+         0, sz.height, &wx, &wy);
 
   gtk_widget_translate_coordinates(widget, gwin0,
          0, sz.height, &wx, &wy);
@@ -251,6 +256,11 @@ void get_char_index_xy(int index, int *rx, int *ry)
   int win_x, win_y;
 
   gtk_window_get_position(GTK_WINDOW(gwin0), &win_x, &win_y);
+  int win_xl, win_yl;
+  get_win_size(gwin0, &win_xl, &win_yl);
+
+  if (wx > win_xl)
+    wx = win_xl;
 
   *rx = win_x + wx;
   *ry = win_y + wy + ofs;
@@ -541,31 +551,6 @@ static void create_win0_gui()
   set_label_font_size(label_pho, gcin_font_size_tsin_pho_in);
   gtk_container_add (GTK_CONTAINER (button_pho), label_pho);
 
-#if 0
-  if (!pho_simple_win) {
-    GtkWidget *hbox_row2 = gtk_hbox_new (FALSE, 0);
-  //  gtk_container_set_border_width (GTK_CONTAINER (hbox_row2), 0);
-    gtk_box_pack_start (GTK_BOX (vbox_top), hbox_row2, FALSE, FALSE, 0);
-    GtkWidget *button_tsin = gtk_button_new_with_label("詞音");
-    g_signal_connect_swapped (GTK_OBJECT (button_tsin), "button_press_event",
-          G_CALLBACK (inmd_switch_popup_handler), NULL);
-    gtk_box_pack_start (GTK_BOX (hbox_row2), button_tsin, FALSE, FALSE, 0);
-
-
-    button_eng_ph = gtk_button_new_with_label("注");
-    gtk_box_pack_start (GTK_BOX (hbox_row2), button_eng_ph, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (button_eng_ph), "clicked",
-        G_CALLBACK (cb_clicked_eng_ph), (gpointer) NULL);
-
-    image_pin = gtk_image_new_from_file(file_pin_float);
-    GtkWidget *event_box_pin = gtk_event_box_new();
-    gtk_container_add (GTK_CONTAINER (event_box_pin), image_pin);
-    gtk_box_pack_start (GTK_BOX (hbox_row2), event_box_pin, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (event_box_pin), "button_press_event",
-        G_CALLBACK (cb_clicked_fixed_pos), (gpointer) NULL);
-  }
-#endif
-
   clr_in_area_pho_tsin();
 
   gtk_widget_show_all (gwin0);
@@ -587,6 +572,8 @@ void destroy_win0()
     return;
 
   gtk_widget_destroy(gwin0);
+  gwin0 = NULL;
+  top_bin = NULL;
 }
 
 void get_win0_geom()
@@ -600,16 +587,13 @@ gboolean tsin_has_input(), force_show;
 
 void show_win0()
 {
-//  dbg("show_win0\n");
   create_win0();
   create_win0_gui();
-//  set_currenet_IC_pin_image_pin();
 
   if (gcin_pop_up_win && !tsin_has_input() && !force_show)
     return;
 
   gtk_widget_show(gwin0);
-//  dbg("show_win0 b\n");
 
   show_win_sym();
   if (current_CS->b_raise_window) {
@@ -689,4 +673,15 @@ void change_tsin_color()
   create_cursor_attr();
 
   drawcursor();
+}
+
+
+void recreate_tsin_select_win();
+
+void recreate_tsin_win()
+{
+  destroy_win0();
+  create_win0();
+  create_win0_gui();
+  recreate_tsin_select_win();
 }

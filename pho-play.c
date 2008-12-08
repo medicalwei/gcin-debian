@@ -35,11 +35,11 @@ int pho_play(phokey_t key)
 
 void char_play(char *utf8)
 {
-  if (!phonetic_speak)
+  if (!phonetic_speak || !(utf8[0]&128))
     return;
 
   if (!ch_pho)
-    pho_load();
+    load_tab_pho_file();
 
   phokey_t phos[16];
   int phosN = utf8_pho_keys(utf8, phos);

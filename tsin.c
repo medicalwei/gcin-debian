@@ -7,6 +7,7 @@
 #include "pho.h"
 #include "tsin.h"
 #include "gcin-conf.h"
+#include "tsin-parse.h"
 
 static gint64 key_press_time;
 extern gboolean b_hsu_kbm;
@@ -63,7 +64,7 @@ gboolean pho_has_input();
 
 gboolean tsin_has_input()
 {
-  return c_len || pho_has_input() || !eng_ph;
+  return c_len || pho_has_input();
 }
 
 
@@ -513,7 +514,6 @@ static void put_b5_char(char *b5ch, phokey_t key)
    init_chpho_i(c_idx);
    bchcpy(chpho[c_idx].ch, b5ch);
    bchcpy(chpho[c_idx].och, b5ch);
-   bchcpy(chpho[c_idx].ph1ch, b5ch);
 
    disp_char_chbuf(c_idx);
 
@@ -545,14 +545,12 @@ static gboolean chpho_eq_pho(int idx, phokey_t *phos, int len)
 }
 
 
-static void get_sel_phrase()
+static void get_sel_phrase0(int selidx, gboolean eqlen)
 {
   int sti,edi,j;
   u_char len, mlen;
 
-  phrase_count = 0;
-
-  mlen=c_len-c_idx;
+  mlen=c_len-selidx;
 
   if (!mlen)
     return;
@@ -561,7 +559,7 @@ static void get_sel_phrase()
     mlen=MAX_PHRASE_LEN;
 
   phokey_t pp[MAX_PHRASE_LEN + 1];
-  extract_pho(c_idx, mlen, pp);
+  extract_pho(selidx, mlen, pp);
 
   if (!tsin_seek(pp, 2, &sti, &edi))
     return;
@@ -573,18 +571,37 @@ static void get_sel_phrase()
 
     load_tsin_entry(sti, &len, &usecount, stk, stch);
 
-    if (len > mlen || len==1) {
+    if (eqlen && len!=mlen || (!eqlen && len > mlen) || len==1) {
       sti++;
       continue;
     }
 
-    if (chpho_eq_pho(c_idx, stk, len)) {
+    if (chpho_eq_pho(selidx, stk, len)) {
       sellen[phrase_count]=len;
       utf8cpyN(selstr[phrase_count++], stch, len);
     }
 
     sti++;
   }
+}
+
+static void get_sel_phrase_end()
+{
+  int stidx = c_idx - 5;
+  if (stidx < 0)
+    stidx = 0;
+
+  phrase_count = 0;
+  int i;
+  for(i=stidx; i < c_len - 1; i++) {
+    get_sel_phrase0(i, TRUE);
+  }
+}
+
+static void get_sel_phrase()
+{
+  phrase_count = 0;
+  get_sel_phrase0(c_idx, FALSE);
 }
 
 static void get_sel_pho()
@@ -874,6 +891,9 @@ void tsin_set_eng_ch(int nmod)
   show_stat();
   drawcursor();
 
+  if (!eng_ph)
+    clrin_pho_tsin();
+
   show_button_pho(eng_ph);
 #if TRAY_ENABLED
   load_tray_icon();
@@ -1162,7 +1182,12 @@ static gboolean pre_punctuation(KeySym xkey)
     int c = p - shift_punc;
     phokey_t key=0;
 
-    return add_to_tsin_buf(chars[c], &key, 1);
+    if (c_len)
+      return add_to_tsin_buf(chars[c], &key, 1);
+    else {
+      send_text(chars[c]);
+      return 1;
+    }
   }
 
   return 0;
@@ -1193,9 +1218,7 @@ gint64 current_time();
 
 static void call_tsin_parse()
 {
-  TSIN_PARSE parse[MAX_PH_BF_EXT+1];
-  bzero(parse, sizeof(parse));
-  tsin_parse(parse);
+  tsin_parse();
   prbuf();
 }
 
@@ -1347,13 +1370,21 @@ int feedkey_pp(KeySym xkey, int kbstate)
    if (!eng_ph && !c_len && gcin_pop_up_win && xkey!=XK_Caps_Lock) {
      hide_win0();
 
-     if (caps_eng_tog && xkey>=' ' && xkey<0x7f) {
+     gboolean is_ascii = xkey>=' ' && xkey<0x7f;
+
+     if (caps_eng_tog && is_ascii) {
        case_inverse(&xkey, shift_m);
        send_ascii(xkey);
        return 1;
      }
-     else
-       return 0;
+     else {
+       if (tsin_half_full && is_ascii) {
+         send_text(half_char_to_full_char(xkey));
+         return 1;
+       }
+       else
+         return 0;
+     }
    }
 
    int o_sel_pho = sel_pho;
@@ -1539,10 +1570,10 @@ tab_phrase_end:
          close_selection_win();
          goto asc_char;
        }
-     case XK_Down:
-       if (!eng_ph && xkey == XK_space)
-           goto asc_char;
 
+       if (!eng_ph)
+           goto asc_char;
+     case XK_Down:
        if (!ityp3_pho && (typ_pho[0]||typ_pho[1]||typ_pho[2]) && xkey==XK_space) {
          ctyp=3;
          kno=0;
@@ -1560,7 +1591,11 @@ change_char:
          return 1;
 
        if (!sel_pho) {
-         get_sel_phrase();
+         if (c_idx==c_len) {
+           get_sel_phrase_end();
+         } else
+           get_sel_phrase();
+
          get_sel_pho();
          sel_pho=1;
          current_page = 0;
@@ -1622,38 +1657,24 @@ other_keys:
          int c=pp-phkbm.selkey;
          char *sel_text;
          int len = fetch_user_selection(c, &sel_text);
+         int cpsta = chpho[c_idx].psta;
+         int sel_idx = c_idx;
+         if (c_idx == c_len)
+           sel_idx = c_len - len;
 
-         if (len > 1) {
-           int cpsta = chpho[c_idx].psta;
-           if (cpsta >= 0)
-             set_chpho_ch(&chpho[c_idx], sel_text, len);
-           else
-             set_chpho_ch2(&chpho[c_idx], sel_text, len);
+         if (cpsta >= 0)
+           set_chpho_ch(&chpho[sel_idx], sel_text, len);
+         else
+           set_chpho_ch2(&chpho[sel_idx], sel_text, len);
 
-           chpho[c_idx].flag &= ~FLAG_CHPHO_PHRASE_VOID;
-           set_fixed(c_idx, len);
+//         chpho[c_idx].flag &= ~FLAG_CHPHO_PHRASE_VOID;
+         set_fixed(sel_idx, len);
 
-           call_tsin_parse();
+         call_tsin_parse();
 
-           if (c_idx + len == c_len) {
-             ph_sta = -1;
-             draw_ul(c_idx, c_len);
-           }
-         } else
-         if (len == 1) { // single chinese char
-           i= c_idx==c_len?c_idx-1:c_idx;
-           key=chpho[i].pho;
-           set_chpho_ch(&chpho[i], sel_text, 1);
-
-           if (i && chpho[i].psta == i-1 && !(chpho[i-1].flag & FLAG_CHPHO_FIXED)) {
-             set_chpho_ch(&chpho[i-1], chpho[i-1].ph1ch, 1);
-#if 0
-             chpho[i-1].flag |= FLAG_CHPHO_PHRASE_VOID;
-#endif
-           }
-
-           set_fixed(i, 1);
-           call_tsin_parse();
+         if (c_idx + len == c_len) {
+           ph_sta = -1;
+           draw_ul(c_idx, c_len);
          }
 
          if (len) {
@@ -1680,7 +1701,15 @@ other_keys:
    if (xkey > 0x7e && !key_pad)
      return 0;
 
+   if (key_pad && !c_len)
+     return 0;
+
    if (!eng_ph || typ_pho[0]!=BACK_QUOTE_NO && (shift_m || key_pad || !phkbm.phokbm[xkey][0].num)) {
+       if (eng_ph && !shift_m && strchr(hsu_punc, xkey) && !phkbm.phokbm[xkey][0].num) {
+         if (pre_punctuation_hsu(xkey))
+           return 1;
+       }
+
        if (key_pad)
          xkey = key_pad;
 asc_char:
@@ -1700,13 +1729,6 @@ asc_char:
           if (!(kbstate&LockMask) && ppp && !((ppp-ochars) & 1))
             xkey=*(ppp+1);
 
-#if 0
-          if (kbstate&LockMask && islower(xkey))
-            xkey-=0x20;
-          else
-            if (!(kbstate&LockMask) && isupper(xkey))
-              xkey+=0x20;
-#endif
         } else {
           if (!eng_ph && tsin_chinese_english_toggle_key == TSIN_CHINESE_ENGLISH_TOGGLE_KEY_CapsLock
               && gcin_capslock_lower) {
@@ -1716,15 +1738,25 @@ asc_char:
 
         if (xkey > 127)
           return 0;
+        char tstr[CH_SZ + 1];
+        bzero(tstr, sizeof(tstr));
 
         u_char tt=xkey;
-        shift_ins();
 
         if (tsin_half_full) {
-          bchcpy(chpho[c_idx].ch, half_char_to_full_char(xkey));
+          strcpy(tstr, half_char_to_full_char(xkey));
         } else {
-          chpho[c_idx].ch[0]=tt;
+          tstr[0] = tt;
         }
+
+        if (!c_len) {
+          send_text(tstr);
+          return 1;
+        }
+
+        shift_ins();
+
+        memcpy(chpho[c_idx].ch, tstr, CH_SZ);
 
         set_fixed(c_idx, 1);
         phokey_t tphokeys[32];
@@ -1749,8 +1781,6 @@ asc_char:
 
 
      // for hsu & et26
-     if (strchr(hsu_punc, xkey) && !phkbm.phokbm[xkey][0].num && typ_pho[0]!=BACK_QUOTE_NO)
-       return pre_punctuation_hsu(xkey);
 
      if (xkey >= 'A' && xkey <='Z' && typ_pho[0]!=BACK_QUOTE_NO)
        xkey+=0x20;
@@ -1838,6 +1868,7 @@ llll2:
 
      ii=idx_pho[vv].start;
      start_idx=ii;
+     stop_idx = idx_pho[vv+1].start;
 #if 0
      printf("%x %x %d vv:%d idxnum_pho:%d-->", ttt, key, start_idx, vv, idxnum_pho);
      utf8_putchar(ch_pho[start_idx].ch);
@@ -1845,7 +1876,10 @@ llll2:
 #endif
    } /* pho */
 
-   put_b5_char(ch_pho[start_idx].ch, key);
+   if (!c_len && typ_pho[0]==BACK_QUOTE_NO && stop_idx - start_idx == 1)
+     send_text(ch_pho[start_idx].ch);  // it's ok since ,. are 3 byte
+   else
+     put_b5_char(ch_pho[start_idx].ch, key);
 
    call_tsin_parse();
 
@@ -1947,11 +1981,6 @@ restart:
 
        if (j < mdist)
          continue;
-#if 0
-       ch_pho_cpy(&chpho[ph_sta], pre_sel[i].str, pre_sel[i].phokey, mdist);
-       if (chpho[ph_sta].psta < 0)
-         set_chpho_ch2(&chpho[ph_sta], pre_sel[i].str, mdist);
-#endif
 
        int j;
        for(j=0;j < mdist; j++) {
