@@ -40,7 +40,6 @@ install: build
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
 	mkdir -p debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules
 	mv debian/tmp/usr/lib/gtk-2.0/immodules/* debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules/
-	mv debian/tmp/usr/share/doc/gcin/README debian/gcin/usr/share/doc/gcin/README.zh_TW
 
 binary-indep: build install
 
@@ -54,8 +53,7 @@ binary-arch: build install
 	dh_installmenu
 	dh_link
 	dh_strip
-	# /usr/bin/gcin-setup needs README.zh_TW uncompressed.
-	dh_compress --exclude=README.zh_TW
+	dh_compress
 	dh_fixperms
 	dh_makeshlibs -n
 	dh_installdeb
