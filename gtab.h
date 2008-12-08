@@ -1,6 +1,3 @@
-#define MAX_CIN_PHR (100*CH_SZ + 1)
-
-
 
 typedef enum {
   GTAB_space_auto_first_none=0,   // use the value set by .cin
@@ -29,6 +26,8 @@ typedef struct {
 enum {
   FLAG_KEEP_KEY_CASE=1,
   FLAG_GTAB_SYM_KBM=2, // auto close, auto switch to default input method
+  FLAG_PHRASE_AUTO_SKIP_ENDKEY=4,
+  FLAG_AUTO_SELECT_BY_PHRASE=8,
 };
 
 struct TableHead {

@@ -9,7 +9,6 @@ typedef struct {
   phokey_t pho;
   char ch[CH_SZ];
   char och[CH_SZ];
-  char ph1ch[CH_SZ]; // char selected by 1st pho
   u_char flag;
   char psta; // phrase start index
 } CHPHO;
@@ -28,16 +27,3 @@ void extract_pho(int chpho_idx, int plen, phokey_t *pho);
 gboolean tsin_seek(phokey_t *pho, int plen, int *r_sti, int *r_edi);
 void load_tsin_entry(int idx, char *len, usecount_t *usecount, phokey_t *pho, u_char *ch);
 gboolean check_fixed_mismatch(int chpho_idx, char *mtch, int plen);
-
-typedef struct {
-  char len, flag;
-  u_char start;
-  char str[MAX_PHRASE_LEN * CH_SZ + 1];
-} TSIN_PARSE;
-
-enum {
-  FLAG_TSIN_PARSE_PHRASE = 1,
-  FLAG_TSIN_PARSE_PARTIAL = 2, //partial phrase
-};
-
-void tsin_parse(TSIN_PARSE out[]);

@@ -5,6 +5,10 @@
 #include <dirent.h>
 #include <libintl.h>
 
+char *gcb_pos[] = {
+  N_("關閉"), N_("左下"), N_("左上"), N_("右下"), N_("右上")
+};
+
 static GdkColor gcin_win_gcolor_fg,
                 gcin_win_gcolor_bg,
                 gcin_sel_key_gcolor,
@@ -30,6 +34,7 @@ static GtkWidget *check_button_gcin_eng_phrase_enabled,
                  *da_sel_key,
                  *label_win_color_test,
                  *opt_eng_ch_opts,
+                 *opt_gcb_pos,
                  *opt_im_toggle_keys,
                  *opt_kbm_opts,
                  *opt_spc_opts,
@@ -75,7 +80,8 @@ static GtkWidget *check_button_gtab_dup_select_bell,
                  *check_button_gtab_vertical_select,
                  *check_button_gtab_unique_auto_send,
                  *check_button_gcin_init_im_enabled,
-		 *check_button_gcin_win_sym_click_close;
+                 *check_button_gcin_win_sym_click_close,
+                 *spinner_gcb_position_x, *spinner_gcb_position_y;
 
 char *pho_speaker[16];
 int pho_speakerN;
@@ -98,8 +104,8 @@ static struct {
   char *name;
   int key;
 } tsin_space_options[]={
-  {"選擇同音字", TSIN_SPACE_OPT_SELECT_CHAR},
-  {"輸入空白", TSIN_SPACE_OPT_INPUT},
+  {N_("選擇同音字"), TSIN_SPACE_OPT_SELECT_CHAR},
+  {N_("輸入空白"), TSIN_SPACE_OPT_INPUT},
 };
 int tsin_space_optionsN = sizeof(tsin_space_options) / sizeof(tsin_space_options[0]);
 
@@ -126,10 +132,10 @@ struct {
   char *str;
   int num;
 } spc_opts[] = {
-  {"由 .gtab 指定", GTAB_space_auto_first_none},
-  {"按空白立即送出第一字(嘸蝦米、大易)", GTAB_space_auto_first_any},
-  {"按滿按空白送出第一字", GTAB_space_auto_first_full},
-  {"按滿按空白不送出第一字(倉頡, 行列)", GTAB_space_auto_first_nofull},
+  {N_("由 .gtab 指定"), GTAB_space_auto_first_none},
+  {N_("按空白立即送出第一字(嘸蝦米、大易)"), GTAB_space_auto_first_any},
+  {N_("按滿按空白送出第一字"), GTAB_space_auto_first_full},
+  {N_("按滿按空白不送出第一字(倉頡, 行列)"), GTAB_space_auto_first_nofull},
   { NULL, 0},
 };
 
@@ -156,7 +162,7 @@ static GtkWidget *create_spc_opts()
   int i, current_idx=0;
 
   for(i=0; spc_opts[i].str; i++) {
-    GtkWidget *item = gtk_menu_item_new_with_label (spc_opts[i].str);
+    GtkWidget *item = gtk_menu_item_new_with_label (_(spc_opts[i].str));
 
     if (spc_opts[i].num == gtab_space_auto_first)
       current_idx = i;
@@ -172,6 +178,7 @@ static GtkWidget *create_spc_opts()
 
 
 char utf8_edit[]=GCIN_SCRIPT_DIR"/utf8-edit";
+char html_browse[]=GCIN_SCRIPT_DIR"/html-browser";
 
 
 static gboolean cb_gtab_edit_append( GtkWidget *widget,
@@ -538,11 +545,11 @@ static struct {
   char *name;
   int key;
 } tsin_eng_ch_sw[]={
-  {"CapsLock", TSIN_CHINESE_ENGLISH_TOGGLE_KEY_CapsLock},
-  {"Tab", TSIN_CHINESE_ENGLISH_TOGGLE_KEY_Tab},
-  {"Shift(限非 XIM)", TSIN_CHINESE_ENGLISH_TOGGLE_KEY_Shift},
-  {"ShiftL(限非 XIM)", TSIN_CHINESE_ENGLISH_TOGGLE_KEY_ShiftL},
-  {"ShiftR(限非 XIM)", TSIN_CHINESE_ENGLISH_TOGGLE_KEY_ShiftR},
+  {N_("CapsLock"), TSIN_CHINESE_ENGLISH_TOGGLE_KEY_CapsLock},
+  {N_("Tab"), TSIN_CHINESE_ENGLISH_TOGGLE_KEY_Tab},
+  {N_("Shift(限非 XIM)"), TSIN_CHINESE_ENGLISH_TOGGLE_KEY_Shift},
+  {N_("ShiftL(限非 XIM)"), TSIN_CHINESE_ENGLISH_TOGGLE_KEY_ShiftL},
+  {N_("ShiftR(限非 XIM)"), TSIN_CHINESE_ENGLISH_TOGGLE_KEY_ShiftR},
 };
 int tsin_eng_ch_swN = sizeof(tsin_eng_ch_sw) / sizeof(tsin_eng_ch_sw[0]);
 
@@ -581,18 +588,18 @@ static struct {
   char *name;
   char *kbm;
 }  kbm_sel[]= {
- {"標準 standard", "zo"},
- {"標準 standard 使用 asdf 選擇", "zo-asdf"},
- {"倚天 Eten", "et"},
- {"倚天 Eten 使用 asdf 選擇", "et-asdf"},
- {"倚天 26 鍵", "et26"},
- {"倚天 26 鍵,使用 asdf 選擇", "et26-asdf"},
- {"許氏(國音,自然)", "hsu"},
- {"聲調拼音", "pinyin"},
- {"聲調拼音, 使用 asdf 選擇", "pinyin-asdf"},
-{"Dvorak", "dvorak"},
- {"IBM", "ibm"},
- {"神通", "mitac"},
+ {N_("標準 standard"), "zo"},
+ {N_("標準 standard 使用 asdf 選擇"), "zo-asdf"},
+ {N_("倚天 Eten"), "et"},
+ {N_("倚天 Eten 使用 asdf 選擇"), "et-asdf"},
+ {N_("倚天 26 鍵"), "et26"},
+ {N_("倚天 26 鍵,使用 asdf 選擇"), "et26-asdf"},
+ {N_("許氏(國音,自然)"), "hsu"},
+ {N_("聲調拼音"), "pinyin"},
+ {N_("聲調拼音, 使用 asdf 選擇"), "pinyin-asdf"},
+ {N_("Dvorak"), "dvorak"},
+ {N_("IBM"), "ibm"},
+ {N_("神通"), "mitac"},
  {NULL, NULL}
 };
 
@@ -634,7 +641,7 @@ static GtkWidget *create_eng_ch_opts()
   int current_idx = get_currnet_eng_ch_sw_idx();
 
   for(i=0; i < tsin_eng_ch_swN; i++) {
-    GtkWidget *item = gtk_menu_item_new_with_label (tsin_eng_ch_sw[i].name);
+    GtkWidget *item = gtk_menu_item_new_with_label (_(tsin_eng_ch_sw[i].name));
 
     gtk_menu_shell_append (GTK_MENU_SHELL (menu_eng_ch_opts), item);
   }
@@ -677,7 +684,7 @@ static GtkWidget *create_kbm_opts()
   int current_idx = get_current_kbm_idx();
 
   for(i=0; kbm_sel[i].name; i++) {
-    GtkWidget *item = gtk_menu_item_new_with_label (kbm_sel[i].name);
+    GtkWidget *item = gtk_menu_item_new_with_label (_(kbm_sel[i].name));
 
     gtk_menu_shell_append (GTK_MENU_SHELL (menu_kbm_opts), item);
   }
@@ -732,6 +739,9 @@ static GtkWidget *create_speaker_opts()
   for(i=0; i<pho_speakerN; i++) {
     GtkWidget *item = gtk_menu_item_new_with_label (pho_speaker[i]);
 
+    if (imkeys[i].keynum == gcin_im_toggle_keys)
+      current_idx = i;
+
     gtk_menu_shell_append (GTK_MENU_SHELL (menu_speaker_opts), item);
   }
 
@@ -741,6 +751,27 @@ static GtkWidget *create_speaker_opts()
   return hbox;
 }
 
+static GtkWidget *create_gcb_pos_opts()
+{
+  GtkWidget *hbox = gtk_hbox_new (FALSE, 1);
+
+  opt_gcb_pos = gtk_option_menu_new ();
+  gtk_box_pack_start (GTK_BOX (hbox), opt_gcb_pos, FALSE, FALSE, 0);
+  GtkWidget *menu_gcb_pos = gtk_menu_new ();
+
+  int i;
+
+  for(i=0; i<sizeof(gcb_pos)/sizeof(gcb_pos[0]); i++) {
+    GtkWidget *item = gtk_menu_item_new_with_label (_(gcb_pos[i]));
+
+    gtk_menu_shell_append (GTK_MENU_SHELL (menu_gcb_pos), item);
+  }
+
+  gtk_option_menu_set_menu (GTK_OPTION_MENU (opt_gcb_pos), menu_gcb_pos);
+  gtk_option_menu_set_history (GTK_OPTION_MENU (opt_gcb_pos), gcb_position);
+
+  return hbox;
+}
 
 typedef struct {
   GdkColor *color;
@@ -776,10 +807,10 @@ static void cb_ret(GtkWidget *widget, gpointer user_data)
 
 static void create_result_win(int res)
 {
-  char *restr = res ? "結果失敗":"結果成功";
+  char *restr = res ? N_("結果失敗"):N_("結果成功");
   main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
-  GtkWidget *button = gtk_button_new_with_label(restr);
+  GtkWidget *button = gtk_button_new_with_label(_(restr));
   gtk_container_add (GTK_CONTAINER (main_window), button);
   g_signal_connect (G_OBJECT (button), "clicked",
                     G_CALLBACK (cb_ret), main_window);
@@ -931,10 +962,18 @@ int utf8_editor(char *fname)
   return system(tt);
 }
 
+int html_browser(char *fname)
+{
+  char tt[256];
+
+  sprintf(tt, "%s %s", html_browse, fname);
+  dbg("%s\n", tt);
+  return system(tt);
+}
 
 static void cb_help()
 {
-  utf8_editor(DOC_DIR"/README");
+  html_browser(DOC_DIR"/README.html");
 }
 
 
@@ -1223,6 +1262,13 @@ static gboolean cb_ok( GtkWidget *widget,
     save_gcin_conf_str(PHONETIC_SPEAK_SEL, pho_speaker[idx]);
   }
 
+  idx = gtk_option_menu_get_history (GTK_OPTION_MENU (opt_gcb_pos));
+  save_gcin_conf_int(GCB_POSITION, idx);
+  int pos_x = (int) gtk_spin_button_get_value(GTK_SPIN_BUTTON(spinner_gcb_position_x));
+  save_gcin_conf_int(GCB_POSITION_X, pos_x);
+  int pos_y = (int) gtk_spin_button_get_value(GTK_SPIN_BUTTON(spinner_gcb_position_y));
+  save_gcin_conf_int(GCB_POSITION_Y, pos_y);
+
   save_gcin_conf_int(PHONETIC_SPEAK,
      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_phonetic_speak)));
 
@@ -1490,7 +1536,7 @@ static void create_main_win()
   event_box_win_color_test = gtk_event_box_new();
   gtk_box_pack_start (GTK_BOX(vbox), event_box_win_color_test, FALSE, FALSE, 0);
   label_win_color_test = gtk_label_new(_("測試目前狀態"));
-  gtk_container_add (GTK_BOX(event_box_win_color_test), label_win_color_test);
+  gtk_container_add (GTK_CONTAINER(event_box_win_color_test), label_win_color_test);
 
   GdkColor color;
   gdk_color_parse(gcin_win_color_fg, &gcin_win_gcolor_fg);
@@ -1600,6 +1646,20 @@ static void create_main_win()
   GtkWidget *label_gcin_win_sym_click_close = gtk_label_new(_("符號視窗點選後自動關閉"));
   gtk_box_pack_start (GTK_BOX (hbox_gcin_win_sym_click_close), label_gcin_win_sym_click_close,  FALSE, FALSE, 0);
 
+  GtkWidget *hbox_gcb_pos = gtk_hbox_new (FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), hbox_gcb_pos, FALSE, FALSE, 0);
+  GtkWidget *label_gcb_pos = gtk_label_new(_("剪貼區管理視窗位置&開關"));
+  gtk_box_pack_start (GTK_BOX (hbox_gcb_pos), label_gcb_pos,  FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_gcb_pos), create_gcb_pos_opts(),  FALSE, FALSE, 0);
+  GtkAdjustment *adj_gcb_position_x =
+   (GtkAdjustment *) gtk_adjustment_new (gcb_position_x, 0.0, 100.0, 1.0, 1.0, 0.0);
+  spinner_gcb_position_x = gtk_spin_button_new (adj_gcb_position_x, 0, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_gcb_pos), spinner_gcb_position_x, FALSE, FALSE, 0);
+  GtkAdjustment *adj_gcb_position_y =
+   (GtkAdjustment *) gtk_adjustment_new (gcb_position_y, 0.0, 100.0, 1.0, 1.0, 0.0);
+  spinner_gcb_position_y = gtk_spin_button_new (adj_gcb_position_y, 0, 0);
+  gtk_box_pack_start (GTK_BOX (hbox_gcb_pos), spinner_gcb_position_y, FALSE, FALSE, 0);
+
 /* label 3 */
 
   vbox = gtk_vbox_new(FALSE, 0);
@@ -1632,7 +1692,7 @@ static void create_main_win()
 
   int i;
   for(i=0; i< tsin_space_optionsN; i++) {
-    GtkWidget *button = gtk_radio_button_new_with_label (group_tsin_space_opt, tsin_space_options[i].name);
+    GtkWidget *button = gtk_radio_button_new_with_label (group_tsin_space_opt, _(tsin_space_options[i].name));
     gtk_box_pack_start (GTK_BOX (box_tsin_space_opt), button, TRUE, TRUE, 0);
 
     group_tsin_space_opt = gtk_radio_button_get_group (GTK_RADIO_BUTTON (button));

@@ -32,10 +32,7 @@ FILE *watch_fopen(char *filename, time_t *pfile_modify_time)
   FILE *fp;
   char fname[256];
 
-  if (!getenv("GCIN_TABLE_DIR"))
-    get_gcin_user_fname(filename, fname);
-  else
-    get_sys_table_file_name(filename, fname);
+  get_gcin_user_or_sys_fname(filename, fname);
 
   if ((fp=fopen(fname, "r"))==NULL) {
     strcat(strcat(strcpy(fname, TableDir), "/"), filename);
@@ -297,7 +294,7 @@ static void destory_win()
 }
 
 
-gboolean  button_scroll_event(GtkWidget *widget,GdkEventScroll *event, gpointer user_data)
+static gboolean button_scroll_event(GtkWidget *widget,GdkEventScroll *event, gpointer user_data)
 {
   if (pagesN < 2)
     return;

@@ -15,6 +15,7 @@
 #else
 #define _(STRING) (STRING)
 #endif
+#define N_(STRING) STRING
 
 typedef enum {
   GCIN_STATE_DISABLED = 0,
@@ -148,3 +149,7 @@ extern char gcin_switch_keys[];
 #endif
 
 typedef int usecount_t;
+
+#define MAX_CIN_PHR (100*CH_SZ + 1)
+
+
