@@ -6,6 +6,8 @@ gcin (1.4.2-2) unstable; urgency=low
   * [5b60cca] Add Vcs-Git and Vcs-Browser field.
   * [5dafdd8] Add README.source
   * [63892e6] Add patch ld_only_link_needed.diff
+  * [a848d1e] Fix the bug causing gdm crashes. (Closes: #498619)
+  * [326815b] Update patch descriptions.
 
  -- Kanru Chen <koster@debian.org.tw>  Sat, 06 Dec 2008 14:58:33 +0800
 
