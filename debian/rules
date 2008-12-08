@@ -11,7 +11,7 @@ GTKVER = $(shell pkg-config --variable=gtk_binary_version gtk+-2.0)
 
 config.status: configure patch
 	dh_testdir
-	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info CFLAGS="$(CFLAGS)" LDFLAGS="-Wl,-z,defs" \
+	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info CFLAGS="$(CFLAGS)"  \
 	--new_gtk_im=Y \
 	--use_i18n=Y
 
@@ -19,7 +19,8 @@ build: build-stamp
 
 build-stamp:  config.status
 	dh_testdir
-	$(MAKE)
+	$(MAKE) LDFLAGS="-Wl,--as-needed -lX11"
+
 	touch $@
 
 clean: clean-patched unpatch
