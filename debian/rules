@@ -50,7 +50,7 @@ binary-arch: build install
 	dh_installchangelogs Changelog.html
 	dh_installdocs
 	dh_install
-	LD_LIBRARY_PATH=debian/gcin/usr/lib/gcin:$(LD_LIBRARY_PATH) dh_gtkmodules
+	dh_gtkmodules
 	dh_installmenu
 	dh_link
 	dh_strip
@@ -58,7 +58,7 @@ binary-arch: build install
 	dh_fixperms
 	dh_makeshlibs -n
 	dh_installdeb
-	dh_shlibdeps
+	LD_LIBRARY_PATH=debian/gcin/usr/lib/gcin:$(LD_LIBRARY_PATH) dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
