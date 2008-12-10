@@ -19,7 +19,7 @@ build: build-stamp
 
 build-stamp:  config.status
 	dh_testdir
-	$(MAKE) LDFLAGS="-Wl,--as-needed -lX11"
+	$(MAKE)
 
 	touch $@
 

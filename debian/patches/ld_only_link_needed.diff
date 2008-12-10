@@ -6,8 +6,8 @@ Add -Wl,--as-needed
 
 Index: gcin/configure
 ===================================================================
---- gcin.orig/configure	2008-12-09 16:38:02.748313354 +0800
-+++ gcin/configure	2008-12-09 17:00:18.140315643 +0800
+--- gcin.orig/configure	2008-12-10 20:45:17.790965738 +0800
++++ gcin/configure	2008-12-10 20:45:39.030979681 +0800
 @@ -170,10 +170,9 @@
  
  OPTFLAGS="-g"
@@ -20,19 +20,18 @@ Index: gcin/configure
  echo "CC=gcc" > config.mak
  echo "MAKE=$MAKE" >> config.mak
  echo "GTKINC=$GTKINC" >> config.mak
-@@ -188,7 +187,7 @@
+@@ -188,6 +187,7 @@
  echo "gcinlibdir=\$(libdir)/gcin" >> config.mak
  echo "includedir=\$(DESTDIR)$includedir" >> config.mak
  
--echo "LDFLAGS+=$GTKLDFLAGS" >> config.mak
-+echo "override LDFLAGS+=$GTKLDFLAGS" >> config.mak
++echo "LDFLAGS=-Wl,--as-needed -lX11" >> config.mak
+ echo "LDFLAGS+=$GTKLDFLAGS" >> config.mak
  echo "GCIN_VERSION=$GCIN_VERSION" >> config.mak
  echo "GCIN_TABLE_DIR=\$(datadir_r)/gcin/table" >> config.mak
- echo "GCIN_OGG_DIR=\$(datadir_r)/gcin/ogg" >> config.mak
 Index: gcin/qt-im/Makefile
 ===================================================================
---- gcin.orig/qt-im/Makefile	2008-12-09 16:38:02.767313535 +0800
-+++ gcin/qt-im/Makefile	2008-12-09 16:38:10.385314134 +0800
+--- gcin.orig/qt-im/Makefile	2008-12-10 20:45:19.258966100 +0800
++++ gcin/qt-im/Makefile	2008-12-10 20:45:23.253966149 +0800
 @@ -11,7 +11,7 @@
  CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT_THREAD_SUPPORT -DQT_PLUGIN -DQT_SHARED -DQT_NO_DEBUG
  OBJS=qgcininputcontextplugin.o qgcininputcontextplugin_my.o qgcininputcontext.o qgcininputcontext_x11.o
@@ -44,8 +43,8 @@ Index: gcin/qt-im/Makefile
  all:	libqgcin.so
 Index: gcin/qt4-im/Makefile
 ===================================================================
---- gcin.orig/qt4-im/Makefile	2008-12-09 16:38:02.724314074 +0800
-+++ gcin/qt4-im/Makefile	2008-12-09 16:38:10.386313562 +0800
+--- gcin.orig/qt4-im/Makefile	2008-12-10 20:45:19.258966100 +0800
++++ gcin/qt4-im/Makefile	2008-12-10 20:45:23.253966149 +0800
 @@ -14,7 +14,7 @@
  -DQT_IMMODULE -DPIC
  OBJS= moc_gcin-qt.o gcin-qt.o im-gcin-qt.o gcin-imcontext-qt.o
