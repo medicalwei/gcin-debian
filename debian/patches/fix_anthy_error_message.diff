@@ -1,0 +1,21 @@
+Fix anthy error message
+--- gcin-1.4.5.pre1.orig/anthy.c
++++ gcin-1.4.5.pre1/anthy.c
+@@ -880,7 +880,7 @@
+     GtkWidget *dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL,
+                                      GTK_MESSAGE_ERROR,
+                                      GTK_BUTTONS_CLOSE,
+-                                     "Error loading %s %s. Please install anthy", so[0], dlerror());
++                                     "Error loading %s %s. Incompatible anthy.so ?", so[0], dlerror());
+     gtk_dialog_run (GTK_DIALOG (dialog));
+     gtk_widget_destroy (dialog);
+     return FALSE;
+@@ -899,7 +899,7 @@
+     GtkWidget *dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL,
+                                      GTK_MESSAGE_ERROR,
+                                      GTK_BUTTONS_CLOSE,
+-                                     "Cannot init anthy. incompatible anthy.so ?");
++                                     "Cannot init anthy. Please install anthy.");
+     gtk_dialog_run (GTK_DIALOG (dialog));
+     gtk_widget_destroy (dialog);
+     return FALSE;

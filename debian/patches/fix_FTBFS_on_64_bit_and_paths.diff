@@ -5,9 +5,9 @@ Fix 64bit builds
 
 Index: gcin/configure
 ===================================================================
---- gcin.orig/configure	2008-12-08 22:01:37.115313292 +0800
-+++ gcin/configure	2008-12-08 22:40:59.228314107 +0800
-@@ -107,12 +107,9 @@
+--- gcin.orig/configure	2009-03-03 12:51:21.309981581 +0800
++++ gcin/configure	2009-03-03 12:52:11.385982042 +0800
+@@ -119,12 +119,9 @@
  fi
  
  LIB='lib'
@@ -21,7 +21,7 @@ Index: gcin/configure
  echo "testing if you have qt3 support"
  if [ -d  $QT_IM_DIR ]; then
    QT_IM='Y'
-@@ -126,7 +123,7 @@
+@@ -138,7 +135,7 @@
  
  
  QT4_IM='N'
@@ -30,7 +30,7 @@ Index: gcin/configure
  echo "testing if you have qt4 support"
  if [ -d  $QT4_IM_DIR ]; then
    QT4_IM='Y'
-@@ -199,11 +196,11 @@
+@@ -211,11 +208,11 @@
  echo "GCIN_SCRIPT_DIR=\$(datadir_r)/gcin/script" >> config.mak
  echo "GCIN_SCRIPT_DIR_i=\$(datadir)/gcin/script" >> config.mak
  echo "OPTFLAGS=$OPTFLAGS" >> config.mak

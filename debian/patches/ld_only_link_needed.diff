@@ -6,9 +6,9 @@ Add -Wl,--as-needed
 
 Index: gcin/configure
 ===================================================================
---- gcin.orig/configure	2008-12-10 20:45:17.790965738 +0800
-+++ gcin/configure	2008-12-10 20:45:39.030979681 +0800
-@@ -170,10 +170,9 @@
+--- gcin.orig/configure	2009-03-03 13:37:33.104981801 +0800
++++ gcin/configure	2009-03-03 13:38:01.762982305 +0800
+@@ -182,10 +182,9 @@
  
  OPTFLAGS="-g"
  if [ $prefix = /usr ]; then
@@ -20,7 +20,7 @@ Index: gcin/configure
  echo "CC=gcc" > config.mak
  echo "MAKE=$MAKE" >> config.mak
  echo "GTKINC=$GTKINC" >> config.mak
-@@ -188,6 +187,7 @@
+@@ -200,6 +199,7 @@
  echo "gcinlibdir=\$(libdir)/gcin" >> config.mak
  echo "includedir=\$(DESTDIR)$includedir" >> config.mak
  
@@ -30,8 +30,8 @@ Index: gcin/configure
  echo "GCIN_TABLE_DIR=\$(datadir_r)/gcin/table" >> config.mak
 Index: gcin/qt-im/Makefile
 ===================================================================
---- gcin.orig/qt-im/Makefile	2008-12-10 20:45:19.258966100 +0800
-+++ gcin/qt-im/Makefile	2008-12-10 20:45:23.253966149 +0800
+--- gcin.orig/qt-im/Makefile	2009-03-03 13:37:30.607981985 +0800
++++ gcin/qt-im/Makefile	2009-03-03 13:38:01.762982305 +0800
 @@ -11,7 +11,7 @@
  CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT_THREAD_SUPPORT -DQT_PLUGIN -DQT_SHARED -DQT_NO_DEBUG
  OBJS=qgcininputcontextplugin.o qgcininputcontextplugin_my.o qgcininputcontext.o qgcininputcontext_x11.o
@@ -43,8 +43,8 @@ Index: gcin/qt-im/Makefile
  all:	libqgcin.so
 Index: gcin/qt4-im/Makefile
 ===================================================================
---- gcin.orig/qt4-im/Makefile	2008-12-10 20:45:19.258966100 +0800
-+++ gcin/qt4-im/Makefile	2008-12-10 20:45:23.253966149 +0800
+--- gcin.orig/qt4-im/Makefile	2009-03-03 13:37:27.526981894 +0800
++++ gcin/qt4-im/Makefile	2009-03-03 13:38:01.762982305 +0800
 @@ -14,7 +14,7 @@
  -DQT_IMMODULE -DPIC
  OBJS= moc_gcin-qt.o gcin-qt.o im-gcin-qt.o gcin-imcontext-qt.o
