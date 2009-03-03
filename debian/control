@@ -5,13 +5,13 @@ Maintainer: Kanru Chen <koster@debian.org.tw>
 Homepage: http://www.csie.nctu.edu.tw/~cp76/gcin/
 Vcs-Git: git://git.debian.org/git/users/kanru-guest/gcin.git
 Vcs-Browser: http://git.debian.org/?p=users/kanru-guest/gcin.git;a=summary
-Build-Depends: debhelper (>= 7), libgtk2.0-dev (>= 2.10.1), libxtst-dev, libqt3-mt-dev, libqt4-dev, quilt
+Build-Depends: debhelper (>= 7), libgtk2.0-dev (>= 2.10.1), libxtst-dev, libqt3-mt-dev, libqt4-dev, libanthy-dev, quilt
 Standards-Version: 3.8.0
 
 Package: gcin
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: gcin-qt3-immodule, im-switch
+Recommends: gcin-qt3-immodule, im-switch, anthy
 Description: an GTK+ based input method platform for Chinese users
  Gcin is an input method platform, which supports GTK+/QT immodule and XIM.
  Gcin is focused mainly on Traditional Chinese. However, it is also very useful
