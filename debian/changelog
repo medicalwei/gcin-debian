@@ -1,9 +1,13 @@
-gcin (1.4.3~pre11-1) UNRELEASED; urgency=low
+gcin (1.4.5~pre2-1) unstable; urgency=low
 
-  * New upstream snapshot. 
-  * [a18995c] Refresh patches.
+  * [811fc3b] New Upstream version 1.4.5.pre2
+  * [86b0996] Update patches.
+              - fix_gdm_crash_498619.diff: Dropped, fixed up stream.  
+              - fix_QT_detection.diff: Split into two patches.
+              - fix_anthy_error_message.diff: Added.
+  * [dfa7a85] Enable anthy.
 
- -- Kanru Chen <koster@debian.org.tw>  Mon, 08 Dec 2008 23:11:34 +0800
+ -- Kanru Chen <koster@debian.org.tw>  Tue, 03 Mar 2009 14:33:40 +0800
 
 gcin (1.4.2-2) unstable; urgency=low
 
