@@ -52,10 +52,6 @@ msgstr "按满自动送字"
 msgid "預選列中顯示部份符合的字"
 msgstr "预选列中显示部份符合的字"
 
-#: ../gcin-setup-gtab.c:244
-msgid "較小視窗"
-msgstr "较小视窗"
-
 #: ../gcin-setup-gtab.c:255
 msgid "顯示拆字"
 msgstr "显示拆字"
@@ -183,10 +179,6 @@ msgstr "智能拼音输入预选词视窗"
 #: ../gcin-setup-pho.c:392
 msgid "依使用頻率調整字的順序"
 msgstr "依使用频率调整字的顺序"
-
-#: ../gcin-setup-pho.c:402
-msgid "詞音/注音精簡視窗"
-msgstr "智能拼音/注音精简视窗"
 
 #: ../gcin-setup-pho.c:412
 msgid "注音隱藏第二列(按鍵顯示)"
@@ -378,7 +370,7 @@ msgstr "左:正/简体 中:小键盘 右:选项"
 
 #: ../tslearn.c:336
 msgid "按滑鼠中鍵, 貼上你要 tslearn 學習的文章。"
-msgstr "按老鼠中键, 贴上你要 tslearn 学习的文章。"
+msgstr "按鼠标中键, 贴上你要 tslearn 学习的文章。"
 
 #: ../tslearn.c:349
 msgid "標示已知詞"
@@ -407,7 +399,7 @@ msgstr "Ctrl 片语编辑"
 
 #: ../gcin-setup-tab.c:1252
 msgid "剪貼區 正體字->簡體字"
-msgstr "简贴区 正体字->简体字"
+msgstr "剪贴区 正体字->简体字"
 
 #: ../gcin-setup-tab.c:1304
 msgid "通用"
@@ -595,5 +587,5 @@ msgid "右上"
 msgstr "右上"
 
 #: ../tray.c:197
-msgid "解空白視窗"
-msgstr "解空白视窗"
+msgid "重新執行gcin"
+msgstr "重新运行gcin"
