@@ -2,7 +2,6 @@
 #include "gtab.h"
 #include "win-sym.h"
 
-static int current_gtab_simple_win;
 static int current_gcin_inner_frame;
 static int current_gtab_in_row1;
 static int current_gtab_vertical_select;
@@ -229,7 +228,7 @@ void set_gtab_input_method_name(char *s)
 //  dbg("set_gtab_input_method_name '%s'\n", s);
   if (!label_input_method_name)
     return;
-  gtk_label_set(GTK_LABEL(label_input_method_name), s);
+  gtk_label_set_text(GTK_LABEL(label_input_method_name), s);
 }
 
 
@@ -296,6 +295,12 @@ char full_char_str[]="全";
 
 void disp_label_edit(char *str)
 {
+  if (!label_edit)
+    return;
+  if (gcin_edit_display == GCIN_EDIT_DISPLAY_ON_THE_SPOT) {
+    gtk_widget_hide(label_edit);
+    return;
+  }
   gtk_label_set_markup(GTK_LABEL(label_edit), str);
 }
 
@@ -416,6 +421,9 @@ void create_win_gtab_gui_simple()
   gtk_widget_show_all (gwin_gtab);
   gtk_widget_hide (gwin_gtab);
 
+  if (gcin_edit_display == GCIN_EDIT_DISPLAY_ON_THE_SPOT)
+    gtk_widget_hide(label_edit);
+
   set_disp_im_name();
   gtk_widget_hide(label_full);
 
@@ -427,7 +435,6 @@ void create_win_gtab_gui_simple()
 static void create_win_gtab_gui()
 {
   create_win_gtab_gui_simple();
-  current_gtab_simple_win = gtab_simple_win;
   current_gtab_in_row1 = gtab_in_row1;
   current_gtab_vertical_select = gtab_vertical_select;
   current_gcin_inner_frame = gcin_inner_frame;
@@ -437,7 +444,7 @@ static void create_win_gtab_gui()
 
 void change_win_gtab_style()
 {
-  if (!top_bin || current_gtab_simple_win == gtab_simple_win &&
+  if (!top_bin ||
       current_gcin_inner_frame == gcin_inner_frame &&
       current_gtab_in_row1 == gtab_in_row1 &&
       current_gtab_vertical_select == gtab_vertical_select &&
@@ -487,18 +494,9 @@ void close_gtab_pho_win();
 
 void hide_win_gtab()
 {
-//  dbg("hide_win_gtab gwin_gtab\n", gwin_gtab);
-  if (!gwin_gtab)
-    return;
-#if 0
-  // get around the grey window bug in GTK/X11
-  gdk_flush();
-  XSync(dpy, False);
-  usleep(10000);
-#endif
-  gtk_widget_hide(gwin_gtab);
+  if (gwin_gtab)
+    gtk_widget_hide(gwin_gtab);
   close_gtab_pho_win();
-
   hide_win_sym();
 }
 
@@ -575,13 +573,3 @@ void win_gtab_disp_half_full()
 
   minimize_win_gtab();
 }
-
-#if 0
-void recreate_win_gtab()
-{
-//  puts("recreate_win_gtab");
-  destroy_win_gtab();
-  create_win_gtab();
-  create_win_gtab_gui();
-}
-#endif

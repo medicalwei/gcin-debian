@@ -55,6 +55,11 @@ int key_col(char cha)
   return (p - keyrow)%10;
 }
 
+gboolean gtab_phrase_on()
+{
+  return cur_inmd && cur_inmd->DefChars && gtab_auto_select_by_phrase;
+}
+
 gboolean same_query_show_pho_win()
 {
   return same_pho_query_state != SAME_PHO_QUERY_none;
@@ -71,7 +76,10 @@ gboolean gtab_has_input()
   if (same_query_show_pho_win())
     return TRUE;
 
-  if (gbufN)
+  if (gtab_buf_select)
+    return TRUE;
+
+  if (gbufN && gcin_edit_display!=GCIN_EDIT_DISPLAY_ON_THE_SPOT)
     return TRUE;
 
   return FALSE;
@@ -310,7 +318,7 @@ void ClrIn()
   clear_gtab_in_area();
   last_idx = 0;
 
-  if (gcin_pop_up_win && !same_query_show_pho_win() && !gbufN)
+  if (gcin_pop_up_win && !gtab_has_input())
     hide_win_gtab();
 
   clear_gtab_input_error_color();
@@ -373,7 +381,6 @@ void init_gtab(int inmdno)
     inp->flag |= FLAG_AUTO_SELECT_BY_PHRASE;
   else
     inp->flag &= ~FLAG_AUTO_SELECT_BY_PHRASE;
-
 
   if (!inmd[inmdno].filename || !strcmp(inmd[inmdno].filename,"-")) {
     dbg("filename is empty\n");
@@ -1194,7 +1201,7 @@ gboolean feedkey_gtab(KeySym key, int kbstate)
   if (!cur_inmd)
     return 0;
 
-  if (kbstate & (Mod1Mask|ControlMask)) {
+  if (kbstate & (Mod1Mask|Mod4Mask|Mod5Mask|ControlMask)) {
     return 0;
   }
 
@@ -1205,17 +1212,17 @@ gboolean feedkey_gtab(KeySym key, int kbstate)
 
   if (gtab_capslock_in_eng && (kbstate&LockMask)) {
     if (key < 0x20 || key>=0x7f)
-      return 0;
+      goto shift_proc;
 
-    if (gcin_capslock_lower) {
+    if (gcin_capslock_lower)
       case_inverse(&key, shift_m);
-      if (gbufN)
-        insert_gbuf_cursor_char(key);
-      else
-        send_ascii(key);
-      return 1;
-    } else
-      return 0;
+
+    if (gbufN)
+      insert_gbuf_cursor_char(key);
+    else
+      send_ascii(key);
+
+    return 1;
   }
 
 
@@ -1306,6 +1313,8 @@ shift_proc:
       if (gtab_buf_select) {
         gtab_buf_select = 0;
         ClrSelArea();
+        if (gcin_pop_up_win && !gtab_has_input())
+          hide_win_gtab();
         return 1;
       }
 
@@ -1528,6 +1537,10 @@ next:
           }
           else
             putstr_inp(seltab[vv]);
+
+          if (gcin_pop_up_win && !gtab_has_input())
+            hide_win_gtab();
+
           return 1;
         }
       }

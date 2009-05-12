@@ -151,28 +151,42 @@ gboolean feed_phrase(KeySym ksym, int state)
     trN = tranN;
   }
 
-
   extern int gbufN;
+  char tt[2], *str;
 
   for(i=0; i < trN; i++) {
     if (tr[i].ksym!= ksym)
       continue;
-    char *str;
 
     str = ((state & LockMask) && tr[i].str_caps) ? tr[i].str_caps : tr[i].str;
 
     if (str) {
-      extern int c_len;
-
-      if (current_CS->in_method == 6 && current_CS->im_state == GCIN_STATE_CHINESE && c_len)
+send_it:
+      if (current_CS->in_method == 6 && current_CS->im_state == GCIN_STATE_CHINESE) {
         add_to_tsin_buf_str(str);
+        if (tsin_cursor_end())
+          flush_tsin_buffer();
+      }
       else
-      if (!cur_inmd || !cur_inmd->DefChars || !insert_gbuf_cursor1_not_empty(str))
+      if (gtab_phrase_on()) {
+        insert_gbuf_cursor1(str);
+        if (gtab_cursor_end())
+          output_gbuf();
+      } else
         send_text(str);
 
       return TRUE;
     }
   }
+
+#if 1
+  if ((state&(ControlMask|ShiftMask|Mod1Mask|Mod4Mask|Mod5Mask))==ShiftMask && ksym>=' ' && ksym < 0x7e) {
+    str = tt;
+    tt[0]=ksym;
+    tt[1]=0;
+    goto send_it;
+  }
+#endif
 
   return FALSE;
 }
