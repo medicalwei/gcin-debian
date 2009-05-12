@@ -7,7 +7,6 @@ Window xwin0;
 extern Display *dpy;
 static GtkWidget *top_bin;
 static GtkWidget *image_pin;
-int current_pho_simple_win;
 int current_gcin_inner_frame;
 
 static GtkWidget *hbox_edit;
@@ -44,14 +43,12 @@ static void recreate_win0()
 
 void change_win0_style()
 {
-  if (!top_bin || (current_pho_simple_win == pho_simple_win &&
-      current_gcin_inner_frame == gcin_inner_frame))
+  if (!top_bin || current_gcin_inner_frame == gcin_inner_frame)
     return;
 
   gtk_widget_destroy(top_bin);
   top_bin = NULL;
 
-  current_pho_simple_win = pho_simple_win;
   current_gcin_inner_frame = gcin_inner_frame;
   recreate_win0();
 }
@@ -127,6 +124,9 @@ void disp_char(int index, char *ch)
 {
   char tt[CH_SZ+1];
 
+  if (gcin_edit_display & GCIN_EDIT_DISPLAY_ON_THE_SPOT)
+    return;
+
 //  dbg("disp_char %d %c%c%c\n", index, ch[0], ch[1], ch[2]);
   create_char(index);
   GtkWidget *label = chars[index].label;
@@ -172,6 +172,9 @@ void draw_underline(int index)
 {
   create_char(index);
 
+  if (gcin_edit_display & GCIN_EDIT_DISPLAY_ON_THE_SPOT)
+    return;
+
   gtk_widget_show(chars[index].line);
 }
 
@@ -185,6 +188,9 @@ void set_cursor_tsin(int index)
   GtkWidget *label = chars[index].label;
 
   if (!label)
+    return;
+
+  if (gcin_edit_display & GCIN_EDIT_DISPLAY_ON_THE_SPOT)
     return;
 
   gtk_label_set_attributes(GTK_LABEL(label), attr_list);
@@ -268,7 +274,10 @@ void disp_tsin_select(int index)
   GtkWidget *widget = chars[index].vbox;
 #endif
 
-  get_widget_xy(gwin0, widget, &x, &y);
+  if (gcin_edit_display & GCIN_EDIT_DISPLAY_ON_THE_SPOT) {
+    getRootXY(current_CS->client_win, current_CS->spot_location.x, current_CS->spot_location.y, &x, &y);
+  } else
+    get_widget_xy(gwin0, widget, &x, &y);
   disp_selections(x, y);
 }
 
@@ -293,12 +302,15 @@ static void raw_move(int x, int y)
 void compact_win0_x()
 {
   int win_xl, win_yl;
-
+#if 0
   gtk_window_get_size(GTK_WINDOW(gwin0), &win_xl, &win_yl);
   if (max_yl < win_yl)
     max_yl = win_yl;
-
   gtk_window_resize(GTK_WINDOW(gwin0), MIN_X_SIZE, max_yl);
+#else
+  gtk_window_resize(GTK_WINDOW(gwin0), 16, 16);
+#endif
+
   raw_move(best_win_x, best_win_y);
 }
 
@@ -545,6 +557,8 @@ static void create_win0_gui()
   gdk_flush();
   gtk_widget_hide (gwin0);
 
+//  compact_win0();
+
   create_win1();
   create_win1_gui();
 
@@ -595,6 +609,8 @@ void hide_selections_win();
 void hide_win0()
 {
 //  dbg("hide_win0\n");
+  if (!gwin0)
+    return;
   gtk_widget_hide(gwin0);
   hide_selections_win();
   hide_win_sym();

@@ -11,7 +11,7 @@ void (*f_anthy_set_string)(anthy_context_t ac, char *);
 extern int eng_ph;
 extern gint64 key_press_time;
 static GtkWidget *event_box_anthy;
-
+gint64 current_time();
 
 struct {
   char *en;
@@ -430,12 +430,17 @@ static void cursor_markup(int idx, char *s)
 
 void minimize_win_anthy()
 {
+  if (!win_anthy)
+    return;
   gtk_window_resize(GTK_WINDOW(win_anthy), 32, 12);
 }
 
 static void disp_input()
 {
   int i;
+
+  if (gcin_edit_display & GCIN_EDIT_DISPLAY_ON_THE_SPOT)
+    return;
 
 //  printf("cursor %d\n", cursor);
   clear_seg_label();
@@ -483,6 +488,15 @@ void delete_jpstr(idx)
   jpN--;
 }
 
+static void clear_all()
+{
+  clear_seg_label();
+  jpN=0;
+  keys[0]=0;
+  keysN = 0;
+  segN = 0;
+  auto_hide();
+}
 
 
 static void send_seg()
@@ -495,13 +509,9 @@ static void send_seg()
     seg[i].selidx = 0;
   }
 
-  clear_seg_label();
-  jpN=0;
-  keysN = 0;
-
 //  printf("sent convert '%s'\n", out);
   send_text(out);
-  segN = 0;
+  clear_all();
 }
 
 static char merge_jp(char out[])
@@ -553,7 +563,8 @@ static void disp_select()
   int x,y;
   get_widget_xy(win_anthy, seg[cursor].label, &x, &y);
 //  printf("%x cusor %d %d\n", win_anthy, cursor, x);
-  disp_selections(x, win_y+win_yl);
+  y = gcin_edit_display==GCIN_EDIT_DISPLAY_ON_THE_SPOT?win_y:win_y+win_yl;
+  disp_selections(x, y);
 }
 
 static void load_seg()
@@ -624,8 +635,10 @@ gboolean feedkey_anthy(int kv, int kvstate)
   int shift_m=(kvstate&ShiftMask) > 0;
 //  printf("%x %c  %d\n", kv, kv, shift_m);
 
-  if (kv==XK_Shift_L||kv==XK_Shift_R)
+  if (kv==XK_Shift_L||kv==XK_Shift_R) {
+    puts("shift");
     key_press_time = current_time();
+  }
 
   if (!eng_ph)
     return 0;
@@ -970,7 +983,9 @@ int anthy_visible()
 extern gboolean force_show;
 void show_win_anthy()
 {
-  if (!gcin_pop_up_win || !is_empty() || force_show) {
+  if (gcin_edit_display & GCIN_EDIT_DISPLAY_ON_THE_SPOT)
+    return;
+  if (!gcin_pop_up_win || !is_empty() || force_show ) {
     if (!anthy_visible())
       gtk_widget_show(win_anthy);
     show_win_sym();
@@ -1052,4 +1067,84 @@ int feedkey_anthy_release(KeySym xkey, int kbstate)
      default:
         return 0;
   }
+}
+
+#include "im-client/gcin-im-client-attr.h"
+
+int anthy_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *pcursor)
+{
+  int i;
+  int tn=0;
+
+//  dbg("anthy_get_preedit\n");
+  str[0]=0;
+  *pcursor=0;
+
+  attr[0].flag=GCIN_PREEDIT_ATTR_FLAG_UNDERLINE;
+  attr[0].ofs0=0;
+  int attrN=0;
+  int ch_N=0;
+
+  if (state==STATE_CONVERT) {
+    if (segN)
+      attrN=1;
+
+    for(i=0; i < segN; i++) {
+      char *s = gtk_label_get_text(GTK_LABEL(seg[i].label));
+      int N = utf8_str_N(s);
+      ch_N+=N;
+      if (i < cursor)
+        *pcursor+=N;
+      if (i==cursor) {
+        attr[1].ofs0=*pcursor;
+        attr[1].ofs1=*pcursor+N;
+        attr[1].flag=GCIN_PREEDIT_ATTR_FLAG_REVERSE;
+        attrN++;
+      }
+      strcat(str, s);
+    }
+
+    attr[0].ofs1 = ch_N;
+  } else {
+    if (jpN)
+      attrN=1;
+
+    for(i=0;i < jpN; i++) {
+      char *s=anthy_romaji_map[jp[i]].ro;
+      int N = utf8_str_N(s);
+      ch_N+=N;
+      if (i < cursor)
+        *pcursor+= N;
+      if (i==cursor) {
+        attr[1].ofs0=*pcursor;
+        attr[1].ofs1=*pcursor+N;
+        attr[1].flag=GCIN_PREEDIT_ATTR_FLAG_REVERSE;
+        attrN++;
+      }
+      strcat(str, s);
+    }
+
+    strcat(str, keys);
+    attr[0].ofs1 = ch_N + keysN;
+  }
+
+ret:
+  return attrN;
+}
+
+
+void gcin_anthy_reset()
+{
+  if (!win_anthy)
+    return;
+  clear_all();
+}
+
+void get_win_anthy_geom()
+{
+  if (!win_anthy)
+    return;
+  gtk_window_get_position(GTK_WINDOW(win_anthy), &win_x, &win_y);
+
+  get_win_size(win_anthy, &win_xl, &win_yl);
 }

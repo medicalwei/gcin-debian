@@ -16,6 +16,10 @@ extern gboolean win_kbm_inited;
 static char *callback_str_buffer;
 Window focus_win;
 static int timeout_handle;
+char *output_buffer;
+int output_bufferN;
+static char *output_buffer_raw, *output_buffer_raw_bak;
+static int output_buffer_rawN;
 
 void send_fake_key_eve(KeySym key)
 {
@@ -24,24 +28,48 @@ void send_fake_key_eve(KeySym key)
   XTestFakeKeyEvent(dpy, kc, False, CurrentTime);
 }
 
+void fake_shift()
+{
+  send_fake_key_eve(XK_Shift_L);
+}
+
+void swap_ptr(char **a, char **b)
+{
+  char *t = *a;
+  *a = *b;
+  *b = t;
+}
+
+int force_preedit=0;
+void force_preedit_shift()
+{
+  send_fake_key_eve(XK_Shift_L);
+  force_preedit=1;
+}
 
 void send_text_call_back(char *text)
 {
   callback_str_buffer = realloc(callback_str_buffer, strlen(text)+1);
   strcpy(callback_str_buffer, text);
-  send_fake_key_eve(XK_Shift_L);
+  fake_shift();
 }
 
+void output_buffer_call_back()
+{
+  swap_ptr(&callback_str_buffer, &output_buffer);
+
+  if (output_buffer)
+    output_buffer[0] = 0;
+  output_bufferN = 0;
+
+  fake_shift();
+}
 
 ClientState *current_CS;
 static ClientState temp_CS;
 
 gboolean init_in_method(int in_no);
 
-char *output_buffer;
-int output_bufferN;
-static char *output_buffer_raw, *output_buffer_raw_bak;
-static int output_buffer_rawN;
 
 void clear_output_buffer()
 {
@@ -49,9 +77,7 @@ void clear_output_buffer()
     output_buffer[0] = 0;
   output_bufferN = 0;
 
-  char *t = output_buffer_raw;
-  output_buffer_raw = output_buffer_raw_bak;
-  output_buffer_raw_bak = t;
+  swap_ptr(&output_buffer_raw, &output_buffer_raw_bak);
 
   if (output_buffer_raw)
     output_buffer_raw[0] = 0;
@@ -256,9 +282,6 @@ void hide_in_win(ClientState *cs)
   }
 
   reset_current_in_win_xy();
-#if 0
-  hide_win_status();
-#endif
 }
 
 void show_win_pho();
@@ -360,7 +383,7 @@ static int xerror_handler(Display *d, XErrorEvent *eve)
   return 0;
 }
 
-static void getRootXY(Window win, int wx, int wy, int *tx, int *ty)
+void getRootXY(Window win, int wx, int wy, int *tx, int *ty)
 {
   Window ow;
   void *olderr = XSetErrorHandler((XErrorHandler)xerror_handler);
@@ -560,7 +583,7 @@ void get_win_pho_geom();
 
 void update_active_in_win_geom()
 {
-//  dbg("update_active_in_win_geom\n");
+  dbg("update_active_in_win_geom\n");
   switch (current_CS->in_method) {
     case 3:
       get_win_pho_geom();
@@ -571,6 +594,9 @@ void update_active_in_win_geom()
       break;
 #endif
     case 10:
+      break;
+    case 12:
+      get_win_anthy_geom();
       break;
     default:
       get_win_gtab_geom();
@@ -772,7 +798,14 @@ gboolean full_char_proc(KeySym keysym)
 
   utf8cpy(tt, s);
 
-  send_text(tt);
+  if (current_CS->in_method == 6 && current_CS->im_state == GCIN_STATE_CHINESE)
+    add_to_tsin_buf_str(tt);
+  else
+  if (gtab_phrase_on())
+    insert_gbuf_cursor1(tt);
+  else
+    send_text(tt);
+
   return 1;
 }
 
@@ -810,6 +843,11 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
     send_text(callback_str_buffer);
     callback_str_buffer[0]=0;
     return TRUE;
+  }
+
+  if (force_preedit) {
+    force_preedit=0;
+    return 1;
   }
 
   if (keysym == XK_space) {
@@ -898,7 +936,6 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
   if (current_CS->im_state == GCIN_STATE_DISABLED) {
     return FALSE;
   }
-
 
   if (!current_CS->b_gcin_protocol) {
   if (((keysym == XK_Control_L || keysym == XK_Control_R)
@@ -1032,6 +1069,7 @@ int gcin_FocusIn(ClientState *cs)
 {
   Window win = cs->client_win;
 
+//  dbg("gcin_FocusIn\n");
   if (skip_window(win))
     return;
 
@@ -1109,6 +1147,7 @@ int gcin_FocusOut(ClientState *cs)
 {
   gint64 t = current_time();
 
+//  dbg("gcin_FocusOut\n");
   if (skip_window(cs->client_win))
     return;
 
@@ -1134,6 +1173,65 @@ int gcin_FocusOut(ClientState *cs)
 
   return True;
 }
+
+#include "im-client/gcin-im-client-attr.h"
+
+int gcin_get_preedit(ClientState *cs, char *str, GCIN_PREEDIT_ATTR attr[], int *cursor)
+{
+//  dbg("gcin_get_preedit %x\n", current_CS);
+  if (!current_CS) {
+empty:
+//    dbg("empty\n");
+    str[0]=0;
+    *cursor=0;
+    return 0;
+  }
+
+  switch(current_CS->in_method) {
+    case 3:
+    case 10:
+      goto empty;
+    case 6:
+      return tsin_get_preedit(str, attr, cursor);
+#if USE_ANTHY
+    case 12:
+      return anthy_get_preedit(str, attr, cursor);
+#endif
+    default:
+      return gtab_get_preedit(str, attr, cursor);
+//      dbg("metho %d\n", current_CS->in_method);
+  }
+
+  return 0;
+}
+
+
+
+void gcin_reset()
+{
+  if (!current_CS)
+    return;
+//  dbg("gcin_reset\n");
+  switch(current_CS->in_method) {
+    case 3:
+      pho_reset();
+      return;
+    case 10:
+      return;
+    case 6:
+      tsin_reset();
+      return;
+#if USE_ANTHY
+    case 12:
+      gcin_anthy_reset();
+      return;
+#endif
+    default:
+      gtab_reset();
+//      dbg("metho %d\n", current_CS->in_method);
+  }
+}
+
 
 #if USE_XIM
 int xim_gcin_FocusOut(IMChangeFocusStruct *call_data)

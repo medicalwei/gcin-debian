@@ -160,17 +160,32 @@ gboolean add_to_tsin_buf(char *str, phokey_t *pho, int len);
 void send_text_call_back(char *text);
 void tsin_reset_in_pho(), reset_gtab_all(), clr_in_area_pho();
 
-extern int eng_ph;
+extern int eng_ph, c_len;
+extern short gbufN;
 static void cb_button_sym(GtkButton *button, char *str)
 {
   phokey_t pho[256];
   bzero(pho, sizeof(pho));
 
-  if (current_CS->in_method == 6 && current_CS->im_state != GCIN_STATE_DISABLED) {
-    add_to_tsin_buf(str, pho, utf8_str_N(str));
+  if (current_CS->in_method == 6 && current_CS->im_state == GCIN_STATE_CHINESE) {
+    add_to_tsin_buf_str(str);
+    if (tsin_cursor_end()) {
+      flush_tsin_buffer();
+      output_buffer_call_back();
+    } else
+      force_preedit_shift();
   }
   else
+  if (gtab_phrase_on()) {
+    insert_gbuf_cursor1(str);
+    if (gtab_cursor_end()) {
+      output_gbuf();
+      output_buffer_call_back();
+    } else
+      force_preedit_shift();
+  } else {
     send_text_call_back(str);
+  }
 
   switch (current_CS->in_method) {
     case 3:

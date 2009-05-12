@@ -8,7 +8,7 @@ int default_input_method;
 int left_right_button_tips;
 int gcin_im_toggle_keys;
 int gcin_capslock_lower, gcin_eng_phrase_enabled, gcin_init_im_enabled;
-int gcin_win_sym_click_close;
+int gcin_win_sym_click_close, gcin_edit_display;
 
 int gtab_dup_select_bell;
 int gtab_space_auto_first;
@@ -16,7 +16,6 @@ int gtab_auto_select_by_phrase;
 int gtab_press_full_auto_send;
 int gtab_pre_select;
 int gtab_disp_partial_match;
-int gtab_simple_win=1;
 int gtab_disp_key_codes;
 int gtab_disp_im_name;
 int gtab_invalid_key_in;
@@ -36,7 +35,6 @@ int phonetic_speak;
 char *phonetic_speak_sel;
 int tsin_chinese_english_toggle_key;
 int gcin_font_size_tsin_pho_in;
-int pho_simple_win=1;
 int tsin_space_opt;
 int tsin_buffer_size, tsin_tail_select_key;
 int tsin_buffer_editing_mode;
@@ -53,7 +51,10 @@ int gcin_status_tray;
 #endif
 
 int pho_hide_row2, pho_in_row1;
-int gcb_position, gcb_position_x, gcb_position_y, gcin_bell_volume;
+#if USE_GCB
+int gcb_enabled, gcb_position, gcb_position_x, gcb_position_y;
+#endif
+int gcin_bell_volume;
 int gcin_sound_play_overlap, gcin_enable_ctrl_alt_switch;
 
 
@@ -134,10 +135,20 @@ void load_setttings()
   gcin_win_color_use = get_gcin_conf_int(GCIN_WIN_COLOR_USE, 0);
 
 
+#if USE_GCB
+  gcb_enabled = get_gcin_conf_int(GCB_ENABLED, 0);
   gcb_position = get_gcin_conf_int(GCB_POSITION, 4);
   gcb_position_x = get_gcin_conf_int(GCB_POSITION_X, 0);
   gcb_position_y = get_gcin_conf_int(GCB_POSITION_Y, 0);
+#endif
   gcin_bell_volume = get_gcin_conf_int(GCIN_BELL_VOLUME, -97);
   gcin_sound_play_overlap = get_gcin_conf_int(GCIN_SOUND_PLAY_OVERLAP, 0);
   gcin_enable_ctrl_alt_switch = get_gcin_conf_int(GCIN_ENABLE_CTRL_ALT_SWITCH, 1);
+#if 1
+  gcin_edit_display = get_gcin_conf_int(GCIN_EDIT_DISPLAY, GCIN_EDIT_DISPLAY_BOTH);
+#elif 1
+  gcin_edit_display = get_gcin_conf_int(GCIN_EDIT_DISPLAY, GCIN_EDIT_DISPLAY_ON_THE_SPOT);
+#else
+  gcin_edit_display = get_gcin_conf_int(GCIN_EDIT_DISPLAY, GCIN_EDIT_DISPLAY_OVER_THE_SPOT);
+#endif
 }
