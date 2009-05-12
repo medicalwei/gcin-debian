@@ -1,3 +1,9 @@
+gcin (1.4.5-1) unstable; urgency=low
+
+  * New Upstream Version
+
+ -- Kanru Chen <koster@debian.org.tw>  Tue, 12 May 2009 11:35:18 +0800
+
 gcin (1.4.5~pre2-1) unstable; urgency=low
 
   * [811fc3b] New Upstream version 1.4.5.pre2
