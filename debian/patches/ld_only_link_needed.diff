@@ -42,7 +42,7 @@ Add -Wl,--as-needed
  OBJS= moc_gcin-qt.o gcin-qt.o im-gcin-qt.o gcin-imcontext-qt.o
  .SUFFIXES:	.c .cpp .a .so .E .h
 -LDFLAGS=-L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
-+LDFLAGS=-Wl,--as-need -L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
++LDFLAGS=-Wl,--as-needed -L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
  all:    im-gcin.so
  
  .cpp.E:
