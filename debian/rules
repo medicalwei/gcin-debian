@@ -1,68 +1,28 @@
 #!/usr/bin/make -f
 
-#export DH_VERBOSE=1
-
-DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-
 GTKVER = $(shell pkg-config --variable=gtk_binary_version gtk+-2.0)
 
-config.status: configure
-	dh_testdir
+%:
+	dh $@
+
+override_dh_auto_configure:
 	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info CFLAGS="$(CFLAGS)"  \
 	--new_gtk_im=Y \
 	--use_i18n=Y \
 	--use_qt3=Y
 
-build: build-stamp
+override_dh_auto_clean:
+	make clean
 
-build-stamp:  config.status
-	dh_testdir
-	$(MAKE)
-
-	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -fr build-stamp debian/tmp
-	touch .depend
-	[ ! -f Makefile ] || $(MAKE) clean
-	rm -f .depend
-	dh_clean
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_prep
-	dh_installdirs
+override_dh_auto_install:
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
 	mkdir -p debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules
 	mv debian/tmp/usr/lib/gtk-2.0/immodules/* debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules/
 	mkdir -p debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodule-files.d
 	sed -e s,@GTKVER@,$(GTKVER), debian/gcin.immodules.in > debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodule-files.d/gcin.immodules
 
-binary-indep: build install
-
-binary-arch: build install
-	dh_testdir
-	dh_testroot
+override_dh_installchangelogs:
 	dh_installchangelogs Changelog.html
-	dh_installdocs
-	dh_install
-#	dh_gtkmodules
-	dh_installmenu
-	dh_lintian
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-	dh_makeshlibs -n
-	dh_installdeb
-	LD_LIBRARY_PATH=debian/gcin/usr/lib/gcin:$(LD_LIBRARY_PATH) dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
 
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install patch unpatch clean-patched
+override_dh_shlibdeps:
+	LD_LIBRARY_PATH=debian/gcin/usr/lib/gcin:$(LD_LIBRARY_PATH) dh_shlibdeps

@@ -2,6 +2,7 @@ gcin (1.4.6-1) unstable; urgency=low
 
   * New upstream release
   * Switched to dpkg-source 3.0 (quilt) format
+  * Use modern debhelper style
   * Updated Standards-Version to 3.8.3
   * Acknowledge NMU - Thanks Stefano
 
