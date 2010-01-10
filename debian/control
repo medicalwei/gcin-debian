@@ -1,7 +1,7 @@
 Source: gcin
 Section: utils
 Priority: optional
-Maintainer: Kanru Chen <koster@debian.org.tw>
+Maintainer: Kan-Ru Chen <koster@debian.org.tw>
 Homepage: http://www.csie.nctu.edu.tw/~cp76/gcin/
 Vcs-Git: git://git.debian.org/git/users/kanru-guest/gcin.git
 Vcs-Browser: http://git.debian.org/?p=users/kanru-guest/gcin.git;a=summary
