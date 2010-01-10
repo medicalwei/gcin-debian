@@ -1,6 +1,7 @@
 #define CHANGE_FONT_SIZE "change font size"
 #define GB_OUTPUT_TOGGLE "gb output toggle"
 #define KBM_TOGGLE "kbm toggle"
+#define RELOAD_TSIN_DB "reload tsin db"
 
 
 #define GCIN_FONT_SIZE "gcin-font-size"
@@ -20,6 +21,7 @@
 #define GCIN_SOUND_PLAY_OVERLAP "gcin-sound-play-overlap"
 #define GCIN_ENABLE_CTRL_ALT_SWITCH "gcin-enable-ctrl-alt-switch"
 #define GCIN_EDIT_DISPLAY "gcin-edit-display"
+#define GCIN_BELL_OFF "gcin-bell-off"
 
 #define GCIN_IM_TOGGLE_KEYS "gcin-im-toggle-keys"
 #define DEFAULT_INPUT_METHOD "default-input-method"
@@ -35,6 +37,7 @@
 #define GCIN_ENG_PHRASE_ENABLED "gcin-eng-phrase-enabled"
 #define GCIN_WIN_SYM_CLICK_CLOSE "gcin-win-sym-click-close"
 #define GCIN_SEL_KEY_COLOR "gcin-sel-key-color"
+#define GCIN_WIN32_ICON "gcin-win32-icon"
 
 #define GTAB_DUP_SELECT_BELL "gtab-dup-select-bell"
 #define GTAB_SPACE_AUTO_FIRST "gtab-space-auto-first"
@@ -115,8 +118,8 @@ extern int tsin_space_opt, tsin_tone_char_input;
 
 extern char *tsin_phrase_line_color, *tsin_cursor_color, *gcin_font_name, *gcin_sel_key_color;
 extern char *gcin_win_color_fg, *gcin_win_color_bg;
-extern int gcin_win_color_use;
-extern int gcin_init_im_enabled;
+extern int gcin_win_color_use, gcin_bell_off;
+extern int gcin_init_im_enabled, gcin_win32_icon;
 extern int gcb_enabled, gcb_position, gcb_position_x, gcb_position_y, gcin_edit_display;
 
 void get_gcin_user_fname(char *name, char fname[]);

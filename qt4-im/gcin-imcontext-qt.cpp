@@ -1,8 +1,10 @@
 #include "gcin-imcontext-qt.h"
 #include "gcin-common-qt.h"
+#include <stdio.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
+#include <cstdio>
 #include "gcin-im-client.h"
 #include <QColor>
 #include <QPalette>
@@ -81,7 +83,7 @@ void GCINIMContext::update_preedit()
   preedit_attributes.push_back (QAttribute (QInputMethodEvent::Cursor, preedit_cursor_position, true, 0));
 
   const QWidget *focused_widget = qApp->focusWidget ();
-  if (!focused_widget) {
+  if (!focused_widget || !str || !*str) {
 free_mem:
     free(str);
     return;
@@ -149,8 +151,25 @@ void GCINIMContext::setFocusWidget(QWidget *widget)
     return;
 
   if (focused_widget != widget) {
+#if 0
+    if (focused_widget) {
+      char *rstr;
+      gcin_im_client_focus_out2(gcin_ch, &rstr);
+      if (rstr) {
+          QString inputText = QString::fromUtf8(rstr);
+          QInputMethodEvent commit_event;
+          commit_event.setCommitString (inputText);
+          sendEvent (commit_event);
+
+          QList<QAttribute> preedit_attributes;
+          QInputMethodEvent im_event (QString::fromUtf8(""), preedit_attributes);
+          sendEvent (im_event);
+      }
+    }
     focused_widget = widget;
+#else
     gcin_im_client_focus_out(gcin_ch);
+#endif
   }
 
   if (gcin_ch) {

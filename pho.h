@@ -14,7 +14,7 @@ typedef struct {
 extern PHOKBM phkbm;
 
 typedef struct {
-  u_char ch[CH_SZ];
+  char ch[CH_SZ];
   short count;
 } PHO_ITEM;
 
@@ -68,4 +68,6 @@ char *phokey_to_str2(phokey_t kk, int last_number);
 
 #define PHO_CHAR_LEN 3
 
+#define L_BRACKET_NO 22
+#define R_BRACKET_NO 23
 #define BACK_QUOTE_NO 24
