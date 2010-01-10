@@ -24,5 +24,8 @@ override_dh_auto_install:
 override_dh_installchangelogs:
 	dh_installchangelogs Changelog.html
 
+override_dh_makeshlibs:
+	dh_makeshlibs -n
+
 override_dh_shlibdeps:
 	LD_LIBRARY_PATH=debian/gcin/usr/lib/gcin:$(LD_LIBRARY_PATH) dh_shlibdeps
