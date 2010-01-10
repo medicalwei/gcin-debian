@@ -2,8 +2,20 @@ gcin (1.4.6-1) unstable; urgency=low
 
   * New upstream release
   * Switch to dpkg-source 3.0 (quilt) format
+  * Acknowledge NMU - Thanks Stefano
 
  -- Kan-Ru Chen <koster@debian.org.tw>  Sun, 10 Jan 2010 16:49:29 +0800
+
+gcin (1.4.5-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Add missing #include to fix FTBFS with gcc 4.4, patch by Martin
+    Michlmayr. (Closes: #531715)
+  * gcin-qt{3,4}-immodule: add lintian overrides for shlib-defines-rpath,
+    this is needed to get the package pass through auto-REJECT. Rationale:
+    rpath is appropriate here, the packages use private shlibs.
+
+ -- Stefano Zacchiroli <zack@debian.org>  Sat, 26 Dec 2009 10:13:19 +0100
 
 gcin (1.4.5-1) unstable; urgency=low
 

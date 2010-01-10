@@ -51,6 +51,7 @@ binary-arch: build install
 	dh_install
 #	dh_gtkmodules
 	dh_installmenu
+	dh_lintian
 	dh_link
 	dh_strip
 	dh_compress
