@@ -5,7 +5,7 @@ Maintainer: Kanru Chen <koster@debian.org.tw>
 Homepage: http://www.csie.nctu.edu.tw/~cp76/gcin/
 Vcs-Git: git://git.debian.org/git/users/kanru-guest/gcin.git
 Vcs-Browser: http://git.debian.org/?p=users/kanru-guest/gcin.git;a=summary
-Build-Depends: debhelper (>= 7), libgtk2.0-dev (>= 2.10.1), libxtst-dev, libqt3-mt-dev, libqt4-dev, libanthy-dev, quilt
+Build-Depends: debhelper (>= 7), libgtk2.0-dev (>= 2.10.1), libxtst-dev, libqt3-mt-dev, libqt4-dev, libanthy-dev
 Standards-Version: 3.8.1
 
 Package: gcin

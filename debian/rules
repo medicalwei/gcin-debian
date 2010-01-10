@@ -2,14 +2,12 @@
 
 #export DH_VERBOSE=1
 
-include /usr/share/quilt/quilt.make
-
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
 GTKVER = $(shell pkg-config --variable=gtk_binary_version gtk+-2.0)
 
-config.status: configure patch
+config.status: configure
 	dh_testdir
 	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info CFLAGS="$(CFLAGS)"  \
 	--new_gtk_im=Y \
@@ -23,8 +21,7 @@ build-stamp:  config.status
 
 	touch $@
 
-clean: clean-patched unpatch
-clean-patched:
+clean:
 	dh_testdir
 	dh_testroot
 	rm -fr build-stamp debian/tmp
