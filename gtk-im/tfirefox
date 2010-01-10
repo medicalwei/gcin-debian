@@ -4,8 +4,7 @@ export XMODIFIERS=@im=gcin_test
 pkill gcin.test
 ../gcin.test &
 
-#/usr/lib/firefox
+export LD_LIBRARY_PATH=../im-client
 export LD_PRELOAD=./im-gcin-cur.so
-export LD_LIBRARY_PATH=/usr/lib/firefox-3.0.8:../im-client
 firefox
 pkill gcin.test

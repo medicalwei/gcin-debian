@@ -364,10 +364,6 @@ msgstr "Update data from clipboard"
 msgid "離開"
 msgstr "Exit"
 
-#: ../tray.c:228
-msgid "左:正/簡體 中:小鍵盤 右:選項"
-msgstr "Left: Toggle Traditional/Simplified Chinese\nMiddle: Keyboard\nRight: Preferences"
-
 #: ../tslearn.c:336
 msgid "按滑鼠中鍵, 貼上你要 tslearn 學習的文章。"
 msgstr "Click middle button to paste data you want Tslearn to learn."
@@ -609,3 +605,39 @@ msgstr "Editing area"
 #: ../tray.c:206
 msgid "gcb(剪貼區暫存)"
 msgstr "gcb clipboard manager"
+
+#: ../gcin-setup-gtab.c:37
+msgid "由.gtab指定開啟"
+msgstr "Assigned by .gtab"
+
+#: ../gcin-setup-gtab.c:38
+msgid "全部開啟"
+msgstr "Enable all"
+
+#: ../gcin-setup-gtab.c:39
+msgid "全部關閉"
+msgstr "Disable all"
+
+#: ../gtk-im/imgcin.c:27
+msgid "gcin Input Method"
+msgstr "gcin Input Method"
+
+#: ../tray.c:218
+msgid "简体输出"
+msgstr "Simplified Chinese output"
+
+#: ../tray.cpp:255 ../tray.cpp:258
+msgid "左:中英切換 中:小鍵盤 右:選項"
+msgstr "Left: Toggle alphabet-numeric mode\nMiddle: Virtual Keyboard\nRight: Preferences"
+
+#: ../about.cpp:79
+msgid "討論區"
+msgstr "Forum"
+
+#: ../gcin-setup-list.cpp:364
+msgid "Ctrl-Shift 循環(必須關閉Windows按鍵"
+msgstr "Ctrl-Shift selections(Should turn off Windows key)"
+
+#: ../gcin-setup-list.cpp:656
+msgid "關閉鈴聲"
+msgstr "Turn off bell"

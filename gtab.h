@@ -18,8 +18,8 @@ typedef struct {
 } ITEM64;
 
 typedef struct {
-  u_char quick1[46][10][CH_SZ];
-  u_char quick2[46][46][10][CH_SZ];
+  char quick1[46][10][CH_SZ];
+  char quick2[46][46][10][CH_SZ];
 } QUICK_KEYS;
 
 
@@ -28,6 +28,12 @@ enum {
   FLAG_GTAB_SYM_KBM=2, // auto close, auto switch to default input method
   FLAG_PHRASE_AUTO_SKIP_ENDKEY=4,
   FLAG_AUTO_SELECT_BY_PHRASE=8,
+};
+
+enum {
+  GTAB_AUTO_SELECT_BY_PHRASE_AUTO=0,
+  GTAB_AUTO_SELECT_BY_PHRASE_YES=1,
+  GTAB_AUTO_SELECT_BY_PHRASE_NO=2,
 };
 
 struct TableHead {
@@ -74,14 +80,14 @@ typedef struct {
   u_int flag;
 #define MAX_CNAME (4*CH_SZ+1)
   char *cname;
-  u_char *keycol;
+  char *keycol;
   int KeyS;               /* number of keys needed */
   int MaxPress;           /* Max len of keystrike  ar30:5  changjei:5 */
   int DefChars;           /* defined chars */
-  u_char *keyname; // including ?*
-  u_char *keyname_lookup; // used by boshiamy only
+  char *keyname; // including ?*
+  char *keyname_lookup; // used by boshiamy only
   gtab_idx1_t *idx1;
-  u_char *keymap;
+  char *keymap;
   char selkey[MAX_SELKEY];
   u_char *sel1st;
   int M_DUP_SEL;
@@ -117,3 +123,10 @@ void load_gtab_list();
 #else
 #define NEED_SWAP (1)
 #endif
+
+typedef enum {
+  SAME_PHO_QUERY_none = 0,
+  SAME_PHO_QUERY_gtab_input = 1,
+  SAME_PHO_QUERY_pho_select = 2,
+} SAME_PHO_QUERY;
+extern SAME_PHO_QUERY same_pho_query_state;

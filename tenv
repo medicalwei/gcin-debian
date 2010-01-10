@@ -12,13 +12,17 @@ export LC_CTYPE=zh_TW.UTF-8
 export XMODIFIERS=@im=gcin_test
 #export GCIN_OUTPUT_FILTER=./gcin_filter
 export GCIN_ERR_COREDUMP
-export LD_PRELOAD=./gtk_bug_fix.so
 ./gcin.test &
 gcinpid=$!
 sleep 1
 export LD_PRELOAD="./gtk-im/im-gcin-cur.so"
 export LD_LIBRARY_PATH="./im-client"
 export GTK_IM_MODULE=gcin
+#sleep 5; gcin-message -text 'abcde' -duration 5000;
 gedit a.txt
 #leafpad
+#pcmanx
+#firefox
+#mozilla-thunderbird
+#~/eclipse/eclipse
 pkill gcin.test

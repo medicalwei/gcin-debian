@@ -16,6 +16,7 @@ typedef struct GCIN_client_handle_S {
 
 enum {
   FLAG_GCIN_client_handle_has_focus = 1,
+  FLAG_GCIN_client_handle_use_preedit = 2,
   FLAG_GCIN_client_handle_raise_window = 0x1000  // for mozilla, dirty fix
 };
 
@@ -32,6 +33,7 @@ GCIN_client_handle *gcin_im_client_open(Display *disp);
 void gcin_im_client_close(GCIN_client_handle *handle);
 void gcin_im_client_focus_in(GCIN_client_handle *handle);
 void gcin_im_client_focus_out(GCIN_client_handle *handle);
+void gcin_im_client_focus_out2(GCIN_client_handle *handle, char **rstr);
 void gcin_im_client_set_window(GCIN_client_handle *handle, Window win);
 void gcin_im_client_set_cursor_location(GCIN_client_handle *handle,
                                         int x, int y);
@@ -54,8 +56,10 @@ int gcin_im_client_forward_key_release(GCIN_client_handle *handle,
                                           char **rstr);
 
 void gcin_im_client_set_flags(GCIN_client_handle *handle, int flags, int *ret_flags);
+void gcin_im_client_clear_flags(GCIN_client_handle *handle, int flags, int *ret_flags);
 
 void gcin_im_client_reset(GCIN_client_handle *handle);
+void gcin_im_client_message(GCIN_client_handle *handle, char *message);
 
 #include "gcin-im-client-attr.h"
 int gcin_im_client_get_preedit(GCIN_client_handle *handle, char **str, GCIN_PREEDIT_ATTR att[], int *cursor);

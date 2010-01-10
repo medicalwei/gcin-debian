@@ -13,6 +13,7 @@ gedit
 #leafpad
 #amsn
 #abiword
+#mozilla-thunderbird
 
 #export LD_LIBRARY_PATH=/usr/lib/firefox-2.0.0.17
 #$LD_LIBRARY_PATH/mozilla-firefox-bin

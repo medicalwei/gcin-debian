@@ -1,0 +1,10 @@
+export LC_CTYPE=zh_TW.Big5
+export XMODIFIERS=@im=gcin_test
+
+pkill gcin.test
+../gcin.test &
+
+export LD_LIBRARY_PATH=../im-client
+export LD_PRELOAD=./im-gcin-cur.so
+thunderbird
+pkill gcin.test
