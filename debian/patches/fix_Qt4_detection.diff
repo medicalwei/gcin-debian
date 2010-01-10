@@ -1,23 +1,7 @@
 Fix Qt4 path
---- gcin-1.4.3.orig/qt4-im/Makefile
-+++ gcin-1.4.3/qt4-im/Makefile
-@@ -1,13 +1,13 @@
- include ../config.mak
- QT=qt4
--QTIM=$(QT)/plugins/lib/inputmethods
-+QTIM=$(QT)/plugins/inputmethods
- IMMODULES=$(libdir)/$(QTIM)
- ifeq ($(LIB), lib64)
- 	IMMODULES_LOCAL=/usr/$(LIB)/qt4/plugins/lib64/inputmethods
- else
- 	IMMODULES_LOCAL=/usr/$(LIB)/$(QTIM)
- endif
--QTINC=/usr/lib/$(QT)/include
-+QTINC=/usr/include/$(QT)
- 
- INCS=-I../im-client -I$(QTINC) -I/usr/include/X11 -I$(QTINC)/QtGui -I$(QTINC)/QtCore
- CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT4 -DQT_SHARED \
-@@ -23,7 +23,7 @@
+--- a/qt4-im/Makefile
++++ b/qt4-im/Makefile
+@@ -15,7 +15,7 @@
  	$(CXX) -E $(CFLAGS) $(INCS) $< > $@
  
  moc_gcin-qt.cpp:	gcin-qt.h

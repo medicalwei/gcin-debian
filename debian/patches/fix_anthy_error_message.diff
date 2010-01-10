@@ -1,9 +1,7 @@
 Fix anthy error message
-Index: gcin/anthy.c
-===================================================================
---- gcin.orig/anthy.c	2009-05-12 11:35:17.957281412 +0800
-+++ gcin/anthy.c	2009-05-12 12:24:46.613282588 +0800
-@@ -893,7 +893,7 @@
+--- a/anthy.cpp
++++ b/anthy.cpp
+@@ -909,7 +909,7 @@
      GtkWidget *dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL,
                                       GTK_MESSAGE_ERROR,
                                       GTK_BUTTONS_CLOSE,
@@ -12,7 +10,7 @@ Index: gcin/anthy.c
      gtk_dialog_run (GTK_DIALOG (dialog));
      gtk_widget_destroy (dialog);
      return FALSE;
-@@ -912,7 +912,7 @@
+@@ -928,7 +928,7 @@
      GtkWidget *dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL,
                                       GTK_MESSAGE_ERROR,
                                       GTK_BUTTONS_CLOSE,

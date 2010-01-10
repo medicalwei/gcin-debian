@@ -4,11 +4,9 @@ Add -Wl,--as-needed
  qt-im/Makefile |    2 +-
  2 files changed, 4 insertions(+), 3 deletions(-)
 
-Index: gcin/configure
-===================================================================
---- gcin.orig/configure	2009-05-12 12:24:37.841283205 +0800
-+++ gcin/configure	2009-05-12 12:24:43.341283484 +0800
-@@ -186,10 +186,9 @@
+--- a/configure
++++ b/configure
+@@ -216,7 +216,7 @@
  
  OPTFLAGS="-g"
  if [ $prefix = /usr ]; then
@@ -16,41 +14,35 @@ Index: gcin/configure
 +  OPTFLAGS="-g -O2"
  fi
  
--
- echo "CC=gcc" > config.mak
- echo "MAKE=$MAKE" >> config.mak
- echo "GTKINC=$GTKINC" >> config.mak
-@@ -204,6 +203,7 @@
+ if [ -z $CC ]; then
+@@ -239,7 +239,7 @@
+ echo "libdir=\$(DESTDIR)$libdir" >> config.mak
  echo "gcinlibdir=\$(libdir)/gcin" >> config.mak
  echo "includedir=\$(DESTDIR)$includedir" >> config.mak
- 
-+echo "LDFLAGS=-Wl,--as-needed -lX11" >> config.mak
- echo "LDFLAGS+=$GTKLDFLAGS" >> config.mak
+-echo "LDFLAGS=$GTKLDFLAGS -lX11" >> config.mak
++echo "LDFLAGS=-Wl,--as-needed $GTKLDFLAGS -lX11" >> config.mak
  echo "GCIN_VERSION=$GCIN_VERSION" >> config.mak
  echo "GCIN_TABLE_DIR=\$(datadir_r)/gcin/table" >> config.mak
-Index: gcin/qt-im/Makefile
-===================================================================
---- gcin.orig/qt-im/Makefile	2009-05-12 12:24:37.093283328 +0800
-+++ gcin/qt-im/Makefile	2009-05-12 12:24:43.341283484 +0800
-@@ -11,7 +11,7 @@
+ echo "GCIN_OGG_DIR=\$(datadir_r)/gcin/ogg" >> config.mak
+--- a/qt-im/Makefile
++++ b/qt-im/Makefile
+@@ -6,7 +6,7 @@
  CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT_THREAD_SUPPORT -DQT_PLUGIN -DQT_SHARED -DQT_NO_DEBUG
  OBJS=qgcininputcontextplugin.o qgcininputcontextplugin_my.o qgcininputcontext.o qgcininputcontext_x11.o
  .SUFFIXES:	.c .cpp .a .so .E .h
--LDFLAGS=-L/usr/lib/$(QT)/$(LIB) -L/usr/X11R6/$(LIB) -L../im-client -lqt-mt -lmng -ljpeg -lpng -lz \
-+LDFLAGS=-Wl,--as-needed -L/usr/lib/$(QT)/$(LIB) -L/usr/X11R6/$(LIB) -L../im-client -lqt-mt -lmng -ljpeg -lpng -lz \
- -lXrender -lXrandr  -lXft -lfontconfig -lgcin-im-client \
- -lXext -lX11 -lm -lSM -lICE -ldl -lpthread
+-LDFLAGS=-L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
++LDFLAGS=-Wl,--as-needed -L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
  all:	libqgcin.so
-Index: gcin/qt4-im/Makefile
-===================================================================
---- gcin.orig/qt4-im/Makefile	2009-05-12 12:24:35.789283581 +0800
-+++ gcin/qt4-im/Makefile	2009-05-12 12:24:43.341283484 +0800
-@@ -14,7 +14,7 @@
+ 
+ .cpp.E:
+--- a/qt4-im/Makefile
++++ b/qt4-im/Makefile
+@@ -8,7 +8,7 @@
  -DQT_IMMODULE -DPIC
  OBJS= moc_gcin-qt.o gcin-qt.o im-gcin-qt.o gcin-imcontext-qt.o
  .SUFFIXES:	.c .cpp .a .so .E .h
--LDFLAGS=-L/usr/lib/$(QT)/$(LIB) -L/usr/X11R6/$(LIB) -L../im-client -lQtGui -lQtCore -lmng -ljpeg -lpng -lz \
-+LDFLAGS=-Wl,--as-need -L/usr/lib/$(QT)/$(LIB) -L/usr/X11R6/$(LIB) -L../im-client -lQtGui -lQtCore -lmng -ljpeg -lpng -lz \
- -lXrender -lXrandr  -lXft -lfontconfig -lgcin-im-client \
- -lXext -lX11 -lm -lSM -lICE -ldl -lpthread
+-LDFLAGS=-L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
++LDFLAGS=-Wl,--as-need -L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
  all:    im-gcin.so
+ 
+ .cpp.E:
