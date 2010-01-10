@@ -6,7 +6,7 @@ Add -Wl,--as-needed
 
 --- a/configure
 +++ b/configure
-@@ -216,7 +216,7 @@
+@@ -213,7 +213,7 @@
  
  OPTFLAGS="-g"
  if [ $prefix = /usr ]; then
@@ -15,7 +15,7 @@ Add -Wl,--as-needed
  fi
  
  if [ -z $CC ]; then
-@@ -239,7 +239,7 @@
+@@ -236,7 +236,7 @@
  echo "libdir=\$(DESTDIR)$libdir" >> config.mak
  echo "gcinlibdir=\$(libdir)/gcin" >> config.mak
  echo "includedir=\$(DESTDIR)$includedir" >> config.mak
