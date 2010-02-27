@@ -1,3 +1,11 @@
+gcin (1.4.6-2) unstable; urgency=low
+
+  * Fix FTBFS with gtk2 2.19 due to deprecated Gtk+ macros
+    GTK_WIDGET_APP_PAINTABLE and GTK_WIDGET_NO_WINDOW. (Closes: #569246)
+    (LP: #520148)
+
+ -- Kan-Ru Chen <koster@debian.org.tw>  Sat, 27 Feb 2010 17:24:34 +0800
+
 gcin (1.4.6-1) unstable; urgency=low
 
   * New upstream release

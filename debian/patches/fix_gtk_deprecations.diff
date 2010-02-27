@@ -1,0 +1,13 @@
+Index: gcin-1.4.6/eggtrayicon.cpp
+===================================================================
+--- gcin-1.4.6.orig/eggtrayicon.cpp	2010-02-10 14:52:19.000000000 -0800
++++ gcin-1.4.6/eggtrayicon.cpp	2010-02-10 14:55:40.000000000 -0800
+@@ -398,7 +398,7 @@
+ static void
+ make_transparent (GtkWidget *widget, gpointer user_data)
+ {
+-	if (GTK_WIDGET_NO_WINDOW (widget) || GTK_WIDGET_APP_PAINTABLE (widget))
++	if (!gtk_widget_get_has_window (widget) || gtk_widget_get_app_paintable (widget))
+ 		return;
+ 
+ 	gtk_widget_set_app_paintable (widget, TRUE);
