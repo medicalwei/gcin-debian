@@ -3,6 +3,7 @@ gcin (1.4.6-2) unstable; urgency=low
   * Fix FTBFS with gtk2 2.19 due to deprecated Gtk+ macros
     GTK_WIDGET_APP_PAINTABLE and GTK_WIDGET_NO_WINDOW. (Closes: #569246)
     (LP: #520148)
+  * Updated Standards-Version to 3.8.4, no changes needed.
 
  -- Kan-Ru Chen <koster@debian.org.tw>  Sat, 27 Feb 2010 17:24:34 +0800
 
@@ -12,7 +13,7 @@ gcin (1.4.6-1) unstable; urgency=low
     This version fixed FTBFS with binutils-gold. (Closes: #554417)
   * Switched to dpkg-source 3.0 (quilt) format
   * Use modern debhelper style
-  * Updated Standards-Version to 3.8.4
+  * Updated Standards-Version to 3.8.3
   * Updated copyright information
   * Acknowledge NMU - Thanks Stefano
 
