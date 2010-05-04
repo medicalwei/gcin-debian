@@ -2,6 +2,7 @@ gcin (1.4.6-3) unstable; urgency=low
 
   * Fix FTBFS with gtk2 2.20 due to deprecated Gtk+ macros. (Closes: #577377)
   * Bump libgtk2.0-dev build-deps to 2.20.0.
+  * Disable --new_gtk_im. Too unstable with mozilla browser.
   * Add back README.html.
   * Update im-switch script also checks qt4 path.
   * Update Maintainer, Vcs-Git and Vcs-Browser. Migrating to DD account.
