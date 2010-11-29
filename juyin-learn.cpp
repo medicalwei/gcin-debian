@@ -4,14 +4,17 @@
 #if UNIX
 #include <libintl.h>
 #endif
+#include "gst.h"
+#include "tsin.h"
+
 
 GtkWidget *hbox_buttons;
 char current_str[MAX_PHRASE_LEN*CH_SZ+1];
 PIN_JUYIN *pin_juyin;
 int pin_juyinN;
 PHOKBM phkbm;
-char inph[8];
-char typ_pho[4];
+PHO_ST poo;
+TSIN_ST tss;
 int text_pho_N;
 
 gboolean b_pinyin;
@@ -166,6 +169,7 @@ int main(int argc, char **argv)
   pho_load();
 
   mainwin = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(mainwin), FALSE);
   gtk_window_set_default_size(GTK_WINDOW (mainwin), 640, 220);
   set_window_gcin_icon(mainwin);
 

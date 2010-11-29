@@ -64,6 +64,24 @@ gint inmd_switch_popup_handler (GtkWidget *widget, GdkEvent *event)
   return FALSE;
 }
 
+void show_inmd_menu()
+{
+  GdkEventButton eve;
+
+  eve.type = GDK_BUTTON_PRESS;
+  eve.button = 1;
+  eve.time = gtk_get_current_event_time ();
+  inmd_switch_popup_handler(NULL, (GdkEvent *)&eve);
+}
+
+void destroy_inmd_menu()
+{
+  if (!menu)
+    return;
+  gtk_widget_destroy(menu);
+  menu = NULL;
+}
+
 #if WIN32
 void inmd_popup_tray()
 {

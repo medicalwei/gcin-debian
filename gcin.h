@@ -22,6 +22,55 @@
 
 #define N_(STRING) STRING
 
+#if !GTK_CHECK_VERSION(2,13,4)
+#define gtk_widget_get_window(x) (x)->window
+#define gtk_color_selection_dialog_get_color_selection(x) (x)->colorsel
+#endif
+
+#if !GTK_CHECK_VERSION(2,15,0)
+#define gtk_status_icon_set_tooltip_text(x,y) gtk_status_icon_set_tooltip(x,y)
+#endif
+
+#if GTK_CHECK_VERSION(2,17,5)
+#undef GTK_WIDGET_NO_WINDOW
+#define GTK_WIDGET_NO_WINDOW !gtk_widget_get_has_window
+#undef GTK_WIDGET_SET_FLAGS
+#define GTK_WIDGET_SET_FLAGS(x,y) gtk_widget_set_can_default(x,1)
+#endif
+
+#if GTK_CHECK_VERSION(2,17,7)
+#undef GTK_WIDGET_VISIBLE
+#define GTK_WIDGET_VISIBLE gtk_widget_get_visible
+#endif
+
+#if GTK_CHECK_VERSION(2,17,10)
+#undef GTK_WIDGET_DRAWABLE
+#define GTK_WIDGET_DRAWABLE gtk_widget_is_drawable
+#endif
+
+#if GTK_CHECK_VERSION(2,19,5)
+#undef GTK_WIDGET_REALIZED
+#define GTK_WIDGET_REALIZED gtk_widget_get_realized
+#endif
+
+#if GTK_CHECK_VERSION(2,21,8)
+#define GDK_DISPLAY() GDK_DISPLAY_XDISPLAY(gdk_display_get_default())
+#endif
+
+#if GTK_CHECK_VERSION(2,91,0)
+#define GTK_OBJECT
+#endif
+
+#if !GTK_CHECK_VERSION(2,91,1)
+#define gtk_window_set_has_resize_grip(x,y);
+#endif
+
+#if GTK_CHECK_VERSION(2,91,2)
+#define gtk_combo_box_new_text gtk_combo_box_text_new
+#define gtk_combo_box_append_text gtk_combo_box_text_append_text
+#define gtk_widget_hide_all gtk_widget_hide
+#endif
+
 typedef enum {
   GCIN_STATE_DISABLED = 0,
   GCIN_STATE_ENG_FULL = 1,
@@ -40,21 +89,21 @@ typedef enum {
 
 #if CLIENT_LIB
 #define p_err __gcin_p_err
-#define dbg __gcin_dbg
 #define zmalloc __gcin_zmalloc
 #endif
 
+#include "util.h"
 
 #define tmalloc(type,n)  (type*)malloc(sizeof(type) * (n))
 void *zmalloc(int n);
+void *memdup(void *p, int n);
 #define tzmalloc(type,n)  (type*)zmalloc(sizeof(type) * (n))
 #define trealloc(p,type,n)  (type*)realloc(p, sizeof(type) * (n+1))
+#define tmemdup(p,type,n) (type*)memdup(p, sizeof(type) * n)
 #if UNIX
 extern Display *dpy;
 #endif
 
-void p_err(char *fmt,...);
-void dbg(char *fmt,...);
 
 extern GtkWidget *gwin0;
 extern GdkWindow *gdkwin0;
@@ -133,7 +182,7 @@ void utf8cpyN(char *t, char *s, int N);
 int utf8_str_N(char *str);
 void utf8cpyn(char *t, char *s, int n);
 void utf8cpy_bytes(char *t, char *s, int n);
-
+char *myfgets(char *buf, int bufN, FILE *fp);
 void get_gcin_dir(char *tt);
 #if UNIX
 Atom get_gcin_atom(Display *dpy);
@@ -163,10 +212,6 @@ void win32_init_win(GtkWidget *win);
 
 extern int gcin_switch_keysN;
 extern char gcin_switch_keys[];
-
-#if GTK_MAJOR_VERSION >=2 && GTK_MINOR_VERSION >= 4
-#define GTK_24 1
-#endif
 
 typedef int usecount_t;
 

@@ -127,7 +127,7 @@ static gboolean cb_gtab_edit_append( GtkWidget *widget,
                                    GdkEvent  *event,
                                    gpointer   data )
 {
-  load_gtab_list();
+  load_gtab_list(FALSE);
   char *fname = inmd[default_input_method].filename;
   if (!fname)
     return TRUE;
@@ -145,13 +145,13 @@ static gboolean cb_gtab_edit_append( GtkWidget *widget,
   sprintf(exec, "%s %s", utf8_edit, append_fname);
   dbg("exec %s\n", exec);
   system(exec);
-  return TRUE;
 #else
   strcat(strcpy(append_fname, fname), ".append");
   char user_fname[512];
   get_gcin_user_fname(append_fname, user_fname);
   win32exec_script("gtab.append_prepare.bat", user_fname);
 #endif
+  return TRUE;
 }
 
 static GtkWidget *create_spc_opts()
@@ -244,6 +244,8 @@ void create_gtab_conf_window()
   load_setttings();
 
   gcin_gtab_conf_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_position(gcin_gtab_conf_window, GTK_WIN_POS_MOUSE);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(gcin_gtab_conf_window), FALSE);
 
   g_signal_connect (G_OBJECT (gcin_gtab_conf_window), "delete_event",
                     G_CALLBACK (close_gtab_conf_window),

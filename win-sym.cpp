@@ -3,6 +3,7 @@
 #include "pho.h"
 #include "gtab.h"
 #include "win-sym.h"
+#include "gtab-buf.h"
 
 static GtkWidget *gwin_sym = NULL;
 static int cur_in_method;
@@ -36,14 +37,14 @@ FILE *watch_fopen(char *filename, time_t *pfile_modify_time)
 
   get_gcin_user_or_sys_fname(filename, fname);
 
-  if ((fp=fopen(fname, "r"))==NULL) {
+  if ((fp=fopen(fname, "rb"))==NULL) {
 #if UNIX
     strcat(strcat(strcpy(fname, TableDir), "/"), filename);
 #else
     strcat(strcat(strcpy(fname, TableDir), "\\"), filename);
 #endif
 
-    if ((fp=fopen(fname, "r"))==NULL)
+    if ((fp=fopen(fname, "rb"))==NULL)
      return NULL;
   }
 
@@ -111,19 +112,21 @@ static gboolean read_syms()
     char tt[1024];
 
     bzero(tt, sizeof(tt));
-    fgets(tt, sizeof(tt), fp);
-//    dbg(tt);
+    myfgets(tt, sizeof(tt), fp);
+//    dbg("%d] %s\n",strlen(tt), tt);
     int len=strlen(tt);
 
+#if 0
     if (!len)
       continue;
 
     if (tt[len-1]=='\n') {
       tt[len-1]=0;
-      if (tt[0]==0)
-        save_page();
-    } else
-      break;
+    }
+#endif
+
+    if (tt[0]==0)
+      save_page();
 
     if (tt[0]=='#')
       continue;
@@ -175,32 +178,32 @@ void tsin_reset_in_pho(), reset_gtab_all(), clr_in_area_pho();
 void force_preedit_shift();
 gboolean output_gbuf();
 void output_buffer_call_back();
-gboolean gtab_cursor_end(),gtab_phrase_on(), flush_tsin_buffer(), tsin_cursor_end();
-void insert_gbuf_cursor1(char *s), add_to_tsin_buf_str(char *str);
+gboolean gtab_cursor_end(),gtab_phrase_on();
+void flush_tsin_buffer();
+gboolean tsin_cursor_end();
+void add_to_tsin_buf_str(char *str);
 
 extern int c_len;
 extern short gbufN;
-static void cb_button_sym(GtkButton *button, char *str)
+static void cb_button_sym(GtkButton *button, GtkWidget *label)
 {
-  phokey_t pho[256];
-  bzero(pho, sizeof(pho));
-
 //  dbg("cb_button_sym\n");
+  char *str = (char *) gtk_label_get_text(GTK_LABEL(label));
 
 #if USE_TSIN
-  if (current_CS->in_method == 6 && current_CS->im_state == GCIN_STATE_CHINESE) {
+  if (current_method_type() == method_type_TSIN && current_CS->im_state == GCIN_STATE_CHINESE) {
     add_to_tsin_buf_str(str);
     if (tsin_cursor_end()) {
       flush_tsin_buffer();
       output_buffer_call_back();
-	} else {
+    } else {
       force_preedit_shift();
-	}
+    }
   }
   else
 #endif
   if (gtab_phrase_on()) {
-    insert_gbuf_cursor1(str);
+    insert_gbuf_nokey(str);
     if (gtab_cursor_end()) {
       output_gbuf();
       output_buffer_call_back();
@@ -210,17 +213,17 @@ static void cb_button_sym(GtkButton *button, char *str)
     send_text_call_back(str);
   }
 
-  switch (current_CS->in_method) {
-    case 3:
+  switch (current_method_type()) {
+    case method_type_PHO:
        clr_in_area_pho();
        break;
 #if USE_TSIN
-    case 6:
+    case method_type_TSIN:
        tsin_reset_in_pho();
        break;
 #endif
 #if USE_ANTHY
-    case 12:
+    case method_type_ANTHY:
        break;
 #endif
     default:
@@ -310,7 +313,7 @@ void str_to_all_phokey_chars(char *b5_str, char *out);
 
 static void sym_lookup_key(char *instr, char *outstr)
 {
-  if (current_CS->in_method == 3 || current_CS->in_method == 6) {
+  if (current_method_type() == method_type_PHO || current_method_type() == method_type_TSIN) {
     str_to_all_phokey_chars(instr, outstr);
   } else {
     outstr[0]=0;
@@ -336,6 +339,36 @@ static void destory_win()
   gwin_sym = NULL;
 }
 
+static void disp_win_sym()
+{
+  syms = pages[idx].syms;
+  symsN = pages[idx].symsN;
+  destory_win();
+//  win_sym_enabled = 0;
+  create_win_sym();
+}
+
+gboolean win_sym_page_up()
+{
+  if (!win_sym_enabled)
+	  return FALSE;
+  idx--;
+  if (idx < 0)
+  idx = pagesN - 1;
+  disp_win_sym();
+  return TRUE;
+}
+
+gboolean win_sym_page_down()
+{
+//  dbg("win_sym_page_down\n");
+  if (!win_sym_enabled)
+    return FALSE;
+  idx = (idx+1) % pagesN;
+  disp_win_sym();
+  return TRUE;
+}
+
 
 static gboolean button_scroll_event(GtkWidget *widget,GdkEventScroll *event, gpointer user_data)
 {
@@ -344,24 +377,19 @@ static gboolean button_scroll_event(GtkWidget *widget,GdkEventScroll *event, gpo
 
   switch (event->direction) {
     case GDK_SCROLL_UP:
-      idx--;
-      if (idx < 0)
-        idx = pagesN - 1;
+	  win_sym_page_up();
       break;
     case GDK_SCROLL_DOWN:
-      idx = (idx+1) % pagesN;
+	  win_sym_page_down();
       break;
     default:
       break;
   }
 
-  syms = pages[idx].syms;
-  symsN = pages[idx].symsN;
-  destory_win();
-//  win_sym_enabled = 0;
-  create_win_sym();
   return TRUE;
 }
+
+
 
 static void mouse_button_callback_up_down( GtkWidget *widget,GdkEventButton *event, gpointer data)
 {
@@ -381,7 +409,7 @@ void create_win_sym()
     p_err("bad current_CS %d\n", current_CS->in_method);
   }
 
-  if (current_CS->in_method != 3 && current_CS->in_method != 6 && current_CS->in_method != 12 && !cur_inmd)
+  if (current_method_type() != method_type_PHO && current_method_type() != method_type_TSIN && current_method_type() != method_type_ANTHY && !cur_inmd)
     return;
 
   if (read_syms() || cur_in_method != current_CS->in_method) {
@@ -402,6 +430,7 @@ void create_win_sym()
   }
 
   gwin_sym = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_sym), FALSE);
 #if WIN32
   set_no_focus(gwin_sym);
 #endif
@@ -456,7 +485,7 @@ void create_win_sym()
         }
       }
 
-      g_signal_connect (G_OBJECT (button), "clicked",  G_CALLBACK (cb_button_sym), str);
+      g_signal_connect (G_OBJECT (button), "clicked",  G_CALLBACK (cb_button_sym), label);
     }
   }
 
@@ -476,7 +505,7 @@ void create_win_sym()
 
   gtk_widget_realize (gwin_sym);
 #if UNIX
-  GdkWindow *gdkwin_sym = gwin_sym->window;
+  GdkWindow *gdkwin_sym = gtk_widget_get_window(gwin_sym);
   set_no_focus(gwin_sym);
 #else
   win32_init_win(gwin_sym);

@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 1995-2008	Edward Der-Hua Liu, Hsin-Chu, Taiwan
+	Copyright (C) 1995-2008	Edward Liu, Hsin-Chu, Taiwan
 */
 
 #include <stdio.h>
@@ -13,10 +13,11 @@
 #include "gcin.h"
 #include "gtab.h"
 #include "gcin-endian.h"
+#include "gcin-version.h"
 
 FILE *fr, *fw;
 int lineno;
-char tt[512];
+char tt[1024];
 
 
 char *skip_spc(char *s)
@@ -51,7 +52,7 @@ void get_line()
 {
   while (!feof(fr)) {
     bzero(tt, sizeof(tt));
-    fgets((char *)tt, 512, fr);
+	myfgets(tt, sizeof(tt), fr);
     lineno++;
 
     int len=strlen(tt);
@@ -170,8 +171,8 @@ int main(int argc, char **argv)
   char *phrbuf = NULL;
   int prbf_cou=0;
 
-  dbg("-- gcin2tab encoding UTF-8 --\n");
-  dbg("--- please use iconv -f big5 -t utf-8 if your file is in big5 encoding\n");
+  printf("-- gcin2tab encoding UTF-8 --\n");
+  printf("--- please use iconv -f big5 -t utf-8 if your file is in big5 encoding\n");
 
   if (argc<=1) {
           printf("Enter table file name [.cin] : ");
@@ -193,7 +194,7 @@ int main(int argc, char **argv)
   strcat(fname_cin,".cin");
   strcat(fname_tab,".gtab");
 
-  if ((fr=fopen(fname_cin,"r"))==NULL)
+  if ((fr=fopen(fname_cin,"rb"))==NULL)
           p_err("Cannot open %s\n", fname_cin);
 
   skip_utf8_sigature(fr);
@@ -263,6 +264,11 @@ int main(int argc, char **argv)
     if (sequ(cmd,"%flag_auto_select_by_phrase")) {
       dbg("flag_auto_select_by_phrase\n");
       th.flag |= FLAG_AUTO_SELECT_BY_PHRASE;
+      cmd_arg(&cmd, &arg);
+    } else
+    if (sequ(cmd,"%flag_disp_partial_match")) {
+      dbg("flag_disp_partial_match\n");
+      th.flag |= FLAG_GTAB_DISP_PARTIAL_MATCH;
       cmd_arg(&cmd, &arg);
     } else
       break;
@@ -337,6 +343,7 @@ int main(int argc, char **argv)
   long pos=ftell(fr);
   int olineno = lineno;
   gboolean key64 = FALSE;
+  int max_key_len = 0;
 
   while (!feof(fr)) {
     int len;
@@ -354,12 +361,10 @@ int main(int argc, char **argv)
 
     len=strlen(cmd);
 
-    if (len > 5) {
-      key64 = TRUE;
-      dbg("more than 5 keys, will use 64 bit\n");
-      break;
-    }
+    if (max_key_len < len)
+      max_key_len = len;
   }
+
 
   fseek(fr, pos, SEEK_SET);
   lineno=olineno;
@@ -375,7 +380,14 @@ int main(int argc, char **argv)
   else
     cur_inmd->keybits = 7;
 
-  dbg("KeyNum:%d keybits:%d\n", KeyNum, cur_inmd->keybits);
+  if (cur_inmd->keybits * max_key_len > 32) {
+   cur_inmd->key64 = key64 = TRUE;
+  }
+
+  if (key64)
+    dbg("key64\n");
+
+  printf("KeyNum:%d keybits:%d\n", KeyNum, cur_inmd->keybits);
 
   th.keybits = cur_inmd->keybits;
   cur_inmd->last_k_bitn = (((cur_inmd->key64 ? 64:32) / cur_inmd->keybits) - 1) * cur_inmd->keybits;
@@ -420,6 +432,8 @@ int main(int argc, char **argv)
 
       kk|=(u_int64_t)k << ( LAST_K_bitN - i*th.keybits);
     }
+
+//    dbg("%s kk:%llx\n", cmd, kk);
 
     if (key64) {
       memcpy(&itar64[chno].key, &kk, 8);
@@ -472,7 +486,7 @@ int main(int argc, char **argv)
 
 #define _sort qsort
 
-  dbg("MaxPress: %d\n", th.MaxPress);
+  printf("MaxPress: %d\n", th.MaxPress);
 
   th.DefC=chno;
   cur_inmd->DefChars = chno;
@@ -514,7 +528,7 @@ int main(int argc, char **argv)
     p_err("Cannot create");
   }
 
-  dbg("Defined Characters:%d\n", chno);
+  printf("Defined Characters:%d\n", chno);
 
 #if NEED_SWAP
   swap_byte_4(&th.version);

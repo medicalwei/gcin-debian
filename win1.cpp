@@ -1,5 +1,6 @@
 #include "gcin.h"
 #include "pho.h"
+#include "gst.h"
 
 static GtkWidget *gwin1, *frame;
 Window xwin1;
@@ -11,6 +12,25 @@ static GtkWidget *eve_sele[SELEN], *eve_seleR[SELEN];
 static GtkWidget *arrow_up, *arrow_down;
 
 void hide_selections_win();
+gboolean tsin_page_up(), tsin_page_down();
+
+static gboolean button_scroll_event_tsin(GtkWidget *widget,GdkEventScroll *event, gpointer user_data)
+{
+  switch (event->direction) {
+    case GDK_SCROLL_UP:
+      tsin_page_up();
+      break;
+    case GDK_SCROLL_DOWN:
+      tsin_page_down();
+      break;
+    default:
+      break;
+  }
+
+  return TRUE;
+}
+
+
 
 void create_win1()
 {
@@ -18,18 +38,21 @@ void create_win1()
     return;
 
   gwin1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin1), FALSE);
 #if WIN32
   set_no_focus(gwin1);
 #endif
   gtk_widget_realize (gwin1);
 
 #if UNIX
-  GdkWindow *gdkwin1 = gwin1->window;
+  GdkWindow *gdkwin1 = gtk_widget_get_window(gwin1);
   xwin1 = GDK_WINDOW_XWINDOW(gdkwin1);
   set_no_focus(gwin1);
 #else
   win32_init_win(gwin1);
 #endif
+
+  g_signal_connect (G_OBJECT (gwin1), "scroll-event", G_CALLBACK (button_scroll_event_tsin), NULL);
 }
 
 void change_win1_font(), force_preedit_shift();
@@ -47,6 +70,16 @@ static void mouse_button_callback( GtkWidget *widget,GdkEventButton *event, gpoi
   }
 }
 
+
+static void cb_arrow_up (GtkWidget *button, gpointer user_data)
+{
+  tsin_page_up();
+}
+static void cb_arrow_down (GtkWidget *button, gpointer user_data)
+{
+  tsin_page_down();
+}
+
 void create_win1_gui()
 {
   if (frame)
@@ -58,8 +91,12 @@ void create_win1_gui()
   GtkWidget *vbox_top = gtk_vbox_new (FALSE, 0);
   gtk_container_add (GTK_CONTAINER(frame), vbox_top);
 
+  GtkWidget *eve_box_up = gtk_event_box_new();
+  gtk_box_pack_start (GTK_BOX (vbox_top), eve_box_up, FALSE, FALSE, 0);
   arrow_up = gtk_arrow_new (GTK_ARROW_UP, GTK_SHADOW_IN);
-  gtk_box_pack_start (GTK_BOX (vbox_top), arrow_up, FALSE, FALSE, 0);
+  gtk_container_add(GTK_CONTAINER(eve_box_up), arrow_up);
+  g_signal_connect (G_OBJECT (eve_box_up), "button-press-event",
+                      G_CALLBACK (cb_arrow_up), NULL);
 
   GtkWidget *table = gtk_table_new(SELEN, 2, FALSE);
   gtk_box_pack_start (GTK_BOX (vbox_top), table, FALSE, FALSE, 0);
@@ -94,8 +131,12 @@ void create_win1_gui()
                    G_CALLBACK(mouse_button_callback), GINT_TO_POINTER(i));
   }
 
+  GtkWidget *eve_box_down = gtk_event_box_new();
+  gtk_box_pack_start (GTK_BOX (vbox_top), eve_box_down, FALSE, FALSE, 0);
   arrow_down = gtk_arrow_new (GTK_ARROW_DOWN, GTK_SHADOW_IN);
-  gtk_box_pack_start (GTK_BOX (vbox_top), arrow_down, FALSE, FALSE, 0);
+  gtk_container_add(GTK_CONTAINER(eve_box_down), arrow_down);
+  g_signal_connect (G_OBJECT (eve_box_down), "button-press-event",
+                      G_CALLBACK (cb_arrow_down), NULL);
 
   gtk_widget_show_all(gwin1);
   gdk_flush();
@@ -137,10 +178,18 @@ void set_sele_text(int i, char *text, int len)
   char uu[32], selma[128];
 
   char cc[2];
-  cc[0]=phkbm.selkey[i];
+  cc[0]=pho_selkey[i];
   cc[1]=0;
+  char ul[128];
+  ul[0]=0;
 
-  sprintf(selma, "<span foreground=\"%s\">%s</span>", gcin_sel_key_color, htmlspecialchars(cc, uu));
+  if (tss.sel_pho && i==tss.pho_menu_idx)
+//    strcpy(ul, " underline='single' underline_color='red'");
+    strcpy(ul, " foreground=\"yellow\" background=\"black\"");
+  else
+    sprintf(ul, "foreground=\"%s\"",gcin_sel_key_color);
+
+  sprintf(selma, "<span %s>%s</span>", ul, htmlspecialchars(cc, uu));
 
   if (tsin_tail_select_key) {
     char vv[128];
@@ -152,23 +201,31 @@ void set_sele_text(int i, char *text, int len)
   }
 
   gtk_widget_show(labels_sele[i]);
+//  dbg("tt %s\n", tt);
   gtk_label_set_markup(GTK_LABEL(labels_sele[i]), tt);
 }
 
 #if WIN32
+static int timeout_handle;
 gboolean timeout_minimize_win1(gpointer data)
 {
-  gtk_window_resize(GTK_WINDOW(gwin1), 10, 20);
+  gtk_window_resize(GTK_WINDOW(gwin1), 10, 10);
   gtk_window_present(GTK_WINDOW(gwin1));
+  timeout_handle = 0;
   return FALSE;
 }
 #endif
 
+
 void disp_selections(int x, int y)
 {
+  if (!gwin1)
+    p_err("disp_selections !gwin1");
+#if WIN32
   if (!GTK_WIDGET_VISIBLE(gwin1)) {
     gtk_widget_show(gwin1);
   }
+#endif
 
   int win1_xl, win1_yl;
   get_win_size(gwin1, &win1_xl, &win1_yl);
@@ -180,7 +237,13 @@ void disp_selections(int x, int y)
 
   gtk_window_move(GTK_WINDOW(gwin1), x, y);
 #if WIN32
-  int timeout_handle = g_timeout_add(50, timeout_minimize_win1, NULL);
+  timeout_handle = g_timeout_add(50, timeout_minimize_win1, NULL);
+#endif
+
+#if UNIX
+  if (!GTK_WIDGET_VISIBLE(gwin1)) {
+    gtk_widget_show(gwin1);
+  }
 #endif
 }
 
@@ -195,6 +258,13 @@ void hide_selections_win()
 {
   if (!gwin1)
     return;
+#if WIN32
+  if (timeout_handle) {
+	  g_source_remove(timeout_handle);
+	  timeout_handle = 0;
+  }
+#endif
+
 #if WIN32
   gtk_window_resize(GTK_WINDOW(gwin1), 10, 20);
 #endif
