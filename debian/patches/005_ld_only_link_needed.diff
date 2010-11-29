@@ -6,7 +6,7 @@ Add -Wl,--as-needed
 
 --- a/configure
 +++ b/configure
-@@ -213,7 +213,7 @@
+@@ -235,7 +235,7 @@
  
  OPTFLAGS="-g"
  if [ $prefix = /usr ]; then
@@ -15,7 +15,7 @@ Add -Wl,--as-needed
  fi
  
  if [ -z $CC ]; then
-@@ -236,7 +236,7 @@
+@@ -258,7 +258,7 @@
  echo "libdir=\$(DESTDIR)$libdir" >> config.mak
  echo "gcinlibdir=\$(libdir)/gcin" >> config.mak
  echo "includedir=\$(DESTDIR)$includedir" >> config.mak
@@ -26,23 +26,21 @@ Add -Wl,--as-needed
  echo "GCIN_OGG_DIR=\$(datadir_r)/gcin/ogg" >> config.mak
 --- a/qt-im/Makefile
 +++ b/qt-im/Makefile
-@@ -6,7 +6,7 @@
- CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT_THREAD_SUPPORT -DQT_PLUGIN -DQT_SHARED -DQT_NO_DEBUG
+@@ -7,6 +7,7 @@
  OBJS=qgcininputcontextplugin.o qgcininputcontextplugin_my.o qgcininputcontext.o qgcininputcontext_x11.o
  .SUFFIXES:	.c .cpp .a .so .E .h
--LDFLAGS=-L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
-+LDFLAGS=-Wl,--as-needed -L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
+ LDFLAGS=-L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir) `pkg-config qt-mt --libs`
++LDFLAGS:=-Wl,--as-needed $(LDFLAGS)
  all:	libqgcin.so
  
  .cpp.E:
 --- a/qt4-im/Makefile
 +++ b/qt4-im/Makefile
-@@ -8,7 +8,7 @@
- -DQT_IMMODULE -DPIC
+@@ -9,6 +9,7 @@
  OBJS= moc_gcin-qt.o gcin-qt.o im-gcin-qt.o gcin-imcontext-qt.o
  .SUFFIXES:	.c .cpp .a .so .E .h
--LDFLAGS=-L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
-+LDFLAGS=-Wl,--as-needed -L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir)
+ LDFLAGS=-L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir) `pkg-config QtCore QtGui --libs`
++LDFLAGS:=-Wl,--as-needed $(LDFLAGS)
  all:    im-gcin.so
  
  .cpp.E:

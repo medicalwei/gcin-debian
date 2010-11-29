@@ -1,7 +1,8 @@
-fix_rpath_and_icon_path.diff
-fix_Qt4_detection.diff
-fix_Qt3_detection.diff
-fix_install_paths.diff
-ld_only_link_needed.diff
-fix_anthy_error_message.diff
-fix_gtk_deprecations.diff
+000_fix_rpath.diff
+001_fix_icon_path.diff
+002_fix_Qt4_detection.diff
+003_fix_Qt3_detection.diff
+004_fix_install_paths.diff
+005_ld_only_link_needed.diff
+006_fix_anthy_error_message.diff
+007_fix_gtk_deprecations.diff

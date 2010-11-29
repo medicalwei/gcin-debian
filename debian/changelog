@@ -1,3 +1,10 @@
+gcin (1.5.7~pre12-1) experimental; urgency=low
+
+  * New snapshot.
+  * Refresh patches.
+
+ -- Kan-Ru Chen <koster@debian.org>  Mon, 29 Nov 2010 22:06:56 +0800
+
 gcin (1.4.6-3) unstable; urgency=low
 
   * Fix FTBFS with gtk2 2.20 due to deprecated Gtk+ macros. (Closes: #577377)

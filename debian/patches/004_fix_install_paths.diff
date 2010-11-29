@@ -5,7 +5,7 @@ Fix 64bit builds
 
 --- a/configure
 +++ b/configure
-@@ -140,9 +140,6 @@
+@@ -145,9 +145,6 @@
  fi
  
  LIB='lib'
@@ -15,7 +15,7 @@ Fix 64bit builds
  
  QT_IM='N'
  QT_IM_DIR=/usr/$LIB/qt3/plugins/inputmethods
-@@ -247,11 +244,11 @@
+@@ -269,11 +266,11 @@
  echo "GCIN_SCRIPT_DIR=\$(datadir_r)/gcin/script" >> config.mak
  echo "GCIN_SCRIPT_DIR_i=\$(datadir)/gcin/script" >> config.mak
  echo "OPTFLAGS=$OPTFLAGS" >> config.mak

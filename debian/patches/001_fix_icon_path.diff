@@ -1,0 +1,13 @@
+--- a/Makefile
++++ b/Makefile
+@@ -250,8 +250,8 @@
+ 	rm -f $(bindir)/trad2sim; ln -sf sim2trad $(bindir)/trad2sim
+ 
+ install:
+-	install -d $(datadir)/icons
+-	install -m 644 gcin.png $(datadir)/icons
++	install -d $(datadir)/pixmaps
++	install -m 644 gcin.png $(datadir)/pixmaps
+ 	$(MAKE) -C icons install
+ 	install -d $(bindir)
+ 	$(MAKE) -C data install
