@@ -2,6 +2,7 @@ gcin (1.5.7~pre12-1) experimental; urgency=low
 
   * New snapshot.
   * Refresh patches.
+  * debian/patches/008_add_shebang_to_scripts.diff: New.
 
  -- Kan-Ru Chen <koster@debian.org>  Mon, 29 Nov 2010 22:06:56 +0800
 
