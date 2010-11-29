@@ -7,3 +7,4 @@
 006_fix_anthy_error_message.diff
 007_fix_gtk_deprecations.diff
 008_add_shebang_to_scripts.diff
+009_add_tsin2gtab_phrase_manpage.diff
