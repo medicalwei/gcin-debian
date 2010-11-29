@@ -5,7 +5,8 @@ gcin (1.5.7~pre12-1) experimental; urgency=low
   * debian/patches/008_add_shebang_to_scripts.diff,
     debian/patches/009_add_tsin2gtab_phrase_manpage.diff: New.
   * debian/gcin-exit.1: New.
-
+  * Updated Standards-Version to 3.9.1, no changes needed.
+  
  -- Kan-Ru Chen <koster@debian.org>  Mon, 29 Nov 2010 22:06:56 +0800
 
 gcin (1.4.6-3) unstable; urgency=low
