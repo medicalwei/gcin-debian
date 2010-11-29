@@ -1,5 +1,6 @@
 #include "gcin.h"
 #include "config.h"
+#include "gcin-version.h"
 #if UNIX
 #include <signal.h>
 #include <libintl.h>
@@ -62,9 +63,10 @@ void start_inmd_window()
 
 
 #if USE_XIM
+char *lc;
 
 static XIMStyle Styles[] = {
-#if 0
+#if 1
         XIMPreeditCallbacks|XIMStatusCallbacks,		//OnTheSpot
         XIMPreeditCallbacks|XIMStatusArea,		//OnTheSpot
         XIMPreeditCallbacks|XIMStatusNothing,		//OnTheSpot
@@ -72,7 +74,7 @@ static XIMStyle Styles[] = {
         XIMPreeditPosition|XIMStatusArea,		//OverTheSpot
         XIMPreeditPosition|XIMStatusNothing,		//OverTheSpot
         XIMPreeditPosition|XIMStatusNone,		//OverTheSpot
-#if 0
+#if 1
         XIMPreeditArea|XIMStatusArea,			//OffTheSpot
         XIMPreeditArea|XIMStatusNothing,		//OffTheSpot
         XIMPreeditArea|XIMStatusNone,			//OffTheSpot
@@ -134,8 +136,6 @@ void GetIC(IMChangeICStruct *call_data);
 int xim_gcin_FocusIn(IMChangeFocusStruct *call_data);
 int xim_gcin_FocusOut(IMChangeFocusStruct *call_data);
 
-
-
 int gcin_ProtoHandler(XIMS ims, IMProtocol *call_data)
 {
 //  dbg("gcin_ProtoHandler %x ims\n", ims);
@@ -151,18 +151,18 @@ int gcin_ProtoHandler(XIMS ims, IMProtocol *call_data)
       if(pimopen->connect_id > MAX_CONNECT - 1)
         return True;
 
-#if DEBUG
+#if DEBUG && 0
     dbg("open lang %s  connectid:%d\n", pimopen->lang.name, pimopen->connect_id);
 #endif
       return True;
     }
   case XIM_CLOSE:
-#if DEBUG
+#if DEBUG && 0
     dbg("XIM_CLOSE\n");
 #endif
     return True;
   case XIM_CREATE_IC:
-#if DEBUG
+#if DEBUG && 0
      dbg("CREATE_IC\n");
 #endif
      CreateIC((IMChangeICStruct *)call_data);
@@ -170,62 +170,62 @@ int gcin_ProtoHandler(XIMS ims, IMProtocol *call_data)
   case XIM_DESTROY_IC:
      {
        IMChangeICStruct *pimcha=(IMChangeICStruct *)call_data;
-#if DEBUG
+#if DEBUG && 0
        dbg("DESTROY_IC %d\n", pimcha->icid);
 #endif
        DeleteIC(pimcha->icid);
      }
      return True;
   case XIM_SET_IC_VALUES:
-#if DEBUG
+#if DEBUG && 0
      dbg("SET_IC\n");
 #endif
      SetIC((IMChangeICStruct *)call_data);
      return True;
   case XIM_GET_IC_VALUES:
-#if DEBUG
+#if DEBUG && 0
      dbg("GET_IC\n");
 #endif
      GetIC((IMChangeICStruct *)call_data);
      return True;
   case XIM_FORWARD_EVENT:
-#if DEBUG
+#if DEBUG && 0
      dbg("XIM_FORWARD_EVENT\n");
 #endif
      return xim_ForwardEventHandler((IMForwardEventStruct *)call_data);
   case XIM_SET_IC_FOCUS:
-#if DEBUG
+#if DEBUG && 0
      dbg("XIM_SET_IC_FOCUS\n");
 #endif
      return xim_gcin_FocusIn((IMChangeFocusStruct *)call_data);
   case XIM_UNSET_IC_FOCUS:
-#if DEBUG
+#if DEBUG && 0
      dbg("XIM_UNSET_IC_FOCUS\n");
 #endif
      return xim_gcin_FocusOut((IMChangeFocusStruct *)call_data);
   case XIM_RESET_IC:
-#if DEBUG
+#if DEBUG && 0
      dbg("XIM_UNSET_IC_FOCUS\n");
 #endif
      return True;
   case XIM_TRIGGER_NOTIFY:
-#if DEBUG
+#if DEBUG && 0
      dbg("XIM_TRIGGER_NOTIFY\n");
 #endif
      MyTriggerNotifyHandler((IMTriggerNotifyStruct *)call_data);
      return True;
   case XIM_PREEDIT_START_REPLY:
-#if DEBUG
+#if DEBUG && 0
      dbg("XIM_PREEDIT_START_REPLY\n");
 #endif
      return True;
   case XIM_PREEDIT_CARET_REPLY:
-#if DEBUG
+#if DEBUG && 0
      dbg("XIM_PREEDIT_CARET_REPLY\n");
 #endif
      return True;
   case XIM_STR_CONVERSION_REPLY:
-#if DEBUG
+#if DEBUG && 0
      dbg("XIM_STR_CONVERSION_REPLY\n");
 #endif
      return True;
@@ -255,12 +255,16 @@ void open_xim()
           IMServerWindow,         xim_arr[0].xim_xwin,        //input window
           IMModifiers,            "Xi18n",        //X11R6 protocol
           IMServerName,           xim_arr[0].xim_server_name, //XIM server name
-          IMLocale,               xim_arr[0].server_locale,  //XIM server locale
+#if 0
+          IMLocale,               xim_arr[0].server_locale,
+#else
+          IMLocale,               lc,
+#endif
           IMServerTransport,      "X/",      //Comm. protocol
           IMInputStyles,          &im_styles,   //faked styles
           IMEncodingList,         &encodings,
           IMProtocolHandler,      gcin_ProtoHandler,
-          IMFilterEventMask,      KeyPressMask,
+          IMFilterEventMask,      KeyPressMask|KeyReleaseMask,
           IMOnKeysList, &triggerKeys,
 //        IMOffKeysList, &triggerKeys,
           NULL)) == NULL) {
@@ -277,6 +281,9 @@ void load_tsin_conf(), load_setttings(), load_tab_pho_file();
 void disp_hide_tsin_status_row(), gcb_main(), update_win_kbm();
 void change_tsin_line_color(), change_win0_style(), change_tsin_color();
 void change_win_gtab_style();
+void update_item_active_all();
+void destroy_inmd_menu();
+void load_gtab_list(gboolean);
 
 static void reload_data()
 {
@@ -290,6 +297,11 @@ static void reload_data()
   change_tsin_color();
   if (win_kbm_inited)
     update_win_kbm();
+
+  destroy_inmd_menu();
+  load_gtab_list(TRUE);
+
+  update_item_active_all();
 #if USE_GCB
   gcb_main();
 #endif
@@ -300,6 +312,7 @@ void change_gtab_font_size();
 void change_pho_font_size();
 void change_win_sym_font_size();
 void change_win_gtab_style();
+extern int win_kbm_on;
 
 static void change_font_size()
 {
@@ -310,6 +323,8 @@ static void change_font_size()
   change_win_sym_font_size();
   change_win0_style();
   change_win_gtab_style();
+  if (win_kbm_on)
+    update_win_kbm();
 //  change_win_pho_style();
 }
 
@@ -323,14 +338,13 @@ static int xerror_handler(Display *d, XErrorEvent *eve)
 #if UNIX
 Atom gcin_atom;
 #endif
-void update_tray_icon(), load_tray_icon_win32(), toggle_gb_output();
+void disp_tray_icon(), toggle_gb_output();
 
 void cb_trad_sim_toggle()
 {
   toggle_gb_output();
 #if TRAY_ENABLED
-  update_tray_icon();
-  load_tray_icon_win32();
+  disp_tray_icon();
 #endif
 }
 void execute_message(char *message), show_win_kbm(), hide_win_kbm();
@@ -345,6 +359,10 @@ void kbm_toggle()
     hide_win_kbm();
 }
 
+
+void reload_tsin_db();
+void do_exit();
+
 void message_cb(char *message)
 {
 //   dbg("message '%s'\n", message);
@@ -354,6 +372,7 @@ void message_cb(char *message)
    } else
    if (!strcmp(message, GB_OUTPUT_TOGGLE)) {
      cb_trad_sim_toggle();
+     update_item_active_all();
    } else
    if (!strcmp(message, KBM_TOGGLE)) {
      kbm_toggle();
@@ -363,9 +382,12 @@ void message_cb(char *message)
      execute_message(message);
    } else
 #endif
-   if (!strcmp(message, RELOAD_TSIN_DB))
-     load_tsin_db();
-   else
+   if (!strcmp(message, RELOAD_TSIN_DB)) {
+     reload_tsin_db();
+   } else
+   if (!strcmp(message, GCIN_EXIT)) {
+     do_exit();
+   } else
      reload_data();
 }
 
@@ -407,7 +429,7 @@ void hide_win0();
 void destroy_win0();
 void destroy_win1();
 void destroy_win_gtab();
-void free_pho_mem(),free_tsin(),free_all_IC(), free_gtab(), free_phrase();
+void free_pho_mem(),free_tsin(),free_all_IC(), free_gtab(), free_phrase(), destroy_tray_win32();
 
 void do_exit()
 {
@@ -427,6 +449,9 @@ void do_exit()
   destroy_win_gtab();
 #endif
 
+#if WIN32
+  destroy_tray_win32();
+#endif
   gtk_main_quit();
 }
 
@@ -436,7 +461,7 @@ void sig_do_exit(int sig)
 }
 
 char *get_gcin_xim_name();
-void load_phrase(), init_TableDir(),  load_gtab_list();
+void load_phrase(), init_TableDir();
 void init_im_serv(), init_tray(), exec_setup_scripts();
 void init_gcin_im_serv(Window win), gcb_main(), init_tray_win32();
 
@@ -458,9 +483,11 @@ gboolean delayed_start_cb(gpointer data)
 #if TRAY_ENABLED
   if (gcin_status_tray) {
 #if UNIX
-    init_tray();
+    if (gcin_win32_icon)
+      init_tray_win32();
+    else
+      init_tray();
 #endif
-    init_tray_win32();
   }
 #endif
 
@@ -479,6 +506,19 @@ gboolean delayed_start_cb(gpointer data)
 
 int main(int argc, char **argv)
 {
+#if UNIX
+  signal(SIGCHLD, SIG_IGN);
+  signal(SIGPIPE, SIG_IGN);
+
+  if (getenv("GCIN_DAEMON")) {
+    daemon(1,1);
+#if FREEBSD
+    setpgid(0, getpid());
+#else
+    setpgrp();
+#endif
+  }
+#endif
 
 //putenv("GDK_NATIVE_WINDOWS=1");
 #if WIN32
@@ -520,11 +560,6 @@ int main(int argc, char **argv)
   if (!lc_ctype)
     lc_ctype = "zh_TW.Big5";
 
-  char *lc;
-
-  signal(SIGCHLD, SIG_IGN);
-  signal(SIGPIPE, SIG_IGN);
-
   char *t = strchr(lc_ctype, '.');
   if (t) {
     int len = t - lc_ctype;
@@ -538,7 +573,7 @@ int main(int argc, char **argv)
   else
     lc = lc_ctype;
 
-  xim_arr[0].server_locale = lc;
+
   char *xim_server_name = get_gcin_xim_name();
 
   strcpy(xim_arr[0].xim_server_name, xim_server_name);
@@ -554,7 +589,7 @@ int main(int argc, char **argv)
 
   init_TableDir();
   load_setttings();
-  load_gtab_list();
+  load_gtab_list(TRUE);
 
   gtk_init (&argc, &argv);
 

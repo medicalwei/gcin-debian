@@ -96,13 +96,14 @@ void create_win_pho()
     return;
 
   gwin_pho = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_pho), FALSE);
 #if WIN32
   set_no_focus(gwin_pho);
 #endif
   gtk_container_set_border_width (GTK_CONTAINER (gwin_pho), 0);
   gtk_widget_realize (gwin_pho);
 #if UNIX
-  GdkWindow *gdkwin = gwin_pho->window;
+  GdkWindow *gdkwin = gtk_widget_get_window(gwin_pho);
   xwin_pho = GDK_WINDOW_XWINDOW(gdkwin);
   set_no_focus(gwin_pho);
 #else
@@ -199,7 +200,7 @@ void create_win_pho_gui_simple()
     gtk_widget_set_tooltip_text (event_box_pho, _(_L("左鍵符號，右鍵設定")));
 #else
     GtkTooltips *button_gtab_tips = gtk_tooltips_new ();
-    gtk_tooltips_set_tip (GTK_TOOLTIPS (button_gtab_tips), event_box_pho, _(_L"左鍵符號，右鍵設定"),NULL);
+    gtk_tooltips_set_tip (GTK_TOOLTIPS (button_gtab_tips), event_box_pho, _(_L("左鍵符號，右鍵設定")),NULL);
 #endif
   }
 
@@ -238,6 +239,14 @@ void show_win_pho()
 
   if (gcin_pop_up_win && !pho_has_input())
     return;
+
+#if UNIX
+  if (!GTK_WIDGET_VISIBLE(gwin_pho))
+#endif
+  {
+    gtk_widget_show(gwin_pho);
+    move_win_pho(win_x, win_y);
+  }
 
   gtk_widget_show(gwin_pho);
   if (current_CS->b_raise_window)
@@ -280,10 +289,10 @@ void win_pho_disp_half_full()
 {
   gtk_label_set_text(GTK_LABEL(label_pho), get_full_str());
 
-  if (current_CS->im_state == GCIN_STATE_CHINESE && current_CS->b_half_full_char) {
-    gtk_widget_show(label_full);
-  } else
+  if (current_CS->im_state == GCIN_STATE_CHINESE && (!current_CS->b_half_full_char))
     gtk_widget_hide(label_full);
+  else
+    gtk_widget_show(label_full);
 
   minimize_win_pho();
 }

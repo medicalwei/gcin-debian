@@ -2,6 +2,7 @@
 #define GB_OUTPUT_TOGGLE "gb output toggle"
 #define KBM_TOGGLE "kbm toggle"
 #define RELOAD_TSIN_DB "reload tsin db"
+#define GCIN_EXIT "gcin exit"
 
 
 #define GCIN_FONT_SIZE "gcin-font-size"
@@ -11,6 +12,8 @@
 #define GCIN_FONT_SIZE_TSIN_PHO_IN "gcin-font-size-tsin-pho-in"
 #define GCIN_FONT_SIZE_GTAB_IN "gcin-font-size-gtab-in"
 #define GCIN_FONT_SIZE_PHO_NEAR "gcin-font-size-pho-near"
+#define GCIN_FONT_SIZE_WIN_KBM "gcin-font-size-win-kbm"
+#define GCIN_FONT_SIZE_WIN_KBM_EN "gcin-font-size-win-kbm-en"
 #define GCIN_INPUT_STYLE "gcin-input-style"
 #define GCIN_ROOT_X      "gcin-root-x"
 #define GCIN_ROOT_Y      "gcin-root-y"
@@ -22,6 +25,8 @@
 #define GCIN_ENABLE_CTRL_ALT_SWITCH "gcin-enable-ctrl-alt-switch"
 #define GCIN_EDIT_DISPLAY "gcin-edit-display"
 #define GCIN_BELL_OFF "gcin-bell-off"
+#define GCIN_ON_THE_SPOT_KEY "gcin-on-the-spot-key"
+
 
 #define GCIN_IM_TOGGLE_KEYS "gcin-im-toggle-keys"
 #define DEFAULT_INPUT_METHOD "default-input-method"
@@ -43,6 +48,7 @@
 #define GTAB_SPACE_AUTO_FIRST "gtab-space-auto-first"
 #define GTAB_AUTO_SELECT_BY_PHRASE "gtab-auto-select-by_phrase"
 #define GTAB_PRE_SELECT "gtab-pre-select"
+#define GTAB_PHRASE_PRE_SELECT "gtab-phrase-pre-select"
 #define GTAB_PRESS_FULL_AUTO_SEND "gtab-press-full-auto-send"
 #define GTAB_DISP_PARTIAL_MATCH "gtab-disp-partial-match"
 #define GTAB_DISP_KEY_CODES "gtab-disp-key-codes"
@@ -71,7 +77,7 @@
 #define PHO_IN_ROW1 "pho-in-row1"
 
 
-#define PHONETIC_KEYBOARD "phonetic-keyboard"
+#define PHONETIC_KEYBOARD "phonetic-keyboard2"
 #define PHONETIC_CHAR_DYNAMIC_SEQUENCE "phonetic-char-dynamic-sequence"
 #define PHONETIC_HUGE_TAB "phonetic-huge-tab"
 #define PHONETIC_SPEAK "phonetic-speak"
@@ -83,13 +89,14 @@
 
 extern int gcin_font_size, gcin_font_size_tsin_presel, gcin_font_size_symbol,
            gcin_font_size_tsin_pho_in, gcin_font_size_pho_near,
-           gcin_font_size_gtab_in, gcin_inner_frame,
+           gcin_font_size_gtab_in, gcin_font_size_win_kbm, gcin_font_size_win_kbm_en,
+           gcin_inner_frame,
            gcin_flags_im_enabled, gcin_remote_client,
            gtab_disp_key_codes, gtab_disp_im_name, gcin_shift_space_eng_full,
            gtab_invalid_key_in, gtab_hide_row2, gtab_in_row1, gtab_capslock_in_eng,
            gcin_capslock_lower, pho_hide_row2, pho_in_row1,
            gcin_eng_phrase_enabled, gtab_que_wild_card, gcin_win_sym_click_close,
-           gcin_bell_volume, gcin_sound_play_overlap, gcin_enable_ctrl_alt_switch;
+           gcin_bell_volume, gcin_sound_play_overlap, gcin_enable_ctrl_alt_switch, gcin_on_the_spot_key;
 
 extern int default_input_method;
 extern int left_right_button_tips;
@@ -97,7 +104,7 @@ extern int gtab_dup_select_bell;
 extern int gtab_space_auto_first;
 extern int gtab_auto_select_by_phrase;
 extern int gcin_im_toggle_keys;
-extern int gtab_pre_select;
+extern int gtab_pre_select, gtab_phrase_pre_select;
 extern int gtab_press_full_auto_send;
 extern int gtab_disp_partial_match;
 extern int gtab_shift_phrase_key;
@@ -121,8 +128,9 @@ extern char *gcin_win_color_fg, *gcin_win_color_bg;
 extern int gcin_win_color_use, gcin_bell_off;
 extern int gcin_init_im_enabled, gcin_win32_icon;
 extern int gcb_enabled, gcb_position, gcb_position_x, gcb_position_y, gcin_edit_display;
+extern char *pho_kbm_name, *pho_selkey;
 
-void get_gcin_user_fname(char *name, char fname[]);
+gboolean get_gcin_user_fname(char *name, char fname[]);
 void get_gcin_conf_str(char *name, char **rstr, char *default_str);
 void get_gcin_conf_fstr(char *name, char rstr[], char *default_str);
 void save_gcin_conf_str(char *name, char *str);

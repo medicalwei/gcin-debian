@@ -343,6 +343,7 @@ int main(int argc, char **argv)
   dpy = GDK_DISPLAY();
 
   mainwin = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(mainwin), FALSE);
   gtk_window_set_default_size(GTK_WINDOW (mainwin), 640, 520);
   set_window_gcin_icon(mainwin);
 
@@ -361,7 +362,11 @@ int main(int argc, char **argv)
 
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));
 
+#if UNIX
   char *text = _(_L("按滑鼠中鍵, 貼上你要 tslearn 學習的文章。"));
+#else
+  char *text = _(_L("按 ctrl-V, 貼上你要 tslearn 學習的文章。"));
+#endif
 
   gtk_text_buffer_set_text (buffer, text, -1);
 

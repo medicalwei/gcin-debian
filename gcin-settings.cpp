@@ -2,19 +2,21 @@
 #include "gtab.h"
 
 int gcin_font_size, gcin_font_size_tsin_presel, gcin_font_size_symbol;
-int gcin_font_size_pho_near, gcin_font_size_gtab_in, gcin_win_color_use;
+int gcin_font_size_pho_near, gcin_font_size_gtab_in, gcin_font_size_win_kbm, gcin_font_size_win_kbm_en;
+int gcin_win_color_use;
 int gcin_remote_client;
 int default_input_method;
 int left_right_button_tips;
 int gcin_im_toggle_keys, gcin_bell_off;
 int gcin_capslock_lower, gcin_eng_phrase_enabled, gcin_init_im_enabled;
 int gcin_win_sym_click_close, gcin_edit_display, gcin_win32_icon;
+int gcin_on_the_spot_key;
 
 int gtab_dup_select_bell;
 int gtab_space_auto_first;
 int gtab_auto_select_by_phrase;
 int gtab_press_full_auto_send;
-int gtab_pre_select;
+int gtab_pre_select, gtab_phrase_pre_select;
 int gtab_disp_partial_match;
 int gtab_disp_key_codes;
 int gtab_disp_im_name;
@@ -56,6 +58,8 @@ int gcb_enabled, gcb_position, gcb_position_x, gcb_position_y;
 #endif
 int gcin_bell_volume;
 int gcin_sound_play_overlap, gcin_enable_ctrl_alt_switch;
+char *pho_kbm_name;
+char *pho_selkey;
 
 
 int get_gcin_conf_int(char *name, int default_value);
@@ -73,9 +77,11 @@ void load_setttings()
   gcin_font_size_tsin_pho_in = get_gcin_conf_int(GCIN_FONT_SIZE_TSIN_PHO_IN, 10);
   gcin_font_size_gtab_in = get_gcin_conf_int(GCIN_FONT_SIZE_GTAB_IN, 10);
   gcin_font_size_pho_near = get_gcin_conf_int(GCIN_FONT_SIZE_PHO_NEAR, 14);
+  gcin_font_size_win_kbm = get_gcin_conf_int(GCIN_FONT_SIZE_WIN_KBM, 10);
+  gcin_font_size_win_kbm_en = get_gcin_conf_int(GCIN_FONT_SIZE_WIN_KBM_EN, 8);
   gcin_input_style = get_gcin_conf_int(GCIN_INPUT_STYLE, InputStyleOverSpot);
-  gcin_root_x = get_gcin_conf_int(GCIN_ROOT_X, 2000);
-  gcin_root_y = get_gcin_conf_int(GCIN_ROOT_Y, 2000);
+  gcin_root_x = get_gcin_conf_int(GCIN_ROOT_X, 1600);
+  gcin_root_y = get_gcin_conf_int(GCIN_ROOT_Y, 1200);
   gcin_pop_up_win = get_gcin_conf_int(GCIN_POP_UP_WIN, 1);
   gcin_inner_frame = get_gcin_conf_int(GCIN_INNER_FRAME, 0);
   gcin_eng_phrase_enabled = get_gcin_conf_int(GCIN_ENG_PHRASE_ENABLED, 1);
@@ -99,7 +105,11 @@ void load_setttings()
   gcin_win_sym_click_close = get_gcin_conf_int(GCIN_WIN_SYM_CLICK_CLOSE, 1);
 #if WIN32
   gcin_win32_icon = 1;
-#else
+#endif
+#if UNIX && GTK_CHECK_VERSION(2,91,0)
+  gcin_win32_icon = get_gcin_conf_int(GCIN_STATUS_TRAY, 1);
+#endif
+#if UNIX && !GTK_CHECK_VERSION(2,91,0)
   gcin_win32_icon = get_gcin_conf_int(GCIN_WIN32_ICON, 0);
 #endif
 
@@ -107,6 +117,7 @@ void load_setttings()
   gtab_space_auto_first = get_gcin_conf_int(GTAB_SPACE_AUTO_FIRST, GTAB_space_auto_first_none);
   gtab_auto_select_by_phrase = get_gcin_conf_int(GTAB_AUTO_SELECT_BY_PHRASE, GTAB_AUTO_SELECT_BY_PHRASE_AUTO);
   gtab_pre_select = get_gcin_conf_int(GTAB_PRE_SELECT, 1);
+  gtab_phrase_pre_select = get_gcin_conf_int(GTAB_PHRASE_PRE_SELECT, 1);
   gtab_press_full_auto_send = get_gcin_conf_int(GTAB_PRESS_FULL_AUTO_SEND, 1);
   gtab_disp_partial_match = get_gcin_conf_int(GTAB_DISP_PARTIAL_MATCH, 1);
   gtab_disp_key_codes = get_gcin_conf_int(GTAB_DISP_KEY_CODES, 1);
@@ -122,7 +133,7 @@ void load_setttings()
 
   tsin_phrase_pre_select = get_gcin_conf_int(TSIN_PHRASE_PRE_SELECT, 1);
   tsin_chinese_english_toggle_key = get_gcin_conf_int(TSIN_CHINESE_ENGLISH_TOGGLE_KEY,
-                                    TSIN_CHINESE_ENGLISH_TOGGLE_KEY_CapsLock);
+                                    TSIN_CHINESE_ENGLISH_TOGGLE_KEY_Shift);
   tsin_tone_char_input = get_gcin_conf_int(TSIN_TONE_CHAR_INPUT, 0);
 
   tsin_space_opt = get_gcin_conf_int(TSIN_SPACE_OPT, TSIN_SPACE_OPT_SELECT_CHAR);
@@ -158,11 +169,48 @@ void load_setttings()
   gcin_bell_volume = get_gcin_conf_int(GCIN_BELL_VOLUME, -97);
   gcin_sound_play_overlap = get_gcin_conf_int(GCIN_SOUND_PLAY_OVERLAP, 0);
   gcin_enable_ctrl_alt_switch = get_gcin_conf_int(GCIN_ENABLE_CTRL_ALT_SWITCH, 1);
-#if 0
+#if 1
   gcin_edit_display = get_gcin_conf_int(GCIN_EDIT_DISPLAY, GCIN_EDIT_DISPLAY_BOTH);
-#elif 1
+#elif 0
   gcin_edit_display = get_gcin_conf_int(GCIN_EDIT_DISPLAY, GCIN_EDIT_DISPLAY_ON_THE_SPOT);
 #else
   gcin_edit_display = get_gcin_conf_int(GCIN_EDIT_DISPLAY, GCIN_EDIT_DISPLAY_OVER_THE_SPOT);
 #endif
+
+  gcin_on_the_spot_key = get_gcin_conf_int(GCIN_ON_THE_SPOT_KEY, 0);
+  if (gcin_on_the_spot_key)
+    gcin_edit_display = GCIN_EDIT_DISPLAY_ON_THE_SPOT;
+
+
+  char phokbm_name[MAX_GCIN_STR];
+#define ASDF "asdfghjkl;"
+
+#if DEBUG
+  char *gcin_pho_kbm = getenv("GCIN_PHO_KBM");
+  if (gcin_pho_kbm)
+    strcpy(phokbm_name, gcin_pho_kbm);
+  else
+#endif
+    get_gcin_conf_fstr(PHONETIC_KEYBOARD, phokbm_name, "zo "ASDF);
+
+  char *selkey;
+  if (selkey=strchr(phokbm_name, ' ')) {
+    *selkey=0;
+    selkey++;
+  } else {
+    char *p;
+    if (p=strchr(phokbm_name, '-')) {
+      *p = 0;
+      selkey = ASDF;
+    } else
+      selkey = "123456789";
+  }
+
+  if (pho_selkey)
+    free(pho_selkey);
+  pho_selkey = strdup(selkey);
+
+  if (pho_kbm_name)
+    free(pho_kbm_name);
+  pho_kbm_name = strdup(phokbm_name);
 }

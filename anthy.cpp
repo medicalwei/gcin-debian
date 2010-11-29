@@ -1,6 +1,8 @@
 #include "gcin.h"
 #include "pho.h"
+#include "gst.h"
 #include <anthy/anthy.h>
+extern gboolean test_mode;
 static anthy_context_t ac;
 void (*f_anthy_resize_segment)(anthy_context_t ac, int, int);
 void (*f_anthy_get_stat)(anthy_context_t ac, struct anthy_conv_stat *acs);
@@ -16,243 +18,253 @@ void show_win_anthy();
 void hide_win_anthy();
 void change_anthy_font_size();
 
+enum {
+  STATE_hira=0,
+  STATE_kata=1,
+  STATE_half_kata=2
+};
+
+static int state_hira_kata=STATE_hira;
+
 struct {
   char *en;
-  char *ro;
+  char *hira;
+  char *kata;
+  char *half_kata;
 } anthy_romaji_map[] = {
-{"xtu",	"っ"},
-{"xtsu",	"っ"},
-{"ltu",	"っ"},
-{"ltsu",	"っ"},
+{"xtu",	"っ",  "ッ", "ｯ"},
+{"xtsu",	"っ",  "ッ", "ｯ"},
+{"ltu",	"っ",  "ッ", "ｯ"},
+{"ltsu",	"っ",  "ッ", "ｯ"},
 
-{"-",	"ー"},
-{"a",	"あ"},
-{"i",	"い"},
-{"u",	"う"},
-{"e",	"え"},
-{"o",	"お"},
+{"-",	"ー", "ー", ""},
+{"a",	"あ", "ア", "ｱ"},
+{"i",	"い", "イ", "ｲ"},
+{"u",	"う", "ウ", "ｳ"},
+{"e",	"え", "エ", "ｴ"},
+{"o",	"お", "オ", "ｵ"},
 
-{"xa",	"ぁ"},
-{"xi",	"ぃ"},
-{"xu",	"ぅ"},
-{"xe",	"ぇ"},
-{"xo",	"ぉ"},
+{"xa",	"ぁ", "ァ", "ｧ"},
+{"xi",	"ぃ", "ィ", "ｨ"},
+{"xu",	"ぅ", "ゥ", "ｩ"},
+{"xe",	"ぇ", "ェ", "ｪ"},
+{"xo",	"ぉ", "ォ", "ｫ"},
 
-{"la",	"ぁ"},
-{"li",	"ぃ"},
-{"lu",	"ぅ"},
-{"le",	"ぇ"},
-{"lo",	"ぉ"},
+{"la",	"ぁ", "ァ", "ｧ"},
+{"li",	"ぃ", "ィ", "ｨ"},
+{"lu",	"ぅ", "ゥ", "ｩ"},
+{"le",	"ぇ", "ェ", "ｪ"},
+{"lo",	"ぉ", "ォ", "ｫ"},
 
-{"wi",	"うぃ"},
-{"we",	"うぇ"},
-{"wha",	"うぁ"},
-{"whi",	"うぃ"},
-{"whe",	"うぇ"},
-{"who",	"うぉ"},
+{"wi",	"うぃ", "ウィ", "ｳｨ"},
+{"we",	"うぇ", "ウェ", "ｳｪ"},
+{"wha",	"うぁ", "ウァ", "ｳｧ"},
+{"whi",	"うぃ", "ウィ", "ｳｨ"},
+{"whe",	"うぇ", "ウェ", "ｳｪ"},
+{"who",	"うぉ", "ウォ", "ｳｫ"},
 
-{"va",	"う゛ぁ"},
-{"vi",	"う゛ぃ"},
-{"vu",	"う゛"},
-{"ve",	"う゛ぇ"},
-{"vo",	"う゛ぉ"},
+{"va",	"う゛ぁ", "ヴァ", "ｳﾞｧ"},
+{"vi",	"う゛ぃ", "ヴィ", "ｳﾞｨ"},
+{"vu",	"う゛", "ヴ", "ｳﾞ"},
+{"ve",	"う゛ぇ", "ヴェ", "ｳﾞｪ"},
+{"vo",	"う゛ぉ", "ヴォ", "ｳﾞｫ"},
 
-{"ka",	"か"},
-{"ki",	"き"},
-{"ku",	"く"},
-{"ke",	"け"},
-{"ko",	"こ"},
+{"ka",	"か", "カ", "ｶ"},
+{"ki",	"き", "キ", "ｷ"},
+{"ku",	"く", "ク", "ｸ"},
+{"ke",	"け", "ケ", "ｹ"},
+{"ko",	"こ", "コ", "ｺ"},
 
-{"ga",	"が"},
-{"gi",	"ぎ"},
-{"gu",	"ぐ"},
-{"ge",	"げ"},
-{"go",	"ご"},
+{"ga",	"が", "ガ", "ｶﾞ"},
+{"gi",	"ぎ", "ギ", "ｷﾞ"},
+{"gu",	"ぐ", "グ", "ｸﾞ"},
+{"ge",	"げ", "ゲ", "ｹﾞ"},
+{"go",	"ご", "ゴ", "ｺﾞ"},
 
-{"kya",	"きゃ"},
-{"kyi",	"きぃ"},
-{"kyu",	"きゅ"},
-{"kye",	"きぇ"},
-{"kyo",	"きょ"},
-{"gya",	"ぎゃ"},
-{"gyi",	"ぎぃ"},
-{"gyu",	"ぎゅ"},
-{"gye",	"ぎぇ"},
-{"gyo",	"ぎょ"},
+{"kya",	"きゃ", "キャ", "ｷｬ"},
+{"kyi",	"きぃ", "キィ", "ｷｨ"},
+{"kyu",	"きゅ", "キュ", "ｷｭ"},
+{"kye",	"きぇ", "キェ", "ｷｪ"},
+{"kyo",	"きょ", "キョ", "ｷｮ"},
+{"gya",	"ぎゃ", "ギャ", "ｷﾞｬ"},
+{"gyi",	"ぎぃ", "ギィ", "ｷﾞｨ"},
+{"gyu",	"ぎゅ", "ギュ", "ｷﾞｭ"},
+{"gye",	"ぎぇ", "ギェ", "ｷﾞｪ"},
+{"gyo",	"ぎょ", "ギョ", "ｷﾞｮ"},
 
-{"sa",	"さ"},
-{"si",	"し"},
-{"su",	"す"},
-{"se",	"せ"},
-{"so",	"そ"},
+{"sa",	"さ", "サ", "ｻ"},
+{"si",	"し", "シ", "ｼ"},
+{"su",	"す", "ス", "ｽ"},
+{"se",	"せ", "セ", "ｾ"},
+{"so",	"そ", "ソ", "ｿ"},
 
-{"za",	"ざ"},
-{"zi",	"じ"},
-{"zu",	"ず"},
-{"ze",	"ぜ"},
-{"zo",	"ぞ"},
+{"za",	"ざ", "ザ", "ｻﾞ"},
+{"zi",	"じ", "ジ", "ｼﾞ"},
+{"zu",	"ず", "ズ", "ｽﾞ"},
+{"ze",	"ぜ", "ゼ", "ｾﾞ"},
+{"zo",	"ぞ", "ゾ", "ｿﾞ"},
 
-{"sya",	"しゃ"},
-{"syi",	"しぃ"},
-{"syu",	"しゅ"},
-{"sye",	"しぇ"},
-{"syo",	"しょ"},
-{"sha",	"しゃ"},
-{"shi",	"し"},
-{"shu",	"しゅ"},
-{"she",	"しぇ"},
-{"sho",	"しょ"},
-{"zya",	"じゃ"},
-{"zyi",	"じぃ"},
-{"zyu",	"じゅ"},
-{"zye",	"じぇ"},
-{"zyo",	"じょ"},
-{"ja",	"じゃ"},
-{"jya", "じゃ"},
-{"ji",	"じ"},
-{"jyi", "じぃ"},
-{"ju",	"じゅ"},
-{"jyu",	"じゅ",},
-{"je",	"じぇ"},
-{"jye",	"じぇ"},
-{"jo",	"じょ"},
-{"jyo",	"じょ"},
-{"ta",	"た"},
-{"ti",	"ち"},
-{"tu",	"つ"},
-{"tsu",	"つ"},
-{"te",	"て"},
-{"to",	"と"},
+{"sya",	"しゃ", "シャ", "ｼｬ"},
+{"syi",	"しぃ", "シィ", "ｼｨ"},
+{"syu",	"しゅ", "シュ", "ｼｭ"},
+{"sye",	"しぇ", "シェ", "ｼｪ"},
+{"syo",	"しょ", "ショ", "ｼｮ"},
+{"sha",	"しゃ", "シャ", "ｼｬ"},
+{"shi",	"し", "シ", "ｼ"},
+{"shu",	"しゅ", "シュ", "ｼｭ"},
+{"she",	"しぇ", "シェ", "ｼｪ"},
+{"sho",	"しょ", "ショ", "ｼｮ"},
+{"zya",	"じゃ", "ジャ", "ｼﾞｬ"},
+{"zyi",	"じぃ", "ジィ", "ｼﾞｨ"},
+{"zyu",	"じゅ", "ジュ", "ｼﾞｭ"},
+{"zye",	"じぇ", "ジェ", "ｼﾞｪ"},
+{"zyo",	"じょ", "ジョ", "ｼﾞｮ"},
+{"ja",	"じゃ", "ジャ", "ｼﾞｬ"},
+{"jya", "じゃ", "ジャ", "ｼﾞｬ"},
+{"ji",	"じ", "ジ", "ｼﾞ"},
+{"jyi", "じぃ", "ジぃ", "ｼﾞｨ"},
+{"ju",	"じゅ", "ジュ", "ｼﾞｭ"},
+{"jyu",	"じゅ", "ジュ", "ｼﾞｭ"},
+{"je",	"じぇ", "ジェ", "ｼﾞｪ"},
+{"jye",	"じぇ", "ジェ", "ｼﾞｪ"},
+{"jo",	"じょ", "ジョ", "ｼﾞｮ"},
+{"jyo",	"じょ", "ジョ", "ｼﾞｮ"},
+{"ta",	"た", "タ", "ﾀ"},
+{"ti",	"ち", "チ", "ﾁ"},
+{"tu",	"つ", "ツ", "ﾂ"},
+{"tsu",	"つ", "ツ", "ﾂ"},
+{"te",	"て", "テ", "ﾃ"},
+{"to",	"と", "ト", "ﾄ"},
 
-{"da",	"だ"},
-{"di",	"ぢ"},
-{"du",	"づ"},
-{"de",	"で"},
-{"do",	"ど"},
+{"da",	"だ", "ダ", "ﾀﾞ"},
+{"di",	"ぢ", "ヂ", "ﾁﾞ"},
+{"du",	"づ", "ヅ", "ﾂﾞ"},
+{"de",	"で", "デ", "ﾃﾞ"},
+{"do",	"ど", "ド", "ﾄﾞ"},
 
 
-{"tya",	"ちゃ"},
-{"tyi",	"ちぃ"},
-{"tyu",	"ちゅ"},
-{"tye",	"ちぇ"},
-{"tyo",	"ちょ"},
+{"tya",	"ちゃ", "チャ", "ﾁｬ"},
+{"tyi",	"ちぃ", "チィ", "ﾁｨ"},
+{"tyu",	"ちゅ", "チュ", "ﾁｭ"},
+{"tye",	"ちぇ", "チェ", "ﾁｪ"},
+{"tyo",	"ちょ", "チョ", "ﾁｮ"},
 
-{"cha",	"ちゃ"},
-{"chi",	"ち"},
-{"chu",	"ちゅ"},
-{"che",	"ちぇ"},
-{"cho",	"ちょ"},
+{"cha",	"ちゃ", "チャ", "ﾁｬ"},
+{"chi",	"ち", "チ", "ﾁ"},
+{"chu",	"ちゅ", "チュ", "ﾁｭ"},
+{"che",	"ちぇ", "チェ", "ﾁｪ"},
+{"cho",	"ちょ", "チョ", "ﾁｮ"},
 
-{"dya",	"ぢゃ"},
-{"dyi",	"ぢぃ"},
-{"dyu",	"ぢゅ"},
-{"dye",	"ぢぇ"},
-{"dyo",	"ぢょ"},
+{"dya",	"ぢゃ", "ヂャ", "ﾁﾞｬ"},
+{"dyi",	"ぢぃ", "ヂィ", "ﾁﾞｨ"},
+{"dyu",	"ぢゅ", "ヂュ", "ﾁﾞｭ"},
+{"dye",	"ぢぇ", "ヂョ", "ﾁﾞｪ"},
+{"dyo",	"ぢょ", "ヂョ", "ﾁﾞｮ"},
 
-{"tha",	"てゃ"},
-{"thi",	"てぃ"},
-{"thu",	"てゅ"},
-{"the",	"てぇ"},
-{"tho",	"てょ"},
+{"tha",	"てゃ", "テャ", "ﾃｬ"},
+{"thi",	"てぃ", "ティ", "ﾃｨ"},
+{"thu",	"てゅ", "テュ", "ﾃｭ"},
+{"the",	"てぇ", "テェ", "ﾃｪ"},
+{"tho",	"てょ", "テョ", "ﾃｮ"},
 
-{"dha",	"でゃ"},
-{"dhi",	"でぃ"},
-{"dhu",	"でゅ"},
-{"dhe",	"でぇ"},
-{"dho",	"でょ"},
+{"dha",	"でゃ", "デャ", "ﾃﾞｬ"},
+{"dhi",	"でぃ", "ディ", "ﾃﾞｨ"},
+{"dhu",	"でゅ", "デュ", "ﾃﾞｭ"},
+{"dhe",	"でぇ", "デェ", "ﾃﾞｪ"},
+{"dho",	"でょ", "デョ", "ﾃﾞｮ"},
 
-{"na",	"な"},
-{"ni",	"に"},
-{"nu",	"ぬ"},
-{"ne",	"ね"},
-{"no",	"の"},
-{"nya",	"にゃ"},
-{"nyi",	"にぃ"},
-{"nyu",	"にゅ"},
-{"nye",	"にぇ"},
-{"nyo",	"にょ"},
+{"na",	"な", "ナ", "ﾅ"},
+{"ni",	"に", "ニ", "ﾆ"},
+{"nu",	"ぬ", "ヌ", "ﾇ"},
+{"ne",	"ね", "ね", "ﾈ"},
+{"no",	"の", "ノ", "ﾉ"},
+{"nya",	"にゃ", "ニャ", "ﾆｬ"},
+{"nyi",	"にぃ", "ニィ", "ﾆｨ"},
+{"nyu",	"にゅ", "ニュ", "ﾆｭ"},
+{"nye",	"にぇ", "ニェ", "ﾆｪ"},
+{"nyo",	"にょ", "ニョ", "ﾆｮ"},
 
-{"ha",	"は"},
-{"hi",	"ひ"},
-{"hu",	"ふ"},
-{"he",	"へ"},
-{"ho",	"ほ"},
+{"ha",	"は", "ハ", "ﾊ"},
+{"hi",	"ひ", "ヒ", "ﾋ"},
+{"hu",	"ふ", "フ", "ﾌ"},
+{"he",	"へ", "ヘ", "ﾍ"},
+{"ho",	"ほ", "ホ", "ﾎ"},
 
-{"ba",	"ば"},
-{"bi",	"び"},
-{"bu",	"ぶ"},
-{"be",	"べ"},
-{"bo",	"ぼ"},
+{"ba",	"ば", "バ", "ﾊﾞ"},
+{"bi",	"び", "ビ", "ﾋﾞ"},
+{"bu",	"ぶ", "び", "ﾌﾞ"},
+{"be",	"べ", "べ", "ﾍﾞ"},
+{"bo",	"ぼ", "ボ", "ﾎﾞ"},
 
-{"pa",	"ぱ"},
-{"pi",	"ぴ"},
-{"pu",	"ぷ"},
-{"pe",	"ぺ"},
-{"po",	"ぽ"},
+{"pa",	"ぱ", "パ", "ﾊﾟ"},
+{"pi",	"ぴ", "ピ", "ﾋﾟ"},
+{"pu",	"ぷ", "プ", "ﾌﾟ"},
+{"pe",	"ぺ", "ペ", "ﾍﾟ"},
+{"po",	"ぽ", "ポ", "ﾎﾟ"},
 
-{"hya",	"ひゃ"},
-{"hyi",	"ひぃ"},
-{"hyu",	"ひゅ"},
-{"hye",	"ひぇ"},
-{"hyo",	"ひょ"},
-{"bya",	"びゃ"},
-{"byi",	"びぃ"},
-{"byu",	"びゅ"},
-{"bye",	"びぇ"},
-{"byo",	"びょ"},
-{"pya",	"ぴゃ"},
-{"pyi",	"ぴぃ"},
-{"pyu",	"ぴゅ"},
-{"pye",	"ぴぇ"},
-{"pyo",	"ぴょ"},
+{"hya",	"ひゃ", "ヒャ", "ﾋｬ"},
+{"hyi",	"ひぃ", "ヒィ", "ﾋｨ"},
+{"hyu",	"ひゅ", "ヒュ", "ﾋｭ"},
+{"hye",	"ひぇ", "ヒェ", "ﾋｪ"},
+{"hyo",	"ひょ", "ビャ", "ﾋｮ"},
+{"bya",	"びゃ", "ビャ", "ﾋｬ"},
+{"byi",	"びぃ", "ビィ", "ﾋﾞｨ"},
+{"byu",	"びゅ", "ビュ", "ﾋﾞｭ"},
+{"bye",	"びぇ", "ビェ", "ﾋﾞｪ"},
+{"byo",	"びょ", "ビョ", "ﾋﾞｮ"},
+{"pya",	"ぴゃ", "ピャ", "ﾋﾟｬ"},
+{"pyi",	"ぴぃ", "ピィ", "ﾋﾟｨ"},
+{"pyu",	"ぴゅ", "ピュ", "ﾋﾟｭ"},
+{"pye",	"ぴぇ", "ピェ", "ﾋﾟｪ"},
+{"pyo",	"ぴょ", "ピョ", "ﾋﾟｮ"},
 
-{"fa",	"ふぁ"},
-{"fi",	"ふぃ"},
-{"fu",	"ふ"},
-{"fe",	"ふぇ"},
-{"fo",	"ふぉ"},
+{"fa",	"ふぁ", "ファ", "ﾌｧ"},
+{"fi",	"ふぃ", "フィ", "ﾌｨ"},
+{"fu",	"ふ", "フ", "ﾌ"},
+{"fe",	"ふぇ", "フェ", "ﾌｪ"},
+{"fo",	"ふぉ", "フォ", "ﾌｫ"},
 
-{"ma",	"ま"},
-{"mi",	"み"},
-{"mu",	"む"},
-{"me",	"め"},
-{"mo",	"も"},
+{"ma",	"ま", "マ", "ﾏ"},
+{"mi",	"み", "ミ", "ﾐ"},
+{"mu",	"む", "ム", "ﾑ"},
+{"me",	"め", "メ", "ﾒ"},
+{"mo",	"も", "モ", "ﾓ"},
 
-{"mya",	"みゃ"},
-{"myi",	"みぃ"},
-{"myu",	"みゅ"},
-{"mye",	"みぇ"},
-{"myo",	"みょ"},
-{"lya",	"ゃ"},
-{"xya",	"ゃ"},
-{"ya",	"や"},
-{"lyu",	"ゅ"},
-{"xyu",	"ゅ"},
-{"yu",	"ゆ"},
-{"lyo",	"ょ"},
-{"xyo",	"ょ"},
-{"yo",	"よ"},
+{"mya",	"みゃ", "ミャ", "ﾐｬ"},
+{"myi",	"みぃ", "ミィ", "ﾐｨ"},
+{"myu",	"みゅ", "ミュ", "ﾐｭ"},
+{"mye",	"みぇ", "ミェ", "ﾐｪ"},
+{"myo",	"みょ", "ミョ", "ﾐｮ"},
+{"lya",	"ゃ", "ャ", "ｬ"},
+{"xya",	"ゃ", "ャ", "ｬ"},
+{"ya",	"や", "ヤ", "ﾔ"},
+{"lyu",	"ゅ", "ュ", "ｭ"},
+{"xyu",	"ゅ", "ュ", "ｭ"},
+{"yu",	"ゆ", "ユ", "ﾕ"},
+{"lyo",	"ょ", "ョ", "ｮ"},
+{"xyo",	"ょ", "ョ", "ｮ"},
+{"yo",	"よ", "ヨ", "ﾖ"},
 
-{"ra",	"ら"},
-{"ri",	"り"},
-{"ru",	"る"},
-{"re",	"れ"},
-{"ro",	"ろ"},
+{"ra",	"ら", "ラ", "ﾗ"},
+{"ri",	"り", "リ", "ﾘ"},
+{"ru",	"る", "ル", "ﾙ"},
+{"re",	"れ", "レ", "ﾚ"},
+{"ro",	"ろ", "ロ", "ﾛ"},
 
-{"rya",	"りゃ"},
-{"ryi",	"りぃ"},
-{"ryu",	"りゅ"},
-{"rye",	"りぇ"},
-{"ryo",	"りょ"},
-{"xwa",	"ゎ"},
-{"wa",	"わ"},
-{"wo",	"を"},
-{"n'",	"ん"},
-{"nn",	"ん"},
-{"n",	"ん"},
-{"m",	"ん"},  // tombo
-{"wyi",	"ゐ"},
-{"wye",	"ゑ"},
+{"rya",	"りゃ", "リャ", "ﾘｬ"},
+{"ryi",	"りぃ", "リィ", "ﾘｨ"},
+{"ryu",	"りゅ", "リュ", "ﾘｭ"},
+{"rye",	"りぇ", "リェ", "ﾘｪ"},
+{"ryo",	"りょ", "リョ", "ﾘｮ"},
+{"xwa",	"ゎ", "ヮ", "ﾜ"},
+{"wa",	"わ", "ワ", "ｻ"},
+{"wo",	"を", "ヲ", "ｦ"},
+{"n'",	"ん", "ン", "ﾝ"},
+{"nn",	"ん", "ン", "ﾝ"},
+{"n",	"ん", "ン", "ﾝ"},
+{"m",	"ん", "ン", "ﾝ"},  // tombo
+{"wyi",	"ゐ", "ヰ", "ｨ"},
+{"wye",	"ゑ", "ヱ", "ｪ"},
 {",",	"、"},
 {".",	"。"},
 {"[",	"「"},
@@ -277,8 +289,8 @@ struct {
 {">",	"＞"},
 {"{",	"｛"},
 {"}",	"｝"},
-{"|",	"｜"},
-{"'",	"’"},
+{"|",		"｜"},
+{"'",		"’"},
 {"\"",	"”"},
 {"`",	"‘"},
 {"?",	"？"},
@@ -296,6 +308,24 @@ struct {
 {"9",	"9"},
 };
 
+static char *idx_hira_kata(int idx, gboolean always_hira)
+{
+  char *s=NULL;
+
+  if (!always_hira) {
+    if (state_hira_kata==STATE_kata)
+      s = anthy_romaji_map[idx].kata;
+    else
+    if (state_hira_kata==STATE_half_kata)
+      s = anthy_romaji_map[idx].half_kata;
+  }
+
+  if (!s)
+    s = anthy_romaji_map[idx].hira;
+
+  return s;
+}
+
 
 static short int anthy_romaji_mapN = sizeof(anthy_romaji_map)/sizeof(anthy_romaji_map[0]);
 
@@ -311,19 +341,21 @@ static int is_legal_char(int k)
   return 0;
 }
 
-static char keys[32];
+#define MAX_KEYS 32
+
+static char keys[MAX_KEYS];
 static short int keysN;
-static unsigned char jp[128];
+static unsigned char *jp;
 static short int jpN=0;
 static short pageidx;
 
-#define MAX_SEG_N 80
 typedef struct {
   GtkWidget *label;
   unsigned char selidx, selN;
 } SEG;
-static SEG seg[MAX_SEG_N];
+static SEG *seg;
 static short segN;
+#define MAX_SEG_N 100
 static short cursor;
 enum {
   STATE_ROMANJI=1,
@@ -334,7 +366,7 @@ static char state = STATE_ROMANJI;
 
 static GtkWidget *win_anthy;
 
-static int is_empty()
+static gboolean is_empty()
 {
   return !jpN && !segN && !keysN;
 }
@@ -348,11 +380,16 @@ static void auto_hide()
   }
 }
 
-static void append_jp(u_char rom_idx)
+static void insert_jp(u_char rom_idx)
 {
-//  printf("append %d %s\n", rom_idx, anthy_romaji_map[rom_idx].ro);
-  jp[jpN++]=rom_idx;
-  cursor = jpN;
+//  printf("append %d %s  cursor:%d\n", rom_idx, anthy_romaji_map[rom_idx].ro, cursor);
+  jp = trealloc(jp, unsigned char, jpN);
+  if (cursor < jpN)
+    memmove(jp+cursor+1, jp+cursor, jpN - cursor);
+
+  jp[cursor]=rom_idx;
+  cursor++;
+  jpN++;
 }
 
 void parse_key()
@@ -363,7 +400,7 @@ void parse_key()
   static char ch2[]="kstzdhbrpfgvcjmwy";
 
   if (keysN==2 && keys[0]==keys[1] && strchr(ch2, keys[0])) {
-    append_jp(0);
+    insert_jp(0);
     keys[1]=0;
     keysN=1;
     return;
@@ -371,9 +408,6 @@ void parse_key()
 
   for(i=0; i < anthy_romaji_mapN; i++) {
     char *en = anthy_romaji_map[i].en;
-#if 0
-    char *ro = anthy_romaji_map[i].ro;
-#endif
     if (!strncmp(keys, en, keysN))
       preN++;
 
@@ -397,7 +431,7 @@ void parse_key()
       exit(1);
     }
 
-    append_jp(eq);
+    insert_jp(eq);
 
     keys[0]=0;
     keysN=0;
@@ -412,12 +446,13 @@ void parse_key()
     keys[nlen] = 0;
     keysN = nlen;
 
-    append_jp(sendpre_i);
+    insert_jp(sendpre_i);
   }
 }
 
 static void clear_seg_label()
 {
+//  dbg("clear_seg_label\n");
   int i;
   for(i=0; i < MAX_SEG_N; i++) {
     gtk_label_set_text(GTK_LABEL(seg[i].label), NULL);
@@ -440,6 +475,18 @@ void minimize_win_anthy()
   gtk_window_resize(GTK_WINDOW(win_anthy), 32, 12);
 }
 
+static void disp_keys(int idx)
+{
+  int i;
+  char tt[2];
+  tt[1]=0;
+  for(i=0; i < keysN; i++) {
+    tt[0]=keys[i];
+    gtk_label_set_text(GTK_LABEL(seg[idx+i].label), tt);
+  }
+}
+
+
 static void disp_input()
 {
   int i;
@@ -447,24 +494,24 @@ static void disp_input()
   if (gcin_edit_display_ap_only())
     return;
 
-//  printf("cursor %d\n", cursor);
   clear_seg_label();
-  for(i=0; i < jpN; i++) {
-    if (i==cursor)
-      cursor_markup(i, anthy_romaji_map[jp[i]].ro);
+
+  int idx;
+  for(idx=i=0; i < jpN; i++) {
+    if (i==cursor) {
+      disp_keys(idx);
+      idx+=keysN;
+      cursor_markup(idx++, idx_hira_kata(jp[i], FALSE));
+    }
     else
-      gtk_label_set_text(GTK_LABEL(seg[i].label), anthy_romaji_map[jp[i]].ro);
+      gtk_label_set_text(GTK_LABEL(seg[idx++].label), idx_hira_kata(jp[i], FALSE));
   }
 
-  char tt[2];
-  tt[1]=0;
-  for(i=0; i < keysN; i++) {
-    tt[0]=keys[i];
-    gtk_label_set_text(GTK_LABEL(seg[jpN+i].label), tt);
+  if (cursor==jpN) {
+    disp_keys(idx);
+    idx+=keysN;
+    cursor_markup(idx, " ");
   }
-
-  if (cursor==jpN)
-    cursor_markup(jpN+keysN, " ");
 
   minimize_win_anthy();
 }
@@ -500,6 +547,9 @@ static void clear_all()
   keys[0]=0;
   keysN = 0;
   segN = 0;
+  cursor=0;
+  tss.sel_pho = FALSE;
+  state_hira_kata = STATE_hira;
   auto_hide();
 }
 
@@ -519,18 +569,18 @@ static void send_seg()
   clear_all();
 }
 
-static void merge_jp(char out[])
+static void merge_jp(char out[], gboolean always_hira)
 {
   int i;
   for(i=0, out[0]=0; i < jpN; i++)
-    strcat(out, anthy_romaji_map[jp[i]].ro);
+    strcat(out, idx_hira_kata(jp[i], always_hira));
 }
 
 
 static gboolean send_jp()
 {
   char out[512];
-  merge_jp(out);
+  merge_jp(out, FALSE);
 
   if (!out[0])
     return FALSE;
@@ -590,8 +640,8 @@ static void load_seg()
 
         for(i=0; i < acs.nr_segment; i++) {
           (*f_anthy_get_segment)(ac, i, 0, buf, sizeof(buf));
-          seg[i].selidx = 0;
 
+          seg[i].selidx = 0;
           gtk_label_set_text(GTK_LABEL(seg[i].label), buf);
 
           struct anthy_segment_stat ss;
@@ -632,14 +682,37 @@ int flush_anthy_input()
     val = send_jp();
   }
 
-  jpN=0;
-  keysN = 0;
-  cursor = 0;
-  disp_input();
-  state = STATE_ROMANJI;
-  auto_hide();
+//  dbg("cursor %d\n", cursor);
+  clear_all();
   return val;
 }
+
+static int page_N()
+{
+  int N = seg[cursor].selN - pageidx;
+  if (N > phkbm.selkeyN)
+    N = phkbm.selkeyN;
+  return N;
+}
+
+static gboolean select_idx(int c)
+{
+  int idx = pageidx + c;
+
+  if (idx < seg[cursor].selN) {
+    char buf[256];
+    (*f_anthy_get_segment)(ac, cursor, idx, buf, sizeof(buf));
+    gtk_label_set_text(GTK_LABEL(seg[cursor].label), buf);
+    seg[cursor].selidx = idx;
+
+    state = STATE_CONVERT;
+    hide_selections_win();
+    return (segN==1);
+  }
+
+  return FALSE;
+}
+
 
 gboolean feedkey_anthy(int kv, int kvstate)
 {
@@ -647,33 +720,87 @@ gboolean feedkey_anthy(int kv, int kvstate)
   int shift_m=(kvstate&ShiftMask) > 0;
 //  printf("%x %c  %d\n", kv, kv, shift_m);
 
+  if (kvstate & ControlMask)
+    return FALSE;
+  if (kvstate & (Mod1Mask|Mod4Mask|Mod5Mask))
+    return FALSE;
+
   if (kv==XK_Shift_L||kv==XK_Shift_R) {
-    puts("shift");
     key_press_time = current_time();
   }
 
   if (!tsin_pho_mode())
     return 0;
 
-  gboolean is_empty = !keysN && !jpN && !segN;
-
-//  printf("empty %d\n", is_empty);
+  gboolean b_is_empty = is_empty();
 
   switch (kv) {
+    case XK_F7:
+      if (is_empty())
+        return FALSE;
+      state = STATE_ROMANJI;
+      if (state_hira_kata != STATE_kata)
+        state_hira_kata = STATE_kata;
+      else
+        state_hira_kata = STATE_hira;
+      disp_input();
+      return TRUE;
+    case XK_F8:
+      if (is_empty())
+        return FALSE;
+      state = STATE_ROMANJI;
+      if (state_hira_kata != STATE_half_kata)
+        state_hira_kata = STATE_half_kata;
+      else
+        state_hira_kata = STATE_hira;
+      disp_input();
+      return TRUE;
     case XK_F11:
       system("kasumi &");
       return TRUE;
     case XK_F12:
       system("kasumi -a &");
       return TRUE;
-    case XK_Return:
-      if (is_empty)
+    case XK_Up:
+      if (b_is_empty)
         return FALSE;
+      if (state==STATE_SELECT) {
+        int N = page_N();
+        tss.pho_menu_idx--;
+        if (tss.pho_menu_idx < 0)
+          tss.pho_menu_idx = N - 1;
+        disp_select();
+      }
+      return TRUE;
+    case XK_Down:
+      if (b_is_empty)
+        return FALSE;
+      if (state==STATE_CONVERT) {
+        state = STATE_SELECT;
+        tss.sel_pho = TRUE;
+  //      puts("STATE_SELECT");
+        disp_select();
+      } else
+      if (state==STATE_SELECT) {
+        int N = page_N();
+        tss.pho_menu_idx=(tss.pho_menu_idx+1)% N;
+        disp_select();
+      }
+      return TRUE;
+    case XK_Return:
+      if (b_is_empty)
+        return FALSE;
+      if (state==STATE_SELECT) {
+        if (select_idx(tss.pho_menu_idx))
+          goto send;
+        return TRUE;
+      }
 send:
       return flush_anthy_input();
     case XK_Escape:
         if (state==STATE_SELECT) {
           state = STATE_CONVERT;
+          tss.sel_pho = FALSE;
           clear_sele();
         }
         else
@@ -681,8 +808,10 @@ send:
           goto rom;
       return FALSE;
     case XK_BackSpace:
-      if (is_empty)
+      if (b_is_empty) {
+        state_hira_kata = STATE_hira;
         return FALSE;
+      }
 
       hide_selections_win();
 
@@ -711,7 +840,7 @@ rom:
       auto_hide();
       return TRUE;
     case XK_Delete:
-      if (is_empty)
+      if (b_is_empty)
         return FALSE;
       if (state&STATE_ROMANJI) {
         if (keysN)
@@ -722,7 +851,7 @@ rom:
       auto_hide();
       return TRUE;
     case XK_Left:
-      if (is_empty)
+      if (b_is_empty)
         return FALSE;
       if (state&STATE_ROMANJI) {
         if (keysN)
@@ -745,7 +874,7 @@ rom:
       }
       return TRUE;
     case XK_Right:
-      if (is_empty)
+      if (b_is_empty)
         return FALSE;
       if (state&STATE_ROMANJI) {
         if (cursor < jpN)
@@ -764,7 +893,7 @@ rom:
       }
       return TRUE;
     case XK_Home:
-      if (is_empty)
+      if (b_is_empty)
         return FALSE;
       cursor = 0;
       if (state&STATE_ROMANJI) {
@@ -775,7 +904,7 @@ rom:
       }
       return TRUE;
     case XK_End:
-      if (is_empty)
+      if (b_is_empty)
         return FALSE;
       if (state&STATE_ROMANJI) {
         cursor = jpN;
@@ -787,37 +916,29 @@ rom:
       }
       return TRUE;
     case XK_Prior:
+      if (state!=STATE_SELECT)
+        return FALSE;
       pageidx -= phkbm.selkeyN;
       if (pageidx < 0)
         pageidx = 0;
       disp_select();
       return TRUE;
     case XK_Next:
+      if (state!=STATE_SELECT)
+        return FALSE;
       next_page();
       return TRUE;
     case ' ':
-      if (is_empty)
+      if (b_is_empty)
         return FALSE;
       goto lab1;
     default:
       if (state==STATE_SELECT) {
         char *pp;
-        if ((pp=strchr(phkbm.selkey, lkv))) {
-          int c=pp-phkbm.selkey;
-          int idx = pageidx + c;
-
-          if (idx < seg[cursor].selN) {
-            char buf[256];
-            (*f_anthy_get_segment)(ac, cursor, idx, buf, sizeof(buf));
-            gtk_label_set_text(GTK_LABEL(seg[cursor].label), buf);
-            seg[cursor].selidx = idx;
-
-            state = STATE_CONVERT;
-            hide_selections_win();
-            if (segN==1) {
-              goto send;
-            }
-          }
+        if ((pp=strchr(pho_selkey, lkv))) {
+          int c=pp-pho_selkey;
+          if (select_idx(c))
+            goto send;
         }
         return TRUE;
       }
@@ -836,7 +957,9 @@ rom:
 
 lab1:
   if (state==STATE_ROMANJI) {
-    keys[keysN++]=kv;
+    if (keysN < MAX_KEYS)
+      keys[keysN++]=kv;
+
     keys[keysN]=0;
     parse_key();
     disp_input();
@@ -848,13 +971,14 @@ lab1:
     if (state==STATE_ROMANJI) {
       char tt[512];
       clear_seg_label();
-      merge_jp(tt);
-      dbg("tt %s %d\n", tt, strlen(tt));
+      merge_jp(tt, TRUE);
+//      dbg("tt %s %d\n", tt, strlen(tt));
       (*f_anthy_set_string)(ac, tt);
       load_seg();
     } else
     if (state==STATE_CONVERT) {
       state = STATE_SELECT;
+      tss.sel_pho = TRUE;
 //      puts("STATE_SELECT");
       disp_select();
     } else
@@ -934,9 +1058,9 @@ int init_win_anthy()
     return FALSE;
   }
 
-  int (*f_anthy_create_context)();
+  anthy_context_t (*f_anthy_create_context)();
   *(void **) (&f_anthy_create_context) = dlsym(handle, "anthy_create_context");
-  ac = (anthy_context_t)(*f_anthy_create_context)();
+  ac = (*f_anthy_create_context)();
   if (!ac) {
     printf("anthy_create_context err\n");
     return FALSE;
@@ -955,6 +1079,7 @@ int init_win_anthy()
 
 
   win_anthy = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(win_anthy), FALSE);
   gtk_window_set_default_size(GTK_WINDOW (win_anthy), 40, 50);
 
 
@@ -970,6 +1095,9 @@ int init_win_anthy()
 
   g_signal_connect(G_OBJECT(event_box_anthy),"button-press-event",
                    G_CALLBACK(mouse_button_callback), NULL);
+
+  if (!seg)
+    seg=tzmalloc(SEG,MAX_SEG_N);
 
   for(i=0; i < MAX_SEG_N; i++) {
     seg[i].label = gtk_label_new(NULL);
@@ -1075,10 +1203,12 @@ int feedkey_anthy_release(KeySym xkey, int kbstate)
    (tsin_chinese_english_toggle_key == TSIN_CHINESE_ENGLISH_TOGGLE_KEY_ShiftR
      && xkey == XK_Shift_R))
           &&  current_time() - key_press_time < 300000) {
-          flush_anthy_input();
-          key_press_time = 0;
-          hide_selections_win();
-          tsin_set_eng_ch(!tsin_pho_mode());
+          if (!test_mode) {
+            flush_anthy_input();
+            key_press_time = 0;
+            hide_selections_win();
+            tsin_set_eng_ch(!tsin_pho_mode());
+          }
           return 1;
         } else
           return 0;
@@ -1093,7 +1223,7 @@ int anthy_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *pcursor)
 {
   int i;
 
-//  dbg("anthy_get_preedit\n");
+//  dbg("anthy_get_preedit %d\n", cursor);
   str[0]=0;
   *pcursor=0;
 
@@ -1126,23 +1256,34 @@ int anthy_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *pcursor)
     if (jpN)
       attrN=1;
 
+    keys[keysN]=0;
+
+    int idx;
     for(i=0;i < jpN; i++) {
-      char *s=anthy_romaji_map[jp[i]].ro;
+      char *s=idx_hira_kata(jp[i], FALSE);
       int N = utf8_str_N(s);
-      ch_N+=N;
-      if (i < cursor)
-        *pcursor+= N;
+//      dbg("%d]%s N:%d\n", i, s, N);
       if (i==cursor) {
-        attr[1].ofs0=*pcursor;
-        attr[1].ofs1=*pcursor+N;
+        strcat(str, keys);
+        ch_N+=keysN;
+        *pcursor = ch_N;
+        attr[1].ofs0=ch_N;
+        attr[1].ofs1=ch_N+N;
         attr[1].flag=GCIN_PREEDIT_ATTR_FLAG_REVERSE;
         attrN++;
       }
       strcat(str, s);
+      ch_N+=N;
     }
 
-    strcat(str, keys);
-    attr[0].ofs1 = ch_N + keysN;
+    if (cursor==jpN) {
+      *pcursor = ch_N;
+      strcat(str, keys);
+      ch_N+=keysN;
+    }
+
+    attr[0].ofs1 = ch_N;
+//    dbg("cursor %d  ch_N:%d  '%s'\n", *pcursor, ch_N, str);
   }
 
 ret:

@@ -1,8 +1,10 @@
 #include "gcin.h"
 #include "pho.h"
 #include "win-sym.h"
+#include "gst.h"
 
-GtkWidget *gwin0;
+GtkWidget *gwin0 = NULL;
+extern GtkWidget *gwin1;
 Window xwin0;
 extern Display *dpy;
 static GtkWidget *top_bin;
@@ -10,8 +12,9 @@ int current_gcin_inner_frame;
 
 static GtkWidget *hbox_edit;
 static PangoAttrList* attr_list, *attr_list_blank;
+extern gboolean test_mode;
 
-void compact_win0();
+static void compact_win0();
 void move_win0(int x, int y);
 void get_win0_geom();
 gboolean gcin_edit_display_ap_only();
@@ -20,6 +23,7 @@ static struct {
   GtkWidget *vbox;
   GtkWidget *label;
   GtkWidget *line;
+  int x;
 } chars[MAX_PH_BF_EXT];
 
 
@@ -62,6 +66,16 @@ void set_label_font_size();
    gtk_main(), the coodinate of the widget is sometimes invalid.
    We use pre-create to overcome this bug.
 */
+
+void drawcursor();
+void open_select_pho();
+static void mouse_char_callback( GtkWidget *widget,GdkEventButton *event, gpointer data)
+{
+  tss.c_idx = GPOINTER_TO_INT(data);
+  drawcursor();
+  open_select_pho();
+}
+
 static void create_char(int index)
 {
   int i;
@@ -71,13 +85,19 @@ static void create_char(int index)
   GdkColor color_bg;
   gdk_color_parse(tsin_phrase_line_color, &color_bg);
 
-  for(i=index; i<=index+1 && i < MAX_PH_BF_EXT; i++) {
+  i = index;
+//  for(i=index; i<=index+1 && i < MAX_PH_BF_EXT; i++)
+  {
     if (chars[i].vbox)
-      continue;
+      return;
 
+    GtkWidget *event_box = gtk_event_box_new();
+    chars[i].vbox = event_box;
+    g_signal_connect (G_OBJECT (event_box), "button-press-event",  G_CALLBACK (mouse_char_callback), GINT_TO_POINTER(index));
+
+    gtk_box_pack_start (GTK_BOX (hbox_edit), event_box, FALSE, FALSE, 0);
     GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (hbox_edit), vbox, FALSE, FALSE, 0);
-    chars[i].vbox = vbox;
+    gtk_container_add(GTK_CONTAINER(event_box), vbox);
 
     GtkWidget *label = gtk_label_new(NULL);
     gtk_box_pack_start (GTK_BOX (vbox), label, FALSE, FALSE, 0);
@@ -94,8 +114,8 @@ static void create_char(int index)
     if (gcin_win_color_use)
       gtk_widget_modify_fg(label, GTK_STATE_NORMAL, &fg);
 
-    gtk_widget_show(vbox);
-    gtk_widget_show(label);
+    gtk_widget_show_all(event_box);
+    gtk_widget_hide(separator);
   }
 }
 
@@ -125,33 +145,33 @@ void set_label_space(GtkWidget *label);
 
 void disp_char(int index, char *ch)
 {
-  char tt[CH_SZ+1];
-
   if (gcin_edit_display_ap_only())
     return;
 
-//  dbg("disp_char %d %c%c%c\n", index, ch[0], ch[1], ch[2]);
+//  dbg("disp_char %d %s\n", index, ch);
   create_char(index);
   GtkWidget *label = chars[index].label;
 
-  utf8cpy(tt, ch);
-
   if (ch[0]==' ' && ch[1]==' ')
-      set_label_space(label);
+    set_label_space(label);
   else {
-    gtk_label_set_text(GTK_LABEL(label), tt);
+    gtk_label_set_text(GTK_LABEL(label), ch);
   }
 
   get_win0_geom();
   if (win_x + win_xl >= dpy_xl)
     move_win0(dpy_xl - win_xl, win_y);
 
-  gtk_widget_show(chars[index].vbox);
-  gtk_widget_show(label);
+  gtk_widget_show_all(chars[index].vbox);
+  gtk_widget_hide(chars[index].line);
 }
 
 void hide_char(int index)
 {
+#if WIN32
+  if (test_mode)
+    return;
+#endif
   if (!chars[index].vbox)
     return;
   gtk_label_set_text(GTK_LABEL(chars[index].label), "");
@@ -162,7 +182,10 @@ void hide_char(int index)
 void clear_chars_all()
 {
   int i;
-
+#if WIN32
+  if (test_mode)
+    return;
+#endif
   for(i=0; i < MAX_PH_BF_EXT; i++) {
     hide_char(i);
   }
@@ -209,12 +232,28 @@ void clr_tsin_cursor(int index)
   if (!label)
     return;
 
+  if (test_mode)
+    return;
+
   gtk_label_set_attributes(GTK_LABEL(label), attr_list_blank);
 }
 
 void disp_pho_sub(GtkWidget *label, int index, char *pho);
+gboolean gcin_on_the_spot_key_is_on();
+void hide_win0();
+
 void disp_tsin_pho(int index, char *pho)
 {
+#if WIN32
+  if (test_mode)
+    return;
+#endif
+  if (gcin_on_the_spot_key) {
+    if (gwin0 && GTK_WIDGET_VISIBLE(gwin0))
+      hide_win0();
+    return;
+  }
+
   if (button_pho && !GTK_WIDGET_VISIBLE(button_pho))
     gtk_widget_show(button_pho);
 
@@ -226,14 +265,19 @@ void clr_in_area_pho_tsin()
 {
   int i;
 
+  if (test_mode)
+    return;
+
   for(i=0; i < text_pho_N; i++)
    disp_tsin_pho(i, " ");
 }
 
-void get_widget_xy(GtkWidget *win, GtkWidget *widget, int *rx, int *ry)
+int get_widget_xy(GtkWidget *win, GtkWidget *widget, int *rx, int *ry)
 {
-  gtk_widget_show_all(widget);
-  gdk_flush();
+  if (!win && !widget)
+    p_err("get_widget_xy err");
+
+//  gdk_flush();
 
   GtkRequisition sz;
   gtk_widget_size_request(widget, &sz);
@@ -260,6 +304,7 @@ void get_widget_xy(GtkWidget *win, GtkWidget *widget, int *rx, int *ry)
 
   *rx = win_x + wx;
   *ry = win_y + wy;
+  return wx;
 }
 
 void getRootXY(Window win, int wx, int wy, int *tx, int *ty);
@@ -267,6 +312,10 @@ void disp_selections(int x, int y);
 void disp_tsin_select(int index)
 {
   int x,y;
+
+  if (test_mode)
+    return;
+
 #if 0
   GtkWidget *widget =chars[index].line;
 
@@ -282,8 +331,23 @@ void disp_tsin_select(int index)
 
   if (gcin_edit_display_ap_only()) {
     getRootXY(current_CS->client_win, current_CS->spot_location.x, current_CS->spot_location.y, &x, &y);
-  } else
-    get_widget_xy(gwin0, widget, &x, &y);
+  } else {
+    int i;
+	// bug in GTK, widget position is wrong, repeat util find one
+    for(i=index;i>=0; i--) {
+#if _DEBUG
+      if (!chars[i].vbox || !chars[index].label)
+        p_err("err found");
+#endif
+      gtk_widget_show_now(chars[i].label);
+      gtk_widget_show(chars[i].vbox);
+      int tx = get_widget_xy(gwin0, chars[i].vbox, &x, &y);
+
+      if (tx>=0)
+        break;
+//	  dbg("%d] %d\n", i, tx);
+    }
+  }
   disp_selections(x, y);
 }
 
@@ -294,6 +358,9 @@ static int best_win_x, best_win_y;
 static void raw_move(int x, int y)
 {
   int xl, yl;
+
+  if (!gwin0)
+    return;
 
   get_win_size(gwin0, &xl, &yl);
 
@@ -308,6 +375,8 @@ static void raw_move(int x, int y)
 
 void compact_win0_x()
 {
+  if (test_mode)
+    return;
 #if 0
   int win_xl, win_yl;
   gtk_window_get_size(GTK_WINDOW(gwin0), &win_xl, &win_yl);
@@ -321,8 +390,9 @@ void compact_win0_x()
   raw_move(best_win_x, best_win_y);
 }
 
-void compact_win0()
+static void compact_win0()
 {
+  if (! gwin0) return;
   max_yl = 0;
   gtk_window_resize(GTK_WINDOW(gwin0), MIN_X_SIZE, 16);
   raw_move(best_win_x, best_win_y);
@@ -337,7 +407,8 @@ void move_win0(int x, int y)
   best_win_x = x;
   best_win_y = y;
 
-  gtk_window_get_size(GTK_WINDOW(gwin0), &win_xl, &win_yl);
+  if (gwin0)
+    gtk_window_get_size(GTK_WINDOW(gwin0), &win_xl, &win_yl);
 
   if (x + win_xl > dpy_xl)
     x = dpy_xl - win_xl;
@@ -351,9 +422,17 @@ void move_win0(int x, int y)
 
 //  dbg("move_win0 %d,%d\n",x, y);
 
-  gtk_window_move(GTK_WINDOW(gwin0), x, y);
+  if (gwin0)
+    gtk_window_move(GTK_WINDOW(gwin0), x, y);
+
   win_x = x;
   win_y = y;
+
+#if WIN32
+  if (gwin1 && GTK_WIDGET_VISIBLE(gwin1)) {
+    gtk_window_move(GTK_WINDOW(gwin1), x, y);
+  }
+#endif
 
   move_win_sym();
 }
@@ -373,6 +452,9 @@ void disp_tsin_eng_pho(int eng_pho)
 void clear_tsin_line()
 {
   int i;
+
+  if (test_mode)
+    return;
 
   for(i=0; i < MAX_PH_BF_EXT; i++) {
     GtkWidget *line = chars[i].line;
@@ -403,28 +485,6 @@ static void mouse_button_callback( GtkWidget *widget,GdkEventButton *event, gpoi
 }
 
 
-#if 0
-extern char file_pin_float[];
-
-static void cb_clicked_fixed_pos()
-{
-
-  if (!current_CS)
-    return;
-
-  current_CS->fixed_pos^=1;
-
-//  dbg("cb_clicked_fixed_pos %d\n", current_CS->fixed_pos);
-
-  if (current_CS->fixed_pos) {
-    get_win0_geom();
-    current_CS->fixed_x = win_x;  current_CS->fixed_y = win_y;
-  }
-
-//  set_currenet_IC_pin_image_pin();
-}
-#endif
-
 void tsin_toggle_eng_ch();
 
 #if 0
@@ -441,17 +501,18 @@ void create_win0()
 {
   if (gwin0)
     return;
-#if _DEBUG
+#if _DEBUG && 0
   dbg("create_win0\n");
 #endif
   gwin0 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin0), FALSE);
 #if WIN32
   set_no_focus(gwin0);
 #endif
   gtk_container_set_border_width (GTK_CONTAINER (gwin0), 0);
   gtk_widget_realize (gwin0);
 #if UNIX
-  GdkWindow *gdkwin0 = gwin0->window;
+  GdkWindow *gdkwin0 = gtk_widget_get_window(gwin0);
   xwin0 = GDK_WINDOW_XWINDOW(gdkwin0);
   set_no_focus(gwin0);
 #else
@@ -541,7 +602,7 @@ static void create_win0_gui()
     gtk_widget_set_tooltip_text (button_pho, _(_L("左鍵符號，右鍵設定")));
 #else
     GtkTooltips *button_pho_tips = gtk_tooltips_new ();
-    gtk_tooltips_set_tip (GTK_TOOLTIPS (button_pho_tips), button_pho, _(_L"左鍵符號，右鍵設定"),NULL);
+    gtk_tooltips_set_tip (GTK_TOOLTIPS (button_pho_tips), button_pho, _(_L("左鍵符號，右鍵設定")),NULL);
 #endif
   }
 
@@ -594,7 +655,12 @@ void raise_tsin_selection_win();
 
 void show_win0()
 {
-#if _DEBUG
+#if WIN32
+  if (test_mode)
+    return;
+#endif
+
+#if _DEBUG && 0
 	dbg("show_win0 pop:%d in:%d for:%d \n", gcin_pop_up_win, tsin_has_input(), force_show);
 #endif
   create_win0();
@@ -622,6 +688,8 @@ void show_win0()
 void hide_selections_win();
 void hide_win0()
 {
+  if (test_mode)
+    return;
   if (!gwin0)
     return;
 #if UNIX
@@ -683,6 +751,8 @@ char *get_full_str();
 
 void win_tsin_disp_half_full()
 {
+  if (test_mode)
+    return;
   gtk_label_set_text(GTK_LABEL(label_pho), get_full_str());
 
   compact_win0();

@@ -15,4 +15,6 @@ sleep 1
 #gedit
 #leafpad
 #amsn
-ie6
+#ie6
+firefox
+pkill gcin.test

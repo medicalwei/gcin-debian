@@ -1,19 +1,22 @@
 #include "gcin.h"
 
-
 #if UNIX
+#if !CLIENT_LIB || DEBUG
 static FILE *out_fp;
+#endif
 
 void p_err(char *fmt,...)
 {
   va_list args;
+  FILE *out = stdout;
 
   va_start(args, fmt);
-  fprintf(stderr,"gcin:");
-  vfprintf(stderr, fmt, args);
+  fprintf(out,"gcin:");
+  vfprintf(out, fmt, args);
   va_end(args);
-  fprintf(stderr,"\n");
-#if DEBUG
+  fprintf(out,"\n");
+  fflush(out);
+#if DEBUG && 0
   abort();
 #else
   if (getenv("GCIN_ERR_COREDUMP"))
@@ -23,6 +26,7 @@ void p_err(char *fmt,...)
 #endif
 }
 
+#if !CLIENT_LIB || DEBUG
 static void init_out_fp()
 {
   if (!out_fp) {
@@ -36,6 +40,7 @@ static void init_out_fp()
       out_fp = stdout;
   }
 }
+#endif
 
 #if !CLIENT_LIB
 void dbg_time(char *fmt,...)
@@ -56,7 +61,8 @@ void dbg_time(char *fmt,...)
 }
 #endif
 
-void dbg(char *fmt,...)
+#if DEBUG
+void __gcin_dbg_(char *fmt,...)
 {
   va_list args;
 
@@ -67,6 +73,7 @@ void dbg(char *fmt,...)
   fflush(out_fp);
   va_end(args);
 }
+#endif
 
 #else
 #include <share.h>
@@ -75,16 +82,18 @@ void dbg(char *fmt,...)
 
 #if _DEBUG
 #define _DBG 1
+#define CONSOLE_OFF 1
 #endif
 
 
 #if _DBG
 static FILE *dbgfp;
 #endif
-
+#if GCIN_SVR
 void dbg_time(char *fmt,...)
 {
 }
+#endif
 
 static void init_dbgfp()
 {
@@ -121,8 +130,8 @@ static void init_dbgfp()
 
 int utf8_to_big5(char *in, char *out, int outN);
 
-
-void dbg(char *format, ...) {
+#if DEBUG
+void __gcin_dbg_(char *format, ...) {
 #if _DBG
 	va_list ap;
 	va_start(ap, format);
@@ -146,6 +155,7 @@ void dbg(char *format, ...) {
 	va_end(ap);
 #endif
 }
+#endif
 
 void p_err(char *format, ...) {
 
@@ -165,6 +175,7 @@ void p_err(char *format, ...) {
 
 }
 
+#if GCIN_SVR
 void ErrorExit(LPTSTR lpszFunction)
 {
     // Retrieve the system error message for the last-error code
@@ -198,6 +209,8 @@ void ErrorExit(LPTSTR lpszFunction)
     ExitProcess(dw);
 }
 #endif
+#endif
+
 
 void *zmalloc(int n)
 {
@@ -205,6 +218,50 @@ void *zmalloc(int n)
   bzero(p, n);
   return p;
 }
+#if !GCIN_IME
+
+void *memdup(void *p, int n)
+{
+  if (!p || !n)
+    return NULL;
+  void *q;
+  q = malloc(n);
+  memcpy(q, p, n);
+  return q;
+}
+
+// can handle eol with \n \r \n\r \r\n
+char *myfgets(char *buf, int bufN, FILE *fp)
+{
+	char *out = buf;
+//	int rN = 0;
+	while (!feof(fp) && out - buf < bufN) {
+		char a, b;
+		a = 0;
+		if (fread(&a, 1, 1, fp) != 1)
+			break;
+		if (a =='\n') {
+			b = 0;
+			if (fread(&b, 1, 1, fp)==1)
+				if (b!='\r')
+					fseek(fp, -1, SEEK_CUR);
+			break;
+		} else
+		if (a =='\r') {
+			b = 0;
+			if (fread(&b, 1, 1, fp)==1)
+				if (b!='\n')
+					fseek(fp, -1, SEEK_CUR);
+			break;
+		}
+
+		*(out++) = a;
+	}
+
+	*out = 0;
+	return buf;
+}
+#endif
 
 #if GCIN_SVR
 #if WIN32

@@ -90,6 +90,7 @@ int main(int argc, char **argv)
 
 
   mainwin = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_has_resize_grip(GTK_WINDOW(mainwin), FALSE);
   gtk_window_set_default_size(GTK_WINDOW (mainwin), 320, 100);
   set_window_gcin_icon(mainwin);
 

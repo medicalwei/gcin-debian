@@ -1,4 +1,5 @@
 #include "gcin.h"
+#include "gcin-version.h"
 
 static GtkWidget *about_window;
 
@@ -26,11 +27,23 @@ int html_browser(char *fname);
 
 static void callback_forum( GtkWidget *widget, gpointer   data)
 {
-#define FURL "http://hyperrate.com/dir.php?eid=67"
 #if WIN32
+#define FURL "http://hyperrate.com/dir.php?eid=215"
 	ShellExecuteA(NULL, "open", FURL, NULL, NULL, SW_SHOWNORMAL);
 #else
+#define FURL "http://hyperrate.com/dir.php?eid=67"
 	html_browser(FURL);
+#endif
+}
+
+
+static void callback_changelog( GtkWidget *widget, gpointer   data)
+{
+#define LOG_URL "http://cle.linux.org.tw/gcin/download/Changelog.html"
+#if WIN32
+	ShellExecuteA(NULL, "open", LOG_URL, NULL, NULL, SW_SHOWNORMAL);
+#else
+	html_browser(LOG_URL);
 #endif
 }
 
@@ -48,6 +61,7 @@ void create_about_window()
 
     /* Create a new about_window */
     about_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_has_resize_grip(GTK_WINDOW(about_window), FALSE);
 
     gtk_window_set_title (GTK_WINDOW (about_window), _(_L("關於 gcin")));
 
@@ -75,10 +89,23 @@ void create_about_window()
     GtkWidget *separator = gtk_hseparator_new ();
     gtk_box_pack_start(GTK_BOX(vbox), separator, FALSE, FALSE, 3);
 
+#if GTK_CHECK_VERSION(2,18,9)
+   GtkWidget *label = gtk_label_new(_(_L("<a href='http://hyperrate.com?eid=67'>點選連結前往 gcin 討論區</a>\n"
+"<a href='http://hyperrate.com?eid=215'>gcin也有 Windows版</a>\n"
+"<a href='http://cle.linux.org.tw/gcin/download/Changelog.html'>gcin改變記錄</a>\n"
+)));
+   gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
+    gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
+#else
     GtkWidget *button_forum = gtk_button_new_with_label(_(_L("討論區")));
     gtk_box_pack_start(GTK_BOX(vbox), button_forum, FALSE, FALSE, 0);
     g_signal_connect (G_OBJECT (button_forum), "clicked",
 		      G_CALLBACK (callback_forum), NULL);
+    GtkWidget *button_changelog = gtk_button_new_with_label(_(_L("gcin改變記錄")));
+    gtk_box_pack_start(GTK_BOX(vbox), button_changelog, FALSE, FALSE, 0);
+    g_signal_connect (G_OBJECT (button_changelog), "clicked",
+		      G_CALLBACK (callback_changelog), NULL);
+#endif
 
 
 #if UNIX
@@ -89,7 +116,7 @@ void create_about_window()
     image = gtk_image_new_from_file (gcin_png);
 #endif
 
-    label_version = gtk_label_new ("version " GCIN_VERSION);
+    label_version = gtk_label_new ("version " GCIN_VERSION "  " __DATE__);
 
     gtk_box_pack_start (GTK_BOX (hbox), image, FALSE, FALSE, 3);
     gtk_box_pack_start (GTK_BOX (hbox), label_version, FALSE, FALSE, 3);
@@ -97,10 +124,8 @@ void create_about_window()
 
     gtk_container_add (GTK_CONTAINER (about_window), vbox);
 
-    /* Create a new button */
     GtkWidget *button = gtk_button_new_with_label (_(_L("關閉")));
     gtk_box_pack_start (GTK_BOX (vbox), button, FALSE, FALSE, 3);
-    /* Connect the "clicked" signal of the button to our callback */
     g_signal_connect (G_OBJECT (button), "clicked",
 		      G_CALLBACK (callback_close), (gpointer) "cool button");
 

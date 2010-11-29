@@ -4,14 +4,19 @@
 #include "win-sym.h"
 #include "eggtrayicon.h"
 #include <signal.h>
-
+#include "gst.h"
 
 #if UNIX
 static GdkPixbuf *pixbuf, *pixbuf_ch;
 static PangoLayout* pango;
 static GtkWidget *da;
+#if !GTK_CHECK_VERSION(2,90,6)
 static GdkGC *gc;
+#else
+static cairo_t *gc;
+#endif
 GdkWindow *tray_da_win;
+static EggTrayIcon *egg_tray_icon;
 
 #define GCIN_TRAY_PNG "gcin-tray.png"
 static char *pixbuf_ch_fname;
@@ -26,12 +31,10 @@ static void get_text_w_h(char *s, int *w, int *h)
   pango_layout_get_pixel_size(pango, w, h);
 }
 
-#if USE_TSIN
-extern gboolean tsin_half_full;
-#endif
 
 static void draw_icon()
 {
+//  dbg("draw_icon\n");
 #if 0
   return;
 #endif
@@ -42,57 +45,117 @@ static void draw_icon()
     (current_CS->im_state == GCIN_STATE_DISABLED||current_CS->im_state == GCIN_STATE_ENG_FULL) ?
     pixbuf : pixbuf_ch;
 
+#if GTK_CHECK_VERSION(2,17,7)
+  GtkAllocation dwdh;
+  gtk_widget_get_allocation(da, &dwdh);
+  int dw = dwdh.width, dh = dwdh.height;
+#else
   int dw = da->allocation.width, dh = da->allocation.height;
+#endif
   int w, h;
 
   GdkColor color_fg;
 
+
+//  dbg("wh %d,%d\n", dw,dh);
+
   gdk_color_parse("black", &color_fg);
+#if !GTK_CHECK_VERSION(2,90,6)
   gdk_gc_set_rgb_fg_color(gc, &color_fg);
+#else
+  gc = gdk_cairo_create (tray_da_win);
+  gdk_cairo_set_source_color (gc, &color_fg);
+#endif
 
   if (pix) {
     int ofs = (dh - gdk_pixbuf_get_height (pix))/2;
+#if !GTK_CHECK_VERSION(2,90,6)
     gdk_draw_pixbuf(tray_da_win, NULL, pix, 0, 0, 0, ofs, -1, -1, GDK_RGB_DITHER_NORMAL, 0, 0);
+#else
+    gdk_cairo_set_source_pixbuf (gc, pix, 0, ofs);
+    cairo_paint (gc);
+    cairo_destroy (gc);
+#endif
   } else {
     get_text_w_h(inmd[current_CS->in_method].cname, &w, &h);
+#if !GTK_CHECK_VERSION(2,90,6)
     gdk_draw_layout(tray_da_win, gc, 0, 0, pango);
+#else
+    cairo_move_to (gc, 0, 0);
+    pango_cairo_show_layout (gc, pango);
+    cairo_destroy (gc);
+#endif
   }
 
   if (current_CS) {
     if (current_CS->b_half_full_char ||
 #if USE_TSIN
-        current_CS->in_method==6 && tsin_half_full &&
+        current_method_type()==method_type_TSIN && tss.tsin_half_full &&
 #endif
         current_CS->im_state == GCIN_STATE_CHINESE) {
       static char full[] = "全";
       get_text_w_h(full,  &w, &h);
+#if !GTK_CHECK_VERSION(2,90,6)
       gdk_draw_layout(tray_da_win, gc, dw - w, dh - h, pango);
+#else
+      cairo_move_to (gc, dw - w, dh - h);
+      pango_cairo_show_layout (gc, pango);
+      cairo_destroy (gc);
+#endif
     }
 
     if (current_CS->im_state == GCIN_STATE_ENG_FULL) {
       static char efull[] = "A全";
       get_text_w_h(efull,  &w, &h);
+#if !GTK_CHECK_VERSION(2,90,6)
       gdk_draw_layout(tray_da_win, gc, 0, 0, pango);
+#else
+      cairo_move_to (gc, 0, 0);
+      pango_cairo_show_layout (gc, pango);
+      cairo_destroy (gc);
+#endif
     }
 #if USE_TSIN
-    if ((current_CS->in_method==6||current_CS->in_method==12) && current_CS->im_state == GCIN_STATE_CHINESE && !tsin_pho_mode()) {
+    if ((current_method_type()==method_type_TSIN||current_method_type()==method_type_ANTHY) && current_CS->im_state == GCIN_STATE_CHINESE && !tsin_pho_mode()) {
       static char efull[] = "ABC";
       gdk_color_parse("blue", &color_fg);
+#if !GTK_CHECK_VERSION(2,90,6)
       gdk_gc_set_rgb_fg_color(gc, &color_fg);
+#else
+      gc = gdk_cairo_create (tray_da_win);
+      gdk_cairo_set_source_color (gc, &color_fg);
+#endif
 
       get_text_w_h(efull,  &w, &h);
+#if !GTK_CHECK_VERSION(2,90,6)
       gdk_draw_layout(tray_da_win, gc, 0, 0, pango);
+#else
+      cairo_move_to (gc, 0, 0);
+      pango_cairo_show_layout (gc, pango);
+      cairo_destroy (gc);
+#endif
     }
 #endif
   }
 
   gdk_color_parse("red", &color_fg);
+#if !GTK_CHECK_VERSION(2,90,6)
   gdk_gc_set_rgb_fg_color(gc, &color_fg);
+#else
+  gc = gdk_cairo_create (tray_da_win);
+  gdk_cairo_set_source_color (gc, &color_fg);
+#endif
 
   if (gb_output) {
     static char sim[] = "简";
     get_text_w_h(sim,  &w, &h);
+#if !GTK_CHECK_VERSION(2,90,6)
     gdk_draw_layout(tray_da_win, gc, 0, dh - h, pango);
+#else
+    cairo_move_to (gc, 0, dh - h);
+    pango_cairo_show_layout (gc, pango);
+    cairo_destroy (gc);
+#endif
   }
 
 }
@@ -100,7 +163,8 @@ static void draw_icon()
 gboolean create_tray(gpointer data);
 void update_tray_icon()
 {
-  if (!gcin_status_tray || gcin_win32_icon)
+//  dbg("update_tray_icon\n");
+  if (!gcin_status_tray)
     return;
 
   if (!da)
@@ -113,7 +177,8 @@ void get_icon_path(char *iconame, char fname[]);
 
 void load_tray_icon()
 {
-  if (!gcin_status_tray || gcin_win32_icon)
+//  dbg("load_tray_icon\n");
+  if (!gcin_status_tray)
     return;
 
   if (!da)
@@ -127,12 +192,30 @@ void load_tray_icon()
   if (iconame)
     get_icon_path(iconame, fname);
 
+#if GTK_CHECK_VERSION(2,17,7)
+  GtkAllocation dwdh;
+  gtk_widget_get_allocation(da, &dwdh);
+  int dw = dwdh.width, dh = dwdh.height;
+#else
+    int dw = da->allocation.width, dh = da->allocation.height;
+#endif
+
+  if (!pixbuf || gdk_pixbuf_get_width (pixbuf) != dw || gdk_pixbuf_get_height (pixbuf) != dh) {
+    char icon_fname[128];
+    get_icon_path(GCIN_TRAY_PNG, icon_fname);
+    GError *err = NULL;
+//    dbg("icon_name %s\n", icon_fname);
+    pixbuf = gdk_pixbuf_new_from_file_at_size(icon_fname, dw, dh, &err);
+    if (!pixbuf)
+      p_err("cannot load file %s", icon_fname);
+  }
+
 #if 0
   dbg("fname %x %s\n", fname, fname);
 #endif
   if (!fname[0]) {
     if (pixbuf_ch)
-      gdk_pixbuf_unref(pixbuf_ch);
+      g_object_unref(pixbuf_ch);
 
     pixbuf_ch = NULL;
     if (pixbuf_ch_fname)
@@ -143,10 +226,11 @@ void load_tray_icon()
     pixbuf_ch_fname = strdup(fname);
 
     if (pixbuf_ch)
-      gdk_pixbuf_unref(pixbuf_ch);
+      g_object_unref(pixbuf_ch);
 
+    dbg("ch %s\n", fname);
     GError *err = NULL;
-    pixbuf_ch = gdk_pixbuf_new_from_file(fname, &err);
+    pixbuf_ch = gdk_pixbuf_new_from_file_at_size(fname, dw, dh, &err);
   }
 
   update_tray_icon();
@@ -174,17 +258,20 @@ void cb_tog_gcb(GtkCheckMenuItem *checkmenuitem, gpointer dat);
 void kbm_toggle_(GtkCheckMenuItem *checkmenuitem, gpointer dat);
 extern int win_kbm_on;
 
+void cb_inmd_menu(GtkCheckMenuItem *checkmenuitem, gpointer dat);
+
 static MITEM mitems[] = {
   {N_("設定"), GTK_STOCK_PREFERENCES, exec_gcin_setup_, NULL},
-  {N_("重新執行gcin"), NULL, restart_gcin, NULL},
+  {N_("重新執行gcin"), GTK_STOCK_QUIT, restart_gcin, NULL},
   {N_("念出發音"), NULL, cb_tog_phospeak, &phonetic_speak},
 #if USE_GCB
   {N_("gcb(剪貼區暫存)"), NULL, cb_tog_gcb, &gcb_enabled},
 #endif
-  {N_("正->簡體"), NULL, cb_trad2sim, NULL},
-  {N_("簡->正體"), NULL, cb_sim2trad, NULL},
-  {N_("小鍵盤"), NULL, kbm_toggle_, &win_kbm_on},
-  {N_("简体输出"), NULL, cb_trad_sim_toggle_, NULL},
+  {N_("正→簡體"), NULL, cb_trad2sim, NULL},
+  {N_("簡→正體"), NULL, cb_sim2trad, NULL},
+  {N_("選擇輸入法"), NULL, cb_inmd_menu, NULL},
+  {N_("小鍵盤"), NULL, kbm_toggle_, NULL},
+  {N_("简体输出"), NULL, cb_trad_sim_toggle_, &gb_output},
   {NULL, NULL, NULL, NULL}
 };
 
@@ -192,6 +279,7 @@ static MITEM mitems[] = {
 static GtkWidget *tray_menu;
 
 GtkWidget *create_tray_menu(MITEM *mitems);
+void update_item_active_all();
 
 gint inmd_switch_popup_handler (GtkWidget *widget, GdkEvent *event);
 extern gboolean win_kbm_inited;
@@ -214,6 +302,8 @@ tray_button_press_event_cb (GtkWidget * button, GdkEventButton * event, gpointer
       inmd_switch_popup_handler(NULL, (GdkEvent *)event);
 #else
       kbm_toggle();
+      dbg("win_kbm_on %d\n", win_kbm_on);
+      update_item_active_all();
 #endif
       break;
     case 3:
@@ -228,28 +318,41 @@ tray_button_press_event_cb (GtkWidget * button, GdkEventButton * event, gpointer
   return TRUE;
 }
 
+void update_item_active(MITEM *mitems);
+
+void update_item_active_unix()
+{
+  update_item_active(mitems);
+}
+
+
 gboolean cb_expose(GtkWidget *da, GdkEventExpose *event, gpointer data)
 {
   if (!da)
     create_tray(NULL);
 
+//  dbg("cb_expose\n");
+
   draw_icon();
   return FALSE;
 }
 
+#if !GTK_CHECK_VERSION(2,90,7)
+GdkGC *gdk_gc_new (GdkDrawable *drawable);
+#endif
 
 gboolean create_tray(gpointer data)
 {
   if (da)
     return FALSE;
 
-  EggTrayIcon *tray_icon = egg_tray_icon_new ("gcin");
+  egg_tray_icon = egg_tray_icon_new ("gcin");
 
-  if (!tray_icon)
+  if (!egg_tray_icon)
     return FALSE;
 
   GtkWidget *event_box = gtk_event_box_new ();
-  gtk_container_add (GTK_CONTAINER (tray_icon), event_box);
+  gtk_container_add (GTK_CONTAINER (egg_tray_icon), event_box);
 #if GTK_CHECK_VERSION(2,12,0)
   gtk_widget_set_tooltip_text (event_box, _("左:中英切換 中:小鍵盤 右:選項"));
 #else
@@ -261,19 +364,14 @@ gboolean create_tray(gpointer data)
                     G_CALLBACK (tray_button_press_event_cb), NULL);
 
   GError *err = NULL;
+  if (pixbuf)
+    g_object_unref(pixbuf);
 
   char icon_fname[128];
   get_icon_path(GCIN_TRAY_PNG, icon_fname);
-
-  if (pixbuf)
-    gdk_pixbuf_unref(pixbuf);
   pixbuf = gdk_pixbuf_new_from_file(icon_fname, &err);
-
   int pwidth = gdk_pixbuf_get_width (pixbuf);
   int pheight = gdk_pixbuf_get_height (pixbuf);
-
-  if (!pixbuf)
-    p_err("cannot load file %s", icon_fname);
 
   da =  gtk_drawing_area_new();
   g_signal_connect (G_OBJECT (event_box), "destroy",
@@ -281,23 +379,16 @@ gboolean create_tray(gpointer data)
   g_signal_connect(G_OBJECT(da), "expose-event", G_CALLBACK(cb_expose), NULL);
 
   gtk_container_add (GTK_CONTAINER (event_box), da);
-  gtk_widget_set_size_request(GTK_WIDGET(tray_icon), pwidth, pheight);
+  gtk_widget_set_size_request(GTK_WIDGET(egg_tray_icon), pwidth, pheight);
 
-  gtk_widget_show_all (GTK_WIDGET (tray_icon));
-  tray_da_win = da->window;
+  gtk_widget_show_all (GTK_WIDGET (egg_tray_icon));
+  tray_da_win = gtk_widget_get_window(da);
   // tray window is not ready ??
   if (!tray_da_win || !GTK_WIDGET_DRAWABLE(da)) {
-    gtk_widget_destroy(GTK_WIDGET(tray_icon));
+    gtk_widget_destroy(GTK_WIDGET(egg_tray_icon));
     da = NULL;
     return FALSE;
   }
-
-#if 0
-  Window xwin = GDK_WINDOW_XID(tray_da_win);
-  XWindowAttributes att;
-  XGetWindowAttributes(dpy, xwin, &att);
-  dbg("www %d %d\n", att.width, att.height);
-#endif
 
   PangoContext *context=gtk_widget_get_pango_context(da);
   PangoFontDescription* desc=pango_context_get_font_description(context);
@@ -317,14 +408,20 @@ gboolean create_tray(gpointer data)
   dbg("context %x %x\n", pango_layout_get_context(pango), context);
   dbg("font %x %x\n",pango_layout_get_font_description(pango), desc);
 #endif
+#if !GTK_CHECK_VERSION(2,90,6)
   gc = gdk_gc_new (tray_da_win);
+#endif
   return FALSE;
+}
+
+void destroy_tray_icon()
+{
+  gtk_widget_destroy(GTK_WIDGET(egg_tray_icon));
+  egg_tray_icon = NULL; da = NULL;
 }
 
 void init_tray()
 {
-  if (gcin_win32_icon)
-    return;
   g_timeout_add(5000, create_tray, NULL);
 }
 #endif

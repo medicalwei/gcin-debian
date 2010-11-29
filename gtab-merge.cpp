@@ -13,6 +13,7 @@
 #include "gcin.h"
 #include "gtab.h"
 #include "gcin-endian.h"
+#include "gcin-version.h"
 
 FILE *fr, *fw;
 int lineno;
@@ -49,7 +50,7 @@ void del_nl_spc(char *s)
 void get_line(char *tt)
 {
   while (!feof(fr)) {
-    fgets((char *)tt, 512, fr);
+    myfgets((char *)tt, 512, fr);
     lineno++;
 
     int len=strlen(tt);
@@ -161,7 +162,7 @@ int main(int argc, char **argv)
   struct TableHead th;
   int KeyNum;
   char kname[128][CH_SZ];
-  char keymap[64];
+  char keymap[128];
   int chno;
   gtab_idx1_t idx1[256];
   char def1[256];
@@ -259,7 +260,7 @@ int main(int argc, char **argv)
   fclose(fr);
   dbg("input phr_cou %d  DefC:%d  prbf_cou:%d\n", phr_cou, chno, prbf_cou);
 
-  if ((fr=fopen(argv[2], "r"))==NULL)
+  if ((fr=fopen(argv[2], "rb"))==NULL)
       p_err("cannot err open %s", argv[2]);
 
   skip_utf8_sigature(fr);
@@ -279,7 +280,7 @@ int main(int argc, char **argv)
     len=strlen(cmd);
 
     if (len > inp->max_keyN)
-      p_err("%d:  only <= %d keys is allowed '%s'", lineno, inp->max_keyN, cmd);
+      p_err("%d:  only <= %d keys is allowed '%s'  %s", lineno, inp->max_keyN, cmd, tt);
 
     kk=0;
     for(i=0;i<len;i++) {
