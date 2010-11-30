@@ -244,7 +244,7 @@ void create_gtab_conf_window()
   load_setttings();
 
   gcin_gtab_conf_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_position(gcin_gtab_conf_window, GTK_WIN_POS_MOUSE);
+  gtk_window_set_position(GTK_WINDOW(gcin_gtab_conf_window), GTK_WIN_POS_MOUSE);
   gtk_window_set_has_resize_grip(GTK_WINDOW(gcin_gtab_conf_window), FALSE);
 
   g_signal_connect (G_OBJECT (gcin_gtab_conf_window), "delete_event",
