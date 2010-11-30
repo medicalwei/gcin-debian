@@ -1330,8 +1330,8 @@ static gboolean pre_sel_handler(KeySym xkey)
   if (xkey >= 0x7f)
     return 0;
 
-  static char shift_sele[]="!@#$%^&*()asdfghjkl:";
-  static char noshi_sele[]="1234567890asdfghjkl;";
+  static char shift_sele[]="!@#$%^&*()asdfghjkl:zxcvbnm<>?qwertyuiop";
+  static char noshi_sele[]="1234567890asdfghjkl;zxcvbnm,./qwertyuiop";
   char *p;
 
   if (!tss.pre_selN || !tsin_phrase_pre_select)

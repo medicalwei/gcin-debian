@@ -922,7 +922,7 @@ void set_window_gcin_icon(GtkWidget *window);
 static void create_main_win()
 {
   main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_position(main_window, GTK_WIN_POS_MOUSE);
+  gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_MOUSE);
 
   gtk_window_set_has_resize_grip(GTK_WINDOW(main_window), FALSE);
 

@@ -197,7 +197,9 @@ void load_setttings()
   if (selkey=strchr(phokbm_name, ' ')) {
     *selkey=0;
     selkey++;
-  } else {
+  }
+#if 0
+  else {
     char *p;
     if (p=strchr(phokbm_name, '-')) {
       *p = 0;
@@ -205,6 +207,7 @@ void load_setttings()
     } else
       selkey = "123456789";
   }
+#endif
 
   if (pho_selkey)
     free(pho_selkey);
