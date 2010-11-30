@@ -1,3 +1,9 @@
+gcin (1.5.7~pre13-1) experimental; urgency=low
+
+  * New snapshot.
+
+ -- Kan-Ru Chen <koster@debian.org>  Tue, 30 Nov 2010 10:44:06 +0800
+
 gcin (1.5.7~pre12-1) experimental; urgency=low
 
   * New snapshot.
