@@ -1,6 +1,6 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -250,8 +250,8 @@
+@@ -246,8 +246,8 @@
  	rm -f $(bindir)/trad2sim; ln -sf sim2trad $(bindir)/trad2sim
  
  install:

@@ -1,3 +1,13 @@
+gcin (1.5.8-1) unstable; urgency=low
+
+  * New upstream release.
+  * Stop build Qt3 immodule. (Closes: #604350)
+  * debian/gcin-ext.1: merged upstream.
+  * debian/patches/008_add_shebang_to_scripts.diff: merged.
+  * debian/patches/009_add_tsin2gtab_phrase_manpage.diff: merged.
+
+ -- Kan-Ru Chen <koster@debian.org>  Mon, 28 Feb 2011 15:35:50 +0800
+
 gcin (1.5.7~pre13-1) experimental; urgency=low
 
   * New snapshot.

@@ -1,7 +1,7 @@
 Fix anthy error message
 --- a/anthy.cpp
 +++ b/anthy.cpp
-@@ -1033,7 +1033,7 @@
+@@ -1161,7 +1161,7 @@
      GtkWidget *dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL,
                                       GTK_MESSAGE_ERROR,
                                       GTK_BUTTONS_CLOSE,
@@ -10,7 +10,7 @@ Fix anthy error message
      gtk_dialog_run (GTK_DIALOG (dialog));
      gtk_widget_destroy (dialog);
      return FALSE;
-@@ -1052,7 +1052,7 @@
+@@ -1180,7 +1180,7 @@
      GtkWidget *dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL,
                                       GTK_MESSAGE_ERROR,
                                       GTK_BUTTONS_CLOSE,

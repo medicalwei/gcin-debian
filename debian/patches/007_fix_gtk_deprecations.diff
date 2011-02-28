@@ -11,7 +11,7 @@
        egg_tray_icon_get_orientation_property (icon);
 --- a/anthy.cpp
 +++ b/anthy.cpp
-@@ -1121,7 +1121,7 @@
+@@ -1249,7 +1249,7 @@
  
  int anthy_visible()
  {
@@ -22,7 +22,7 @@
  extern gboolean force_show;
 --- a/eve.cpp
 +++ b/eve.cpp
-@@ -762,13 +762,13 @@
+@@ -770,13 +770,13 @@
      return FALSE;
    switch (current_method_type()) {
      case method_type_PHO:
@@ -39,7 +39,7 @@
  #if USE_ANTHY
      case method_type_ANTHY:
        return anthy_visible();
-@@ -776,7 +776,7 @@
+@@ -784,7 +784,7 @@
      default:
        if (!gwin_gtab)
          return FALSE;
@@ -50,7 +50,7 @@
    return FALSE;
 --- a/gtab.cpp
 +++ b/gtab.cpp
-@@ -1365,7 +1365,7 @@
+@@ -1384,7 +1384,7 @@
      return feedkey_pho(key, 0);
  
    if (poo.same_pho_query_state == SAME_PHO_QUERY_none && gwin_pho &&
@@ -61,7 +61,7 @@
  
 --- a/win-gtab.cpp
 +++ b/win-gtab.cpp
-@@ -569,7 +569,7 @@
+@@ -574,7 +574,7 @@
  
  //  dbg("show_win_gtab()\n");
  #if UNIX
@@ -72,7 +72,7 @@
  
 --- a/win0.cpp
 +++ b/win0.cpp
-@@ -249,12 +249,12 @@
+@@ -248,12 +248,12 @@
      return;
  #endif
    if (gcin_on_the_spot_key) {
@@ -87,7 +87,7 @@
      gtk_widget_show(button_pho);
  
    disp_pho_sub(label_pho, index, pho);
-@@ -319,7 +319,7 @@
+@@ -318,7 +318,7 @@
  #if 0
    GtkWidget *widget =chars[index].line;
  
@@ -96,7 +96,7 @@
      widget = chars[index].vbox;
    }
  #endif
-@@ -429,7 +429,7 @@
+@@ -422,7 +422,7 @@
    win_y = y;
  
  #if WIN32
@@ -105,18 +105,18 @@
      gtk_window_move(GTK_WINDOW(gwin1), x, y);
    }
  #endif
-@@ -669,7 +669,7 @@
-   if (gcin_pop_up_win && !tsin_has_input() && !force_show)
+@@ -660,7 +660,7 @@
      return;
+   }
  #if UNIX
 -  if (!GTK_WIDGET_VISIBLE(gwin0))
 +  if (!gtk_widget_get_visible(gwin0))
  #endif
    {
-     gtk_widget_show(gwin0);
+ // dbg("gtk_widget_show %x\n", gwin0);
 --- a/win1.cpp
 +++ b/win1.cpp
-@@ -222,7 +222,7 @@
+@@ -259,7 +259,7 @@
    if (!gwin1)
      p_err("disp_selections !gwin1");
  #if WIN32
@@ -125,7 +125,7 @@
      gtk_widget_show(gwin1);
    }
  #endif
-@@ -241,7 +241,7 @@
+@@ -278,7 +278,7 @@
  #endif
  
  #if UNIX
@@ -134,7 +134,7 @@
      gtk_widget_show(gwin1);
    }
  #endif
-@@ -249,7 +249,7 @@
+@@ -286,7 +286,7 @@
  
  void raise_tsin_selection_win()
  {

@@ -1,10 +1,7 @@
 000_fix_rpath.diff
 001_fix_icon_path.diff
 002_fix_Qt4_detection.diff
-003_fix_Qt3_detection.diff
 004_fix_install_paths.diff
 005_ld_only_link_needed.diff
 006_fix_anthy_error_message.diff
 007_fix_gtk_deprecations.diff
-008_add_shebang_to_scripts.diff
-009_add_tsin2gtab_phrase_manpage.diff
