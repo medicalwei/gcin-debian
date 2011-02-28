@@ -1,7 +1,7 @@
 #include "gcin.h"
 #include "pho.h"
 #include "config.h"
-#if UNIX
+#if GCIN_i18n_message
 #include <libintl.h>
 #endif
 #include "gst.h"
@@ -142,18 +142,16 @@ void init_TableDir();
 
 int main(int argc, char **argv)
 {
-
-#if GCIN_i18n_message
-  gtk_set_locale();
-  bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
-  textdomain(GETTEXT_PACKAGE);
-#endif
-
 #if WIN32
   init_TableDir();
 #endif
 
   gtk_init (&argc, &argv);
+
+#if GCIN_i18n_message
+  bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+  textdomain(GETTEXT_PACKAGE);
+#endif
 
   char kbm_str[32];
   get_gcin_conf_fstr(PHONETIC_KEYBOARD, kbm_str, "zo-asdf");

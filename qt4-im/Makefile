@@ -4,11 +4,11 @@ QTIM=$(QT)/plugins/inputmethods
 IMMODULES=$(libdir)/$(QTIM)
 
 INCS=-I../im-client -I/usr/include/X11 `pkg-config QtCore QtGui --cflags`
-CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -fPIC  -DQT4 -DQT_SHARED \
+CXXFLAGS=$(OPTFLAGS) $(INCS) -Wall -D_REENTRANT -DUNIX=1 -fPIC  -DQT4 -DQT_SHARED \
 -DQT_IMMODULE -DPIC
 OBJS= moc_gcin-qt.o gcin-qt.o im-gcin-qt.o gcin-imcontext-qt.o
 .SUFFIXES:	.c .cpp .a .so .E .h
-LDFLAGS=-L../im-client -lgcin-im-client -Wl,-rpath,$(gcinlibdir) `pkg-config QtCore QtGui --libs`
+LDFLAGS=-L../im-client -lgcin-im-client `pkg-config QtCore QtGui --libs`
 all:    im-gcin.so
 
 .cpp.E:
@@ -19,7 +19,7 @@ moc_gcin-qt.cpp:	gcin-qt.h
 
 im-gcin.so: $(OBJS)
 	export LD_RUN_PATH=$(gcinlibdir) ;\
-	$(CXX) -fno-exceptions -shared -o $@ $(OBJS) $(LDFLAGS)
+	$(CXX) $(gcc_ld_run_path) -fno-exceptions -shared -o $@ $(OBJS) $(LDFLAGS)
 	rm -f core.*
 install:
 	if [ $(prefix) = /usr/local ]; then \

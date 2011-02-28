@@ -511,7 +511,11 @@ int main(int argc, char **argv)
   if (reload) {
     printf("reload....\n");
     gtk_init(&argc, &argv);
-    send_gcin_message(GDK_DISPLAY(), RELOAD_TSIN_DB);
+    send_gcin_message(
+#if UNIX
+		GDK_DISPLAY(),
+#endif
+		RELOAD_TSIN_DB);
   }
 
   exit(0);

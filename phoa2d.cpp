@@ -164,7 +164,11 @@ int main(int argc, char **argv)
   fclose(fp);
 
   if (reload)
-    send_gcin_message(GDK_DISPLAY(), "reload");
+    send_gcin_message(
+#if UNIX
+	GDK_DISPLAY(),
+#endif
+	"reload");
 
   return 0;
 }

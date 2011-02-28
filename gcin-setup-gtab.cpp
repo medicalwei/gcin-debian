@@ -16,7 +16,8 @@ static GtkWidget *check_button_gtab_dup_select_bell,
                  *check_button_gtab_vertical_select,
                  *check_button_gtab_unique_auto_send,
                  *check_button_gtab_que_wild_card,
-                 *check_button_gcin_capslock_lower;
+                 *check_button_gcin_capslock_lower,
+                 *check_button_gtab_phrase_pre_select;
 
 struct {
   unich_t *str;
@@ -92,6 +93,9 @@ static gboolean cb_gtab_conf_ok( GtkWidget *widget,
   save_gcin_conf_int(GCIN_CAPSLOCK_LOWER,
     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gcin_capslock_lower)));
 
+  save_gcin_conf_int(GTAB_PHRASE_PRE_SELECT,
+    gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gtab_phrase_pre_select)));
+
 #if GTK_CHECK_VERSION(2,4,0)
   int idx = gtk_combo_box_get_active (GTK_COMBO_BOX (opt_spc_opts));
 #else
@@ -107,7 +111,11 @@ static gboolean cb_gtab_conf_ok( GtkWidget *widget,
 #endif
   save_gcin_conf_int(GTAB_AUTO_SELECT_BY_PHRASE, auto_select_by_phrase_opts[idx].num);
 
-  send_gcin_message(GDK_DISPLAY(), CHANGE_FONT_SIZE);
+  send_gcin_message(
+#if UNIX
+	  GDK_DISPLAY(),
+#endif
+	  CHANGE_FONT_SIZE);
   gtk_widget_destroy(gcin_gtab_conf_window); gcin_gtab_conf_window = NULL;
 
   return TRUE;
@@ -149,7 +157,11 @@ static gboolean cb_gtab_edit_append( GtkWidget *widget,
   strcat(strcpy(append_fname, fname), ".append");
   char user_fname[512];
   get_gcin_user_fname(append_fname, user_fname);
-  win32exec_script("gtab.append_prepare.bat", user_fname);
+  if (GetFileAttributesA(user_fname) == INVALID_FILE_ATTRIBUTES)
+    win32exec_script("gtab.append_prepare.bat", user_fname);
+  else {
+    win32exec_script("utf8-edit.bat", user_fname);
+  }
 #endif
   return TRUE;
 }
@@ -179,7 +191,7 @@ static GtkWidget *create_spc_opts()
       current_idx = i;
 
 #if GTK_CHECK_VERSION(2,4,0)
-    gtk_combo_box_append_text (GTK_COMBO_BOX (opt_spc_opts), _(spc_opts[i].str));
+    gtk_combo_box_append_text (GTK_COMBO_BOX_TEXT (opt_spc_opts), _(spc_opts[i].str));
 #else
     gtk_menu_shell_append (GTK_MENU_SHELL (menu_spc_opts), item);
 #endif
@@ -218,7 +230,7 @@ static GtkWidget *create_auto_select_by_phrase_opts()
       current_idx = i;
 
 #if GTK_CHECK_VERSION(2,4,0)
-    gtk_combo_box_append_text (GTK_COMBO_BOX (opt_auto_select_by_phrase), _(auto_select_by_phrase_opts[i].str));
+    gtk_combo_box_append_text (GTK_COMBO_BOX_TEXT (opt_auto_select_by_phrase), _(auto_select_by_phrase_opts[i].str));
 #else
     gtk_menu_shell_append (GTK_MENU_SHELL (menu_auto_select_by_phrase), item);
 #endif
@@ -362,6 +374,12 @@ void create_gtab_conf_window()
   GtkWidget *label_gtab_auto_select = gtk_label_new(_(_L("由詞庫自動選擇字")));
   gtk_box_pack_start (GTK_BOX (hbox_gtab_auto_select_by_phrase), label_gtab_auto_select,  FALSE, FALSE, 0);
   gtk_box_pack_start (GTK_BOX (hbox_gtab_auto_select_by_phrase), create_auto_select_by_phrase_opts(),  FALSE, FALSE, 0);
+  GtkWidget *label_gtab_phrase_pre_select = gtk_label_new(_(_L("使用預選詞")));
+  gtk_box_pack_start (GTK_BOX (hbox_gtab_auto_select_by_phrase), label_gtab_phrase_pre_select,  FALSE, FALSE, 0);
+  check_button_gtab_phrase_pre_select = gtk_check_button_new ();
+  gtk_box_pack_start (GTK_BOX (hbox_gtab_auto_select_by_phrase), check_button_gtab_phrase_pre_select,  FALSE, FALSE, 0);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_gtab_phrase_pre_select), gtab_phrase_pre_select);
+
 
   GtkWidget *hbox_gtab_dup_select_bell = gtk_hbox_new (FALSE, SPC);
   gtk_box_pack_start (GTK_BOX (vbox_gtab_r), hbox_gtab_dup_select_bell, FALSE, FALSE, 0);

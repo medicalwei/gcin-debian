@@ -409,7 +409,7 @@ void putkey_pho(u_short key, int idx)
 }
 
 void load_pin_juyin();
-
+void recreate_win1_if_nessary();
 
 void load_tab_pho_file()
 {
@@ -450,11 +450,12 @@ void load_tab_pho_file()
   else
     b_hsu_kbm = TRUE;
 
-  strcat(pho_kbm_name, ".kbm");
+  char pho_kbm_name_kbm[128];
 
-  dbg("phokbm_name: %s\n", pho_kbm_name);
+  strcat(strcpy(pho_kbm_name_kbm, pho_kbm_name), ".kbm");
+  dbg("phokbm_name: %s\n", pho_kbm_name_kbm);
 
-  get_sys_table_file_name(pho_kbm_name, kbmfname);
+  get_sys_table_file_name(pho_kbm_name_kbm, kbmfname);
 
   if ((fr=fopen(kbmfname,"rb"))==NULL)
      p_err("Cannot open %s", kbmfname);
@@ -466,6 +467,8 @@ void load_tab_pho_file()
   phkbm.selkeyN = strlen(pho_selkey);
 
   dbg("pho_selkey %s\n", pho_selkey);
+
+  recreate_win1_if_nessary();
 #if 0
   for(i='A'; i <= 'z'; i++)
     dbg("%c %d %d\n", i, phkbm.phokbm[i][0].num, phkbm.phokbm[i][0].typ);
@@ -497,7 +500,7 @@ int feedkey_pho(KeySym xkey, int kbstate)
   char *pp=NULL;
   char kno;
   int i,j,jj=0,kk=0;
-  char out_buffer[256];
+  char out_buffer[512];
   int out_bufferN;
 
 
@@ -569,7 +572,13 @@ int feedkey_pho(KeySym xkey, int kbstate)
       out_bufferN=0;
 
       while(i<phkbm.selkeyN  && ii< poo.stop_idx) {
-        out_buffer[out_bufferN++] = pho_selkey[i];
+        out_buffer[out_bufferN]=0;
+        char tt[128];
+        sprintf(tt, "<span foreground=\"%s\">%c</span>",
+           gcin_sel_key_color, pho_selkey[i]);
+        int ttlen = strlen(tt);
+        memcpy(out_buffer+out_bufferN, tt, ttlen);
+        out_bufferN+=ttlen;
         int len = u8cpy(&out_buffer[out_bufferN], pho_idx_str(ii));
         out_bufferN+=len;
         out_buffer[out_bufferN++] = ' ';
@@ -578,11 +587,19 @@ int feedkey_pho(KeySym xkey, int kbstate)
         i++;
       }
 
-      out_buffer[out_bufferN++] = poo.cpg ? '<' : ' ';
+      char *tt;
+	  tt = poo.cpg ? "&lt;" : " ";
+      int ttlen;
+	  ttlen = strlen(tt);
+      memcpy(out_buffer+out_bufferN, tt, ttlen);
+      out_bufferN+=ttlen;
 
       if (ii < poo.stop_idx) {
         out_buffer[out_bufferN++] = poo.cpg ? '\\' : ' ';
-        out_buffer[out_bufferN++] = '>';
+        tt = "&gt;";
+        ttlen = strlen(tt);
+        memcpy(out_buffer+out_bufferN, tt, ttlen);
+        out_bufferN+=strlen(tt);
       }
 
       out_buffer[out_bufferN] = 0;
@@ -705,10 +722,17 @@ proc_state:
 
 
   out_bufferN=0;
+  out_buffer[0]=0;
 
   if (poo.ityp3_pho) {
     while(i< phkbm.selkeyN  && ii < poo.stop_idx) {
-      out_buffer[out_bufferN++] = pho_selkey[i];
+      char tt[128];
+      sprintf(tt, "<span foreground=\"%s\">%c</span>",
+         gcin_sel_key_color, pho_selkey[i]);
+      int ttlen = strlen(tt);
+      memcpy(out_buffer+out_bufferN, tt, ttlen);
+      out_bufferN+=ttlen;
+      strcat(out_buffer, tt);
       char *pho_str = pho_idx_str(ii);
       int len = strlen(pho_str);
       memcpy(&out_buffer[out_bufferN], pho_str, len);
@@ -716,14 +740,20 @@ proc_state:
       out_buffer[out_bufferN++] = ' ';
 
       ii++;
-      i=i+1;
+      i=i++;
     }
 
-    out_buffer[out_bufferN++] = poo.cpg ? '<' : ' ';
+    char *tt = poo.cpg ? "&lt;" : " ";
+    int ttlen = strlen(tt);
+    memcpy(out_buffer+out_bufferN, tt, ttlen);
+    out_bufferN+=ttlen;
 
     if (ii < poo.stop_idx) {
       out_buffer[out_bufferN++] = poo.cpg ? '\\' : ' ';
-      out_buffer[out_bufferN++] = '>';
+      tt = "&gt;";
+      ttlen = strlen(tt);
+      memcpy(out_buffer+out_bufferN, tt, ttlen);
+      out_bufferN+=strlen(tt);
     } else {
       poo.cpg=0;
     }

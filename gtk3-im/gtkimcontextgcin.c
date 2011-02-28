@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "gtkintl.h"
+//#include "gtkintl.h"
 #include <gtk/gtk.h>
 #include "gtkimcontextgcin.h"
 // #include "gcin.h"  // for debug only
@@ -284,7 +284,7 @@ set_ic_client_window (GtkIMContextGCIN *context_xim,
   if (context_xim->client_window) {
     get_im (context_xim);
     if (context_xim->gcin_ch) {
-      gcin_im_client_set_window(context_xim->gcin_ch, GDK_DRAWABLE_XID(client_window));
+      gcin_im_client_set_window(context_xim->gcin_ch, GDK_WINDOW_XID(client_window));
     }
   }
 }
@@ -367,9 +367,9 @@ gtk_im_context_gcin_filter_keypress (GtkIMContext *context,
   xevent.type = (event->type == GDK_KEY_PRESS) ? KeyPress : KeyRelease;
   xevent.serial = 0;            /* hope it doesn't matter */
   xevent.send_event = event->send_event;
-  xevent.display = GDK_DRAWABLE_XDISPLAY (event->window);
-  xevent.window = GDK_DRAWABLE_XID (event->window);
-  xevent.root = GDK_DRAWABLE_XID (root_window);
+  xevent.display = GDK_WINDOW_XDISPLAY (event->window);
+  xevent.window = GDK_WINDOW_XID (event->window);
+  xevent.root = GDK_WINDOW_XID (root_window);
   xevent.subwindow = xevent.window;
   xevent.time = event->time;
   xevent.x = xevent.x_root = 0;
