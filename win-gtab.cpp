@@ -149,7 +149,9 @@ void change_gtab_font_size()
     return;
 
   set_label_font_size(label_gtab_sele, gcin_font_size);
-  set_label_font_size(label_gtab_pre_sel, gcin_font_size);
+  if (label_gtab_pre_sel)
+    set_label_font_size(label_gtab_pre_sel, gcin_font_size);
+
   set_label_font_size(label_edit, gcin_font_size);
 
   set_label_font_size(label_gtab, gcin_font_size_gtab_in);
@@ -347,6 +349,7 @@ static gboolean need_label_edit()
   return gtab_phrase_on() && !gcin_edit_display_ap_only();
 }
 
+static int current_gtab_phrase_pre_select;
 
 static void destroy_if_necessary()
 {
@@ -360,6 +363,7 @@ static void destroy_if_necessary()
       current_gtab_in_row1 == gtab_in_row1 &&
           new_last_cursor_off == last_cursor_off &&
       current_gtab_vertical_select == gtab_vertical_select &&
+      current_gtab_phrase_pre_select == gtab_phrase_pre_select &&
       (new_need_label_edit && label_edit || !new_need_label_edit && !label_edit)
       )
     return;
@@ -369,6 +373,8 @@ static void destroy_if_necessary()
     new_last_cursor_off, last_cursor_off, current_gtab_vertical_select, gtab_vertical_select,
     new_need_label_edit, label_edit!=0);
 #endif
+  current_gtab_phrase_pre_select = gtab_phrase_pre_select;
+
   gtk_widget_destroy(top_bin);
   top_bin = NULL;
   label_edit = NULL;
@@ -442,9 +448,10 @@ void create_win_gtab_gui_simple()
       gtk_box_pack_start (GTK_BOX (hbox_row1), align, FALSE, FALSE, 0);
   }
 
-  label_gtab_pre_sel = gtk_label_new(NULL);
-  gtk_box_pack_start (GTK_BOX (vbox_top), label_gtab_pre_sel, FALSE, FALSE, 0);
-
+  if (gtab_phrase_pre_select) {
+    label_gtab_pre_sel = gtk_label_new(NULL);
+    gtk_box_pack_start (GTK_BOX (vbox_top), label_gtab_pre_sel, FALSE, FALSE, 0);
+  }
 
   hbox_row2 = gtk_hbox_new (FALSE, 0);
   gtk_container_add (GTK_CONTAINER (vbox_top), hbox_row2);
@@ -514,7 +521,8 @@ void create_win_gtab_gui_simple()
   gtk_widget_show_all (gwin_gtab);
   gtk_widget_hide (gwin_gtab);
   gtk_widget_hide(label_gtab_sele);
-  gtk_widget_hide(label_gtab_pre_sel);
+  if (label_gtab_pre_sel)
+    gtk_widget_hide(label_gtab_pre_sel);
 
   show_hide_label_edit();
 
@@ -715,6 +723,7 @@ void disp_gtab_pre_sel(char *s)
 void hide_gtab_pre_sel()
 {
   tss.pre_selN = 0;
+  tss.ctrl_pre_sel = FALSE;
   gtk_widget_hide(label_gtab_pre_sel);
 
   move_win_gtab(current_in_win_x, current_in_win_y);
