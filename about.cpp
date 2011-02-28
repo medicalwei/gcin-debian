@@ -91,8 +91,8 @@ void create_about_window()
 
 #if GTK_CHECK_VERSION(2,18,9)
    GtkWidget *label = gtk_label_new(_(_L("<a href='http://hyperrate.com?eid=67'>點選連結前往 gcin 討論區</a>\n"
-"<a href='http://hyperrate.com?eid=215'>gcin也有 Windows版</a>\n"
-"<a href='http://cle.linux.org.tw/gcin/download/Changelog.html'>gcin改變記錄</a>\n"
+_L("<a href='http://hyperrate.com?eid=215'>gcin也有 Windows版</a>\n")
+_L("<a href='http://cle.linux.org.tw/gcin/download/Changelog.html'>gcin改變記錄</a>\n")
 )));
    gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
     gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);

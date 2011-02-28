@@ -2,7 +2,7 @@
 #define GB_OUTPUT_TOGGLE "gb output toggle"
 #define KBM_TOGGLE "kbm toggle"
 #define RELOAD_TSIN_DB "reload tsin db"
-#define GCIN_EXIT "gcin exit"
+#define GCIN_EXIT_MESSAGE "gcin exit"
 
 
 #define GCIN_FONT_SIZE "gcin-font-size"
@@ -61,6 +61,7 @@
 #define GTAB_VERTICAL_SELECT "gtab-vertical-select"
 #define GTAB_UNIQUE_AUTO_SEND "gtab-unique-auto-send"
 #define GTAB_QUE_WILD_CARD "gtab-que-wild-card"
+#define GTAB_PHRASE_PRE_SELECT "gtab-phrase-pre-select"
 
 #define TSIN_PHRASE_PRE_SELECT "tsin-phrase-pre-select"
 #define TSIN_CHINESE_ENGLISH_TOGGLE_KEY "tsin-chinese-english-toggle_key"
@@ -78,6 +79,8 @@
 
 
 #define PHONETIC_KEYBOARD "phonetic-keyboard2"
+#define PHONETIC_KEYBOARD_BAK "phonetic-keyboard-bak"
+
 #define PHONETIC_CHAR_DYNAMIC_SEQUENCE "phonetic-char-dynamic-sequence"
 #define PHONETIC_HUGE_TAB "phonetic-huge-tab"
 #define PHONETIC_SPEAK "phonetic-speak"
@@ -129,6 +132,7 @@ extern int gcin_win_color_use, gcin_bell_off;
 extern int gcin_init_im_enabled, gcin_win32_icon;
 extern int gcb_enabled, gcb_position, gcb_position_x, gcb_position_y, gcin_edit_display;
 extern char *pho_kbm_name, *pho_selkey;
+extern int pho_candicate_col_N, pho_candicate_R2L;
 
 gboolean get_gcin_user_fname(char *name, char fname[]);
 void get_gcin_conf_str(char *name, char **rstr, char *default_str);

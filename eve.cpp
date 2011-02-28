@@ -28,6 +28,7 @@ gboolean test_mode;
 int last_input_method;
 #endif
 
+
 void init_gtab(int inmdno);
 
 char current_method_type()
@@ -134,16 +135,22 @@ static void append_str(char **buf, int *bufN, char *text, int len)
 }
 
 int trad2sim(char *str, int strN, char **out);
+void add_ch_time_str(char *s);
+
 void send_text(char *text)
 {
+#if WIN32
   if (test_mode)
     return;
+#endif
 
   char *filter;
 
-  if (!text || test_mode)
+  if (!text)
     return;
   int len = strlen(text);
+
+  add_ch_time_str(text);
 
   append_str(&output_buffer_raw, &output_buffer_rawN, text, len);
 
@@ -204,8 +211,9 @@ direct:
   }
 #endif
 next:
-  if (len)
+  if (len) {
     append_str(&output_buffer, &output_bufferN, text, len);
+  }
 
   free(utf8_gbtext);
 }
@@ -841,6 +849,12 @@ int init_win_anthy();
 void show_win_kbm();
 void set_gtab_input_method_name(char *s);
 
+void update_win_kbm_inited()
+{
+  if (win_kbm_inited)
+    update_win_kbm();
+}
+
 gboolean init_in_method(int in_no)
 {
   gboolean init_im = !(cur_inmd && (cur_inmd->flag & FLAG_GTAB_SYM_KBM));
@@ -922,9 +936,7 @@ gboolean init_in_method(int in_no)
 #endif
 
   update_in_win_pos();
-
-  if (win_kbm_inited)
-    update_win_kbm();
+  update_win_kbm_inited();
 
   return TRUE;
 }
@@ -1334,7 +1346,6 @@ int xim_gcin_FocusIn(IMChangeFocusStruct *call_data)
 #endif
 
 
-gint64 current_time();
 
 static gint64 last_focus_out_time;
 

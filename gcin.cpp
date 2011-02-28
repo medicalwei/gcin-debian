@@ -3,6 +3,8 @@
 #include "gcin-version.h"
 #if UNIX
 #include <signal.h>
+#endif
+#if GCIN_i18n_message
 #include <libintl.h>
 #endif
 
@@ -67,20 +69,20 @@ char *lc;
 
 static XIMStyle Styles[] = {
 #if 1
-        XIMPreeditCallbacks|XIMStatusCallbacks,		//OnTheSpot
-        XIMPreeditCallbacks|XIMStatusArea,		//OnTheSpot
-        XIMPreeditCallbacks|XIMStatusNothing,		//OnTheSpot
+        XIMPreeditCallbacks|XIMStatusCallbacks,         //OnTheSpot
+        XIMPreeditCallbacks|XIMStatusArea,              //OnTheSpot
+        XIMPreeditCallbacks|XIMStatusNothing,           //OnTheSpot
 #endif
-        XIMPreeditPosition|XIMStatusArea,		//OverTheSpot
-        XIMPreeditPosition|XIMStatusNothing,		//OverTheSpot
-        XIMPreeditPosition|XIMStatusNone,		//OverTheSpot
+        XIMPreeditPosition|XIMStatusArea,               //OverTheSpot
+        XIMPreeditPosition|XIMStatusNothing,            //OverTheSpot
+        XIMPreeditPosition|XIMStatusNone,               //OverTheSpot
 #if 1
-        XIMPreeditArea|XIMStatusArea,			//OffTheSpot
-        XIMPreeditArea|XIMStatusNothing,		//OffTheSpot
-        XIMPreeditArea|XIMStatusNone,			//OffTheSpot
+        XIMPreeditArea|XIMStatusArea,                   //OffTheSpot
+        XIMPreeditArea|XIMStatusNothing,                //OffTheSpot
+        XIMPreeditArea|XIMStatusNone,                   //OffTheSpot
 #endif
-        XIMPreeditNothing|XIMStatusNothing,		//Root
-        XIMPreeditNothing|XIMStatusNone,		//Root
+        XIMPreeditNothing|XIMStatusNothing,             //Root
+        XIMPreeditNothing|XIMStatusNone,                //Root
 };
 static XIMStyles im_styles;
 
@@ -119,10 +121,10 @@ int MyTriggerNotifyHandler(IMTriggerNotifyStruct *call_data)
             ) {
             toggle_im_enabled();
         }
-	return True;
+        return True;
     } else {
-	/* never happens */
-	return False;
+        /* never happens */
+        return False;
     }
 }
 
@@ -278,7 +280,7 @@ void open_xim()
 void load_tsin_db();
 void load_tsin_conf(), load_setttings(), load_tab_pho_file();
 
-void disp_hide_tsin_status_row(), gcb_main(), update_win_kbm();
+void disp_hide_tsin_status_row(), gcb_main(), update_win_kbm_inited();
 void change_tsin_line_color(), change_win0_style(), change_tsin_color();
 void change_win_gtab_style();
 void update_item_active_all();
@@ -295,8 +297,7 @@ static void reload_data()
 //  change_win_pho_style();
   load_tab_pho_file();
   change_tsin_color();
-  if (win_kbm_inited)
-    update_win_kbm();
+  update_win_kbm_inited();
 
   destroy_inmd_menu();
   load_gtab_list(TRUE);
@@ -323,8 +324,7 @@ static void change_font_size()
   change_win_sym_font_size();
   change_win0_style();
   change_win_gtab_style();
-  if (win_kbm_on)
-    update_win_kbm();
+  update_win_kbm_inited();
 //  change_win_pho_style();
 }
 
@@ -385,7 +385,7 @@ void message_cb(char *message)
    if (!strcmp(message, RELOAD_TSIN_DB)) {
      reload_tsin_db();
    } else
-   if (!strcmp(message, GCIN_EXIT)) {
+   if (!strcmp(message, GCIN_EXIT_MESSAGE)) {
      do_exit();
    } else
      reload_data();
@@ -462,8 +462,13 @@ void sig_do_exit(int sig)
 
 char *get_gcin_xim_name();
 void load_phrase(), init_TableDir();
-void init_im_serv(), init_tray(), exec_setup_scripts();
-void init_gcin_im_serv(Window win), gcb_main(), init_tray_win32();
+void init_tray(), exec_setup_scripts();
+#if UNIX
+void init_gcin_im_serv(Window win);
+#else
+void init_gcin_im_serv();
+#endif
+void gcb_main(), init_tray_win32();
 
 #if WIN32
 void init_gcin_program_files();
@@ -523,25 +528,17 @@ int main(int argc, char **argv)
 //putenv("GDK_NATIVE_WINDOWS=1");
 #if WIN32
 #if 1
-	typedef BOOL (WINAPI* pImmDisableIME)(DWORD);
-	pImmDisableIME pd;
-	HMODULE imm32=LoadLibraryA("imm32");
-//	printf("****** imm32 %x\n", imm32);
-	if (imm32 && (pd=(pImmDisableIME)GetProcAddress(imm32, "ImmDisableIME"))) {
-//		puts("imm loaded");
-		(*pd)(0);
-	}
+        typedef BOOL (WINAPI* pImmDisableIME)(DWORD);
+        pImmDisableIME pd;
+        HMODULE imm32=LoadLibraryA("imm32");
+//      printf("****** imm32 %x\n", imm32);
+        if (imm32 && (pd=(pImmDisableIME)GetProcAddress(imm32, "ImmDisableIME"))) {
+//              puts("imm loaded");
+                (*pd)(0);
+        }
 #endif
   init_gcin_program_files();
-
-  init_gcin_im_serv(NULL);
-#endif
-
-
-#if GCIN_i18n_message
-  gtk_set_locale();
-  bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
-  textdomain(GETTEXT_PACKAGE);
+  init_gcin_im_serv();
 #endif
 
 #if USE_XIM
@@ -592,6 +589,11 @@ int main(int argc, char **argv)
   load_gtab_list(TRUE);
 
   gtk_init (&argc, &argv);
+
+#if GCIN_i18n_message
+  bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+  textdomain(GETTEXT_PACKAGE);
+#endif
 
   dbg("after gtk_init\n");
 
