@@ -1,3 +1,13 @@
+gcin (2.7.1-1) unstable; urgency=low
+
+  [ Yao Wei (魏銘廷) ]
+  * Reupload to Debian. (Closes: #??????)
+  * Imported Upstream version 2.7.1
+  * Remove all patches.
+  * Make copyright DEP-5 compliant.
+
+ -- Yao Wei (魏銘廷) <mwei@lxde.org>  Thu, 02 Feb 2012 17:17:41 +0800
+
 gcin (1.5.8-1) unstable; urgency=low
 
   * New upstream release.
