@@ -13,26 +13,37 @@ void init_gcin_program_files();
 #endif
 
 void get_keymap_str(u_int64_t k, char *keymap, int keybits, char tkey[]);
+char *phokey2pinyin(phokey_t k);
+gboolean is_pinyin_kbm();
+char *sys_err_strA();
+void init_TableDir();
 
 int main(int argc, char **argv)
 {
   FILE *fp;
   int i;
-  u_char clen;
+  char clen;
   usecount_t usecount;
   gboolean pr_usecount = TRUE;
   char *fname;
   char *fname_out = NULL;
+
+  gtk_init(&argc, &argv);
 
   if (argc <= 1) {
     printf("%s: file name expected\n", argv[0]);
     exit(1);
   }
 
+  init_TableDir();
+
+  gboolean b_pinyin = is_pinyin_kbm();
+
   for(i=1; i < argc;) {
     if (!strcmp(argv[i], "-nousecount")) {
       i++;
       pr_usecount = FALSE;
+      b_pinyin = FALSE;
     } else
     if (!strcmp(argv[i], "-o")) {
       if (i==argc-1)
@@ -52,10 +63,14 @@ int main(int argc, char **argv)
     fp_out = fopen(fname_out, "w");
     if (!fp_out)
       p_err("cannot create %s\n", fname_out);
+
   }
 
+  if (b_pinyin)
+    fprintf(fp_out, "!!pinyin\n");
+
   if ((fp=fopen(fname,"rb"))==NULL)
-    p_err("Cannot open %s", argv[1]);
+    p_err("Cannot open %s %s", fname, sys_err_strA());
 
 
   TSIN_GTAB_HEAD head;
@@ -80,8 +95,14 @@ int main(int argc, char **argv)
     phokey_t phbuf[MAX_PHRASE_LEN];
     u_int phbuf32[MAX_PHRASE_LEN];
     u_int64_t phbuf64[MAX_PHRASE_LEN];
+    gboolean is_deleted = FALSE;
 
     fread(&clen,1,1,fp);
+    if (clen < 0) {
+      clen = - clen;
+      is_deleted = TRUE;
+    }
+
     fread(&usecount, sizeof(usecount_t), 1,fp);
     if (!pr_usecount)
       usecount = 0;
@@ -96,6 +117,9 @@ int main(int argc, char **argv)
       fread(phbuf64, 8, clen, fp);
 
 
+    char tt[512];
+    int ttlen=0;
+    tt[0]=0;
     for(i=0;i<clen;i++) {
       char ch[CH_SZ];
 
@@ -107,16 +131,28 @@ int main(int argc, char **argv)
 
       fread(&ch[1], 1, len-1, fp);
 
-      int j;
-      for(j=0; j < len; j++)
-        fprintf(fp_out, "%c", ch[j]);
+      memcpy(tt+ttlen, ch, len);
+      ttlen+=len;
     }
+    tt[ttlen]=0;
 
-    fprintf(fp_out, " ");
+    if (!tt[0])
+      continue;
+
+    if (is_deleted)
+      continue;
+
+    fprintf(fp_out, "%s ", tt);
+
     for(i=0;i<clen;i++) {
-      if (phsz==2)
-        prph2(fp_out, phbuf[i]);
-      else {
+      if (phsz==2) {
+        if (b_pinyin) {
+          char *t = phokey2pinyin(phbuf[i]);
+//          dbg("z %s\n", t);
+          fprintf(fp_out, "%s", t);
+        } else
+          prph2(fp_out, phbuf[i]);
+      } else {
         u_int64_t k;
         if (phsz==4)
           k = phbuf32[i];

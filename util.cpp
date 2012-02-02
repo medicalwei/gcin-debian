@@ -1,4 +1,7 @@
 #include "gcin.h"
+#if UNIX
+#include <errno.h>
+#endif
 
 #if UNIX
 #if !CLIENT_LIB || DEBUG
@@ -8,20 +11,53 @@ static FILE *out_fp;
 void p_err(char *fmt,...)
 {
   va_list args;
-  FILE *out = stdout;
+  char out[4096];
 
   va_start(args, fmt);
-  fprintf(out,"gcin:");
-  vfprintf(out, fmt, args);
+  vsprintf(out, fmt, args);
   va_end(args);
-  fprintf(out,"\n");
-  fflush(out);
+
+#if CLIENT_LIB
+  fprintf(stderr, "%s\n", out);
+#else
+  if (getenv("NO_GTK_INIT"))
+    fprintf(stderr, "%s\n", out);
+  else {
+    GtkWidget *dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL,
+                                     GTK_MESSAGE_ERROR,
+                                     GTK_BUTTONS_CLOSE,
+                                     "%s", out);
+
+    gtk_dialog_run (GTK_DIALOG (dialog));
+    gtk_widget_destroy (dialog);
+  }
+#endif
+
 #if DEBUG && 1
   abort();
 #else
   if (getenv("GCIN_ERR_COREDUMP"))
     abort();
+  exit(-1);
+#endif
+}
 
+void p_err_no_alert(char *fmt,...)
+{
+  va_list args;
+  char out[4096];
+
+  va_start(args, fmt);
+  vsprintf(out, fmt, args);
+  va_end(args);
+
+  fprintf(stderr, "%s\n", out);
+
+#if DEBUG && 1
+  abort();
+#else
+  if (getenv("GCIN_ERR_COREDUMP"))
+    abort();
   exit(-1);
 #endif
 }
@@ -75,6 +111,11 @@ void __gcin_dbg_(char *fmt,...)
 }
 #endif
 
+char *sys_err_strA()
+{
+  return (char *)strerror(errno);
+}
+
 #else
 #include <share.h>
 #include <io.h>
@@ -82,7 +123,7 @@ void __gcin_dbg_(char *fmt,...)
 
 #if _DEBUG
 #define _DBG 1
-#define CONSOLE_OFF 1
+#define CONSOLE_OFF 0
 #endif
 
 
@@ -150,12 +191,45 @@ void __gcin_dbg_(char *format, ...) {
 
 	fprintf(dbgfp, "%s", bufb5);
 	printf("%s", bufb5);
+	wchar_t wchstr[1024];
+	utf8_to_16(buf, wchstr, ARRAYSIZE(wchstr));
+	OutputDebugStringW(wchstr);
 
 	fflush(dbgfp);
 	va_end(ap);
 #endif
 }
 #endif
+
+char *err_strA(DWORD dw)
+{
+	WCHAR msgstr[128];
+	static char msg8[256];
+    LPVOID lpMsgBuf;
+
+    FormatMessageW(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPWSTR) &lpMsgBuf,
+        0, NULL );
+
+    // Display the error message and exit the process
+
+    StringCchPrintfW(msgstr, ARRAYSIZE(msgstr), L"%d: %s", dw, lpMsgBuf);
+
+	utf16_to_8(msgstr, msg8, sizeof(msg8));
+	return msg8;
+}
+
+
+char *sys_err_strA()
+{
+	return err_strA(GetLastError());
+}
 
 void p_err(char *format, ...) {
 
@@ -169,7 +243,9 @@ void p_err(char *format, ...) {
 #endif
 	char tt[512];
 	vsprintf_s(tt, sizeof(tt), format, ap);
-	MessageBoxA(NULL, tt, NULL, MB_OK);
+	char exe[512];
+	GetModuleFileNameA(NULL, exe, sizeof(exe));
+	MessageBoxA(NULL, tt, exe, MB_OK);
 	exit(0);
 	va_end(ap);
 
@@ -277,4 +353,23 @@ void win32_init_win(GtkWidget *win)
 //  ShowWindow(handle, SW_SHOW);
 }
 #endif
+#endif
+
+#if !GCIN_IME && !CLIENT_LIB
+void box_warn(char *fmt,...)
+{
+  va_list args;
+  char out[4096];
+
+  va_start(args, fmt);
+  vsprintf(out, fmt, args);
+  va_end(args);
+
+  GtkWidget *dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL,
+                                   GTK_MESSAGE_ERROR,
+                                   GTK_BUTTONS_CLOSE,
+                                   out);
+  gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_destroy (dialog);
+}
 #endif

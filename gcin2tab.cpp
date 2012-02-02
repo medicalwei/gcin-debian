@@ -152,6 +152,10 @@ int qcmp_64(const void *aa, const void *bb)
 
 static char kno[128];
 
+#if WIN32
+#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
+#endif
+
 int main(int argc, char **argv)
 {
   int i;
@@ -170,6 +174,9 @@ int main(int argc, char **argv)
   int *phridx=NULL, phr_cou=0;
   char *phrbuf = NULL;
   int prbf_cou=0;
+
+  if (!getenv("NO_GTK_INIT"))
+    gtk_init(&argc, &argv);
 
   printf("-- gcin2tab encoding UTF-8 --\n");
   printf("--- please use iconv -f big5 -t utf-8 if your file is in big5 encoding\n");
@@ -229,11 +236,21 @@ int main(int argc, char **argv)
   cmd_arg(&cmd, &arg);
   if (!sequ(cmd,"%selkey") || !(*arg) )
     p_err("%d:  %%selkey select_key_list expected", lineno);
-  strcpy(th.selkey,arg);
+
+
+  if (strlen(arg) >= sizeof(th.selkey)) {
+    memcpy(th.selkey, arg, sizeof(th.selkey));
+    strcpy(th.selkey2, arg+sizeof(th.selkey));
+    dbg("th.selkey2 %s\n", th.selkey2);
+  } else
+    strcpy(th.selkey,arg);
 
   cmd_arg(&cmd, &arg);
   if (!sequ(cmd,"%dupsel") || !(*arg) ) {
-    th.M_DUP_SEL = strlen(th.selkey);
+    if (th.selkey[sizeof(th.selkey)-1])
+      th.M_DUP_SEL = sizeof(th.selkey) + strlen(th.selkey2);
+    else
+      th.M_DUP_SEL = strlen(th.selkey);
   }
   else {
     th.M_DUP_SEL=atoi(arg);
@@ -269,6 +286,26 @@ int main(int argc, char **argv)
     if (sequ(cmd,"%flag_disp_partial_match")) {
       dbg("flag_disp_partial_match\n");
       th.flag |= FLAG_GTAB_DISP_PARTIAL_MATCH;
+      cmd_arg(&cmd, &arg);
+    } else
+    if (sequ(cmd,"%flag_disp_full_match")) {
+      dbg("flag_disp_full_match\n");
+      th.flag |= FLAG_GTAB_DISP_FULL_MATCH;
+      cmd_arg(&cmd, &arg);
+    } else
+    if (sequ(cmd,"%flag_vertical_selection")) {
+      dbg("flag_vertical_selection\n");
+      th.flag |= FLAG_GTAB_VERTICAL_SELECTION;
+      cmd_arg(&cmd, &arg);
+    } else
+    if (sequ(cmd,"%flag_press_full_auto_send")) {
+      dbg("flag_press_full_auto_send\n");
+      th.flag |= FLAG_GTAB_PRESS_FULL_AUTO_SEND;
+      cmd_arg(&cmd, &arg);
+    } else
+    if (sequ(cmd,"%flag_unique_auto_send")) {
+      dbg("flag_unique_auto_send\n");
+      th.flag |= FLAG_GTAB_UNIQUE_AUTO_SEND;
       cmd_arg(&cmd, &arg);
     } else
       break;

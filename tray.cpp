@@ -1,3 +1,4 @@
+
 #include "gcin.h"
 #include "pho.h"
 #include "gtab.h"
@@ -116,7 +117,7 @@ static void draw_icon()
 #endif
     }
 #if USE_TSIN
-    if ((current_method_type()==method_type_TSIN||current_method_type()==method_type_ANTHY) && current_CS->im_state == GCIN_STATE_CHINESE && !tsin_pho_mode()) {
+    if ((current_method_type()==method_type_TSIN||current_method_type()==method_type_MODULE) && current_CS->im_state == GCIN_STATE_CHINESE && !tsin_pho_mode()) {
       static char efull[] = "ABC";
       gdk_color_parse("blue", &color_fg);
 #if !GTK_CHECK_VERSION(2,90,6)
@@ -269,14 +270,16 @@ static MITEM mitems[] = {
 #endif
   {N_("正→簡體"), NULL, cb_trad2sim, NULL},
   {N_("簡→正體"), NULL, cb_sim2trad, NULL},
+#if 0
   {N_("選擇輸入法"), NULL, cb_inmd_menu, NULL},
+#endif
   {N_("小鍵盤"), NULL, kbm_toggle_, NULL},
   {N_("简体输出"), NULL, cb_trad_sim_toggle_, &gb_output},
   {NULL, NULL, NULL, NULL}
 };
 
 
-static GtkWidget *tray_menu;
+static GtkWidget *tray_menu=NULL;
 
 GtkWidget *create_tray_menu(MITEM *mitems);
 void update_item_active_all();
@@ -295,7 +298,11 @@ tray_button_press_event_cb (GtkWidget * button, GdkEventButton * event, gpointer
       if (event->state & GDK_SHIFT_MASK)
         inmd_switch_popup_handler(NULL, (GdkEvent *)event);
       else
+#if 0
         toggle_im_enabled();
+#else
+        inmd_popup_tray();
+#endif
       break;
     case 2:
 #if 0
@@ -326,7 +333,11 @@ void update_item_active_unix()
 }
 
 
+#if !GTK_CHECK_VERSION(2,91,0)
 gboolean cb_expose(GtkWidget *da, GdkEventExpose *event, gpointer data)
+#else
+gboolean cb_expose(GtkWidget *da, cairo_t *event, gpointer data)
+#endif
 {
   if (!da)
     create_tray(NULL);
@@ -352,6 +363,8 @@ gboolean create_tray(gpointer data)
     return FALSE;
 
   GtkWidget *event_box = gtk_event_box_new ();
+// Do not use this, otherwise tray menu fails
+//  gtk_event_box_set_visible_window (event_box, FALSE);
   gtk_container_add (GTK_CONTAINER (egg_tray_icon), event_box);
 #if GTK_CHECK_VERSION(2,12,0)
   gtk_widget_set_tooltip_text (event_box, _("左:中英切換 中:小鍵盤 右:選項"));
@@ -376,7 +389,11 @@ gboolean create_tray(gpointer data)
   da =  gtk_drawing_area_new();
   g_signal_connect (G_OBJECT (event_box), "destroy",
                     G_CALLBACK (gtk_widget_destroyed), &da);
+#if !GTK_CHECK_VERSION(2,91,0)
   g_signal_connect(G_OBJECT(da), "expose-event", G_CALLBACK(cb_expose), NULL);
+#else
+  g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(cb_expose), NULL);
+#endif
 
   gtk_container_add (GTK_CONTAINER (event_box), da);
   gtk_widget_set_size_request(GTK_WIDGET(egg_tray_icon), pwidth, pheight);

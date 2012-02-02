@@ -6,20 +6,29 @@
 
 #include "gcin.h"
 #include "intcode.h"
+#include "pho.h"
+#include "gst.h"
+#include "im-client/gcin-im-client-attr.h"
+#include "win1.h"
+#include "gcin-module.h"
+#include "gcin-module-cb.h"
 
+extern GtkWidget *gwin_int;
+GCIN_module_main_functions gmf;
 int current_intcode = INTCODE_UTF32;
-extern gboolean test_mode;
 
 static char inch[MAX_INTCODE];
 int intcode_cin;
 
 void create_win_intcode();
-void show_win_int();
+void module_show_win();
 
-void init_inter_code()
+int module_init_win(GCIN_module_main_functions *funcs)
 {
   intcode_cin=0;
+  gmf = *funcs;
   create_win_intcode();
+  return TRUE;
 }
 
 static int h2i(int x)
@@ -42,6 +51,32 @@ static void utf32to8(char *t, char *s)
 }
 
 
+void big5_utf8_n(char *s, int len, char out[])
+{
+  out[0]=0;
+
+  GError *err = NULL;
+  gsize rn, wn;
+  char *utf8 = g_convert(s, len, "UTF-8", "Big5", &rn, &wn, &err);
+
+  if (err) {
+    dbg("big5_utf8  convert error\n");
+    out[0]=0;
+//    abort();
+    return;
+  }
+
+  strcpy(out, utf8);
+  g_free(utf8);
+}
+
+
+void big5_utf8(char *s, char out[])
+{
+  big5_utf8_n(s, strlen(s), out);
+}
+
+
 static unich_t *dstr[]={
 _L("０"),_L("１"),_L("２"),_L("３"),_L("４"),_L("５"),_L("６"),_L("７"),_L("８"),_L("９"),_L("Ａ"),_L("Ｂ"),_L("Ｃ"),_L("Ｄ"),_L("Ｅ"),_L("Ｆ")
 };
@@ -49,7 +84,7 @@ _L("０"),_L("１"),_L("２"),_L("３"),_L("４"),_L("５"),_L("６"),_L("７"),
 void disp_int(int index, char *intcode);
 void clear_int_code_all();
 
-int feedkey_intcode(KeySym key)
+gboolean module_feedkey(int key, int kvstate)
 {
   int i;
 #if 0
@@ -58,9 +93,10 @@ int feedkey_intcode(KeySym key)
 #endif
   key=toupper(key);
   if (key==XK_BackSpace||key==XK_Delete) {
-    if (test_mode)
+#if WIN32
+    if (*gmf.mf_test_mode)
       return intcode_cin>0;
-
+#endif
     if (intcode_cin)
       intcode_cin--;
     else
@@ -87,7 +123,7 @@ int feedkey_intcode(KeySym key)
   if (!intcode_cin && key==' ')
     return 0;
 #if WIN32
-  if (test_mode)
+  if (*gmf.mf_test_mode)
     return 1;
 #endif
   if ((intcode_cin<MAX_INTCODE-1 || (current_intcode!=INTCODE_BIG5 && intcode_cin < MAX_INTCODE)) && key!=' ')
@@ -95,17 +131,18 @@ int feedkey_intcode(KeySym key)
 
 dispIn:
   clear_int_code_all();
-#if 0
+
+#if 1
   if (intcode_cin)
-	  show_win_int();
+    module_show_win();
 #endif
+
   for(i=0;i<intcode_cin;i++) {
     disp_int(i, _(dstr[h2i(inch[i])]));
   }
 
   if ((current_intcode==INTCODE_BIG5 && intcode_cin==4 ||
-       current_intcode==INTCODE_UTF32 && intcode_cin==6) &&
-      gtab_press_full_auto_send || key==' ') {
+       current_intcode==INTCODE_UTF32 && intcode_cin==6) || key==' ') {
     u_char utf8[CH_SZ+1];
 
     if (current_intcode==INTCODE_BIG5) {
@@ -126,7 +163,7 @@ dispIn:
       utf32to8((char *)utf8, (char *)&v);
     }
 
-    sendkey_b5((char *)utf8);
+    gmf.mf_send_utf8_ch((char *)utf8);
     intcode_cin=0;
 
     clear_int_code_all();
@@ -135,18 +172,34 @@ dispIn:
   return 1;
 }
 
-#include "im-client/gcin-im-client-attr.h"
 extern GtkWidget *gwin_int;
 
-int int_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *cursor, int *sub_comp_len)
+int module_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *cursor, int *comp_flag)
 {
-#if WIN32
-  *sub_comp_len = intcode_cin>0;
-#if 0
+#if WIN32 || 1
+  *comp_flag = intcode_cin>0;
+#if 1
   if (gwin_int && GTK_WIDGET_VISIBLE(gwin_int))
-    *sub_comp_len|=2;
+    *comp_flag|=2;
 #endif
-  dbg("comp_len %x\n", *sub_comp_len);
+//  dbg("comp_len %x\n", *sub_comp_len);
 #endif
+  str[0]=0;
+  *cursor=0;
   return 0;
+}
+
+int module_feedkey_release(KeySym xkey, int kbstate)
+{
+	return 0;
+}
+
+int module_flush_input()
+{
+  return FALSE;
+}
+
+int module_reset()
+{
+  return TRUE;
 }

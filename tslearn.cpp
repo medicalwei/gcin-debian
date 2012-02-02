@@ -4,16 +4,93 @@
 #if GCIN_i18n_message
 #include <libintl.h>
 #endif
+#include "lang.h"
+#include "tsin.h"
+#include "gtab.h"
 
+extern char *current_tsin_fname;
+typedef unsigned int u_int32_t;
+
+void init_TableDir();
+void init_gtab(int inmdno);
+gboolean init_tsin_table_fname(INMD *p, char *fname);
+void load_tsin_db0(char *infname, gboolean is_gtab_i);
+
+INMD *pinmd;
+char gtab_tsin_fname[256];
+char is_gtab;
+
+char *phokey2pinyin(phokey_t k);
+gboolean b_pinyin;
 GtkWidget *hbox_buttons;
 char current_str[MAX_PHRASE_LEN*CH_SZ+1];
-
+extern gboolean is_chs;
 
 GtkWidget *mainwin;
 GtkTextBuffer *buffer;
 
 static char **phrase;
 static int phraseN=0;
+
+
+void cp_ph_key(void *in, int idx, void *dest)
+{
+  if (ph_key_sz==2) {
+    phokey_t *pharr = (phokey_t *)in;
+    in = &pharr[idx];
+  } else
+  if (ph_key_sz==4) {
+    u_int32_t *pharr4 = (u_int32_t *)in;
+    in = &pharr4[idx];
+  } else {
+    u_int64_t *pharr8 = (u_int64_t *)in;
+    in = &pharr8[idx];
+  }
+
+  memcpy(dest, in, ph_key_sz);
+}
+
+void *get_ph_key_ptr(void *in, int idx)
+{
+  if (ph_key_sz==2) {
+    phokey_t *pharr = (phokey_t *)in;
+    return &pharr[idx];
+  } else
+  if (ph_key_sz==4) {
+    u_int32_t *pharr4 = (u_int32_t *)in;
+    return &pharr4[idx];
+  } else {
+    u_int64_t *pharr8 = (u_int64_t *)in;
+    return &pharr8[idx];
+  }
+}
+
+int lookup_gtab_key(char *ch, void *out)
+{
+  int outN=0;
+  INMD *tinmd = &inmd[default_input_method];
+
+  int i;
+  for(i=0; i < tinmd->DefChars; i++) {
+    char *chi = (char *)tblch2(tinmd, i);
+
+    if (!(chi[0] & 0x80))
+      continue;
+    if (!utf8_eq(chi, ch))
+      continue;
+
+    u_int64_t key = CONVT2(tinmd, i);
+    if (ph_key_sz==4) {
+      u_int32_t key32 = (u_int32_t)key;
+      memcpy(get_ph_key_ptr(out, outN), &key32, ph_key_sz);
+    } else
+      memcpy(get_ph_key_ptr(out, outN), &key, ph_key_sz);
+    outN++;
+  }
+
+  return outN;
+}
+
 
 static int qcmp_str(const void *aa, const void *bb)
 {
@@ -22,30 +99,25 @@ static int qcmp_str(const void *aa, const void *bb)
   return strcmp(a,b);
 }
 
+extern FILE *fph;
 
 void load_ts_phrase()
 {
-  FILE *fp;
-  char fname[256];
+  FILE *fp = fph;
 
   int i;
-  for(i=0; i < phraseN; i++) {
+  for(i=0; i < phraseN; i++)
     free(phrase[i]);
-  }
   free(phrase); phrase = NULL;
   phraseN = 0;
 
-  get_gcin_dir(fname);
-  strcat(fname,"/tsin32");
+  dbg("fname %s\n", current_tsin_fname);
 
-  if ((fp=fopen(fname, "rb"))==NULL) {
-    printf("Cannot open %s", fname);
-    exit(-1);
-  }
-
+  int ofs = is_gtab ? sizeof(TSIN_GTAB_HEAD):0;
+  fseek(fp, ofs, SEEK_SET);
 
   while (!feof(fp)) {
-    phokey_t phbuf[MAX_PHRASE_LEN];
+    u_int64_t phbuf[MAX_PHRASE_LEN];
     char chbuf[MAX_PHRASE_LEN * CH_SZ + 1];
     u_char clen;
     usecount_t usecount;
@@ -58,7 +130,7 @@ void load_ts_phrase()
       p_err("bad tsin db clen %d > MAX_PHRASE_LEN %d\n", clen, MAX_PHRASE_LEN);
 
     fread(&usecount,sizeof(usecount_t), 1, fp);
-    fread(phbuf,sizeof(phokey_t), clen, fp);
+    fread(phbuf, ph_key_sz, clen, fp);
     int tlen = 0;
 
     for(i=0; i < clen; i++) {
@@ -69,7 +141,6 @@ void load_ts_phrase()
       fread(&chbuf[tlen+1], 1, len-1, fp);
       tlen+=len;
     }
-
 
     if (clen < 2)
       continue;
@@ -83,7 +154,7 @@ void load_ts_phrase()
 
 stop:
 
-  fclose(fp);
+//  fclose(fp);
 
   qsort(phrase, phraseN, sizeof(char *), qcmp_str);
 
@@ -175,12 +246,14 @@ static void cb_button_parse(GtkButton *button, gpointer user_data)
 #define MAX_SAME_CHAR_PHO (16)
 
 typedef struct {
-  phokey_t phokeys[MAX_SAME_CHAR_PHO];
+  u_int64_t phokeys[MAX_SAME_CHAR_PHO];
   int phokeysN;
   GtkWidget *opt_menu;
-} big5char_pho;
+} char_pho;
 
-static big5char_pho bigpho[MAX_PHRASE_LEN];
+
+
+static char_pho bigpho[MAX_PHRASE_LEN];
 static int bigphoN;
 
 static GtkWidget *hbox_pho_sel;
@@ -192,20 +265,17 @@ void destroy_pho_sel_area()
 
 static void cb_button_ok(GtkButton *button, gpointer user_data)
 {
-  phokey_t pharr[MAX_PHRASE_LEN];
+  u_int64_t pharr8[MAX_PHRASE_LEN];
 
   int i;
-
   for(i=0; i < bigphoN; i++) {
-#if GTK_CHECK_VERSION(2,4,0)
     int idx = gtk_combo_box_get_active(GTK_COMBO_BOX(bigpho[i].opt_menu));
-#else
-    int idx = gtk_option_menu_get_history(GTK_OPTION_MENU(bigpho[i].opt_menu));
-#endif
-    pharr[i] = bigpho[i].phokeys[idx];
+    void *dest = get_ph_key_ptr(pharr8, i);
+
+    cp_ph_key(bigpho[i].phokeys, idx, dest);
   }
 
-  save_phrase_to_db(pharr, current_str, bigphoN, 0);
+  save_phrase_to_db(pharr8, current_str, bigphoN, 0);
 
   destroy_pho_sel_area();
 
@@ -221,7 +291,7 @@ static void cb_button_cancel(GtkButton *button, gpointer user_data)
   destroy_pho_sel_area();
 }
 
-
+int gtab_key2name(INMD *tinmd, u_int64_t key, char *t, int *rtlen);
 GtkWidget *create_pho_sel_area()
 {
   hbox_pho_sel = gtk_hbox_new (FALSE, 0);
@@ -229,17 +299,36 @@ GtkWidget *create_pho_sel_area()
   int i;
 
   for(i=0; i < bigphoN; i++) {
-#if GTK_CHECK_VERSION(2,4,0)
     bigpho[i].opt_menu = gtk_combo_box_new_text ();
-#else
-    bigpho[i].opt_menu = gtk_option_menu_new ();
+#if !GTK_CHECK_VERSION(2,4,0)
     GtkWidget *menu = gtk_menu_new ();
 #endif
     gtk_box_pack_start (GTK_BOX (hbox_pho_sel), bigpho[i].opt_menu, FALSE, FALSE, 0);
 
     int j;
     for(j=0; j < bigpho[i].phokeysN; j++) {
-      char *phostr = phokey_to_str(bigpho[i].phokeys[j]);
+      char t[128];
+      char *phostr;
+
+      if (is_gtab) {
+        int tlen;
+        u_int64_t key64;
+        if (ph_key_sz == 4) {
+          u_int32_t key32;
+          cp_ph_key(bigpho[i].phokeys,j, &key32);
+          key64 = key32;
+        } else
+          cp_ph_key(bigpho[i].phokeys,j, &key64);
+
+        gtab_key2name(pinmd, key64, t, &tlen);
+//        dbg("%d,%d] %s\n", i,j, t);
+        phostr = t;
+      } else {
+        phokey_t k;
+        cp_ph_key(bigpho[i].phokeys, j, &k);
+        phostr = b_pinyin?
+        phokey2pinyin(k):phokey_to_str(k);
+      }
 
 #if GTK_CHECK_VERSION(2,4,0)
       gtk_combo_box_append_text (GTK_COMBO_BOX_TEXT (bigpho[i].opt_menu), phostr);
@@ -273,8 +362,6 @@ GtkWidget *create_pho_sel_area()
 }
 
 
-
-
 static void cb_button_add(GtkButton *button, gpointer user_data)
 {
   GtkTextIter start, end;
@@ -290,9 +377,14 @@ static void cb_button_add(GtkButton *button, gpointer user_data)
   bigphoN = 0;
   char *p = current_str;
   while (*p) {
-    big5char_pho *pbigpho = &bigpho[bigphoN++];
+    char_pho *pbigpho = &bigpho[bigphoN++];
 
-    pbigpho->phokeysN = utf8_pho_keys(p, pbigpho->phokeys);
+    if (ph_key_sz==2) {
+      pbigpho->phokeysN = utf8_pho_keys(p, (phokey_t*)pbigpho->phokeys);
+    } else {
+      pbigpho->phokeysN = lookup_gtab_key(p, pbigpho->phokeys);
+    }
+
     p+=utf8_sz(p);
 
     if (!pbigpho->phokeysN) {
@@ -300,8 +392,6 @@ static void cb_button_add(GtkButton *button, gpointer user_data)
       return;
     }
   }
-
-  dbg("\n");
 
   GtkWidget *sel =  create_pho_sel_area();
   gtk_box_pack_start (GTK_BOX (hbox_buttons), sel, FALSE, FALSE, 20);
@@ -330,19 +420,44 @@ void init_gcin_program_files();
 #pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 #endif
 
+gboolean is_pinyin_kbm();
+
 int main(int argc, char **argv)
 {
-  gtk_init (&argc, &argv);
+  init_TableDir();
+  set_is_chs();
+  b_pinyin = is_pinyin_kbm();
 
+  gtk_init (&argc, &argv);
   load_setttings();
+  load_gtab_list(TRUE);
+
 
 #if GCIN_i18n_message
   bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
   textdomain(GETTEXT_PACKAGE);
 #endif
 
-  pho_load();
-  load_tsin_db();
+  pinmd = &inmd[default_input_method];
+
+  if (pinmd->method_type == method_type_TSIN) {
+    dbg("is tsin\n");
+    pho_load();
+    load_tsin_db();
+    ph_key_sz = 2;
+  } else
+  if (pinmd->filename) {
+    dbg("gtab filename %s\n", pinmd->filename);
+    init_gtab(default_input_method);
+    is_gtab = TRUE;
+    init_tsin_table_fname(pinmd, gtab_tsin_fname);
+    load_tsin_db0(gtab_tsin_fname, TRUE);
+  } else
+    p_err("Your default input method %s doesn't use phrase database",
+      pinmd->cname);
+
+  dbg("ph_key_sz: %d\n", ph_key_sz);
+
 #if UNIX
   dpy = GDK_DISPLAY();
 #endif
@@ -358,9 +473,12 @@ int main(int argc, char **argv)
                                   GTK_POLICY_AUTOMATIC);
 
   GtkWidget *vbox_top = gtk_vbox_new (FALSE, 0);
+  gtk_orientable_set_orientation(GTK_ORIENTABLE(vbox_top), GTK_ORIENTATION_VERTICAL);
   gtk_container_add (GTK_CONTAINER(mainwin), vbox_top);
 
   GtkWidget *view = gtk_text_view_new ();
+  gtk_widget_set_hexpand (view, TRUE);
+  gtk_widget_set_vexpand (view, TRUE);
   gtk_container_add (GTK_CONTAINER(sw), view);
 
   gtk_box_pack_start (GTK_BOX (vbox_top), sw, TRUE, TRUE, 0);
@@ -395,7 +513,7 @@ int main(int argc, char **argv)
      G_CALLBACK (cb_button_add), NULL);
 
 
-  GtkWidget *button_quit = gtk_button_new_with_label(_(_L("離開 tslearn")));
+  GtkWidget *button_quit = gtk_button_new_from_stock (GTK_STOCK_QUIT);
   gtk_box_pack_start (GTK_BOX (hbox_buttons), button_quit, FALSE, FALSE, 0);
   g_signal_connect (G_OBJECT (button_quit), "clicked",
      G_CALLBACK (do_exit), NULL);
@@ -407,6 +525,9 @@ int main(int argc, char **argv)
   all_wrap();
 
   gtk_widget_show_all(mainwin);
+#if WIN32
+  gtk_window_present(GTK_WINDOW(mainwin));
+#endif
 
   gtk_main();
   return 0;

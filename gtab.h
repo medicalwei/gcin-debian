@@ -29,13 +29,20 @@ enum {
   FLAG_PHRASE_AUTO_SKIP_ENDKEY=4,
   FLAG_AUTO_SELECT_BY_PHRASE=8,
   FLAG_GTAB_DISP_PARTIAL_MATCH=0x10,
+  FLAG_GTAB_DISP_FULL_MATCH=0x20,
+  FLAG_GTAB_VERTICAL_SELECTION=0x40,
+  FLAG_GTAB_PRESS_FULL_AUTO_SEND=0x80,
+  FLAG_GTAB_UNIQUE_AUTO_SEND=0x100,
 };
 
 enum {
-  GTAB_AUTO_SELECT_BY_PHRASE_AUTO=0,
-  GTAB_AUTO_SELECT_BY_PHRASE_YES=1,
-  GTAB_AUTO_SELECT_BY_PHRASE_NO=2,
+  GTAB_OPTION_AUTO=0,
+  GTAB_OPTION_YES=1,
+  GTAB_OPTION_NO=2,
 };
+
+
+#define MAX_SELKEY 16
 
 struct TableHead {
   int version;
@@ -53,6 +60,7 @@ struct TableHead {
     struct {
       char endkey[99];
       char keybits;
+      char selkey2[10];
     };
 
     char dummy[128];  // for future use
@@ -60,16 +68,16 @@ struct TableHead {
 };
 
 
+#define KeyBits1(inm) (inm->keybits)
 #define KeyBits (cur_inmd->keybits)
 #define MAX_GTAB_KEYS (1<<KeyBits)
 
-#define MAX_GTAB_NUM_KEY (16)
-#define MAX_SELKEY 16
-
 #define MAX_TAB_KEY_NUM (32/KeyBits)
+#define MAX_TAB_KEY_NUM1(inm) (32/KeyBits1(inm))
 #define MAX_TAB_KEY_NUM64 (64/KeyBits)
+#define MAX_TAB_KEY_NUM641(inm) (64/KeyBits1(inm))
 
-
+struct _GCIN_module_callback_functions;
 typedef u_int gtab_idx1_t;
 
 typedef struct {
@@ -104,17 +112,21 @@ typedef struct {
   char *icon;
   u_char kmask, keybits, last_k_bitn, method_type;
   char WILD_QUES, WILD_STAR;
+  struct _GCIN_module_callback_functions *mod_cb_funcs;
+  char key_ch, in_cycle;
 } INMD;
 
 enum {
   method_type_GTAB=1,
   method_type_PHO=3,
   method_type_TSIN=6,
-  method_type_INT_CODE=10,
-  method_type_ANTHY=12,
+  method_type_MODULE=12,
+  method_type_SYMBOL_TABLE=13,
+  method_type_EN=14,
 };
 
-extern INMD inmd[MAX_GTAB_NUM_KEY+1];
+extern INMD *inmd;
+extern int inmdN;
 
 u_int64_t CONVT2(INMD *inmd, int i);
 extern INMD *cur_inmd;
@@ -134,3 +146,6 @@ char current_method_type();
 #define NEED_SWAP (1)
 #endif
 
+#define tblch2(inm, i) (inm->key64 ? inm->tbl64[i].ch:inm->tbl[i].ch)
+#define Max_tab_key_num1(inm) (inm->key64 ? MAX_TAB_KEY_NUM641(inm) : MAX_TAB_KEY_NUM1(inm))
+#define Max_tab_key_num Max_tab_key_num1(cur_inmd)

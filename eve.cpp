@@ -3,9 +3,18 @@
 #if UNIX
 #include <signal.h>
 #include <X11/extensions/XTest.h>
+#if !GTK_CHECK_VERSION(2,16,0)
+#include <X11/XKBlib.h>
+#include <gdk/gdkx.h>
+#define gdk_keymap_get_caps_lock_state(x) get_caps_lock_state()
+#endif
 #endif
 #include "gst.h"
+#include "pho.h"
 #include "im-client/gcin-im-client-attr.h"
+#include "win1.h"
+#include "gcin-module.h"
+#include "gcin-module-cb.h"
 
 #define STRBUFLEN 64
 
@@ -23,26 +32,34 @@ char *output_buffer;
 int output_bufferN;
 static char *output_buffer_raw, *output_buffer_raw_bak;
 static int output_buffer_rawN;
-gboolean test_mode;
 #if WIN32
+gboolean test_mode;
 int last_input_method;
 #endif
+void set_wselkey(char *s);
+void gtab_set_win1_cb();
+void toggle_symbol_table();
+
+gboolean old_capslock_on;
 
 
 void init_gtab(int inmdno);
 
 char current_method_type()
 {
+//  dbg("default_input_method %d\n",default_input_method);
   if (!current_CS)
 #if UNIX
     return inmd[default_input_method].method_type;
 #else
   {
     if (!last_input_method)
-		last_input_method = default_input_method;
-	return inmd[last_input_method].method_type;
+      last_input_method = default_input_method;
+    return inmd[last_input_method].method_type;
   }
 #endif
+
+//  dbg("current_CS->in_method %d\n", current_CS->in_method);
   return inmd[current_CS->in_method].method_type;
 }
 
@@ -101,6 +118,36 @@ void output_buffer_call_back()
 
 ClientState *current_CS;
 static ClientState temp_CS;
+
+void save_CS_current_to_temp()
+{
+#if UNIX
+  if (!gcin_single_state)
+    return;
+
+//  dbg("save_CS_current_to_temp\n");
+  temp_CS.b_half_full_char = current_CS->b_half_full_char;
+  temp_CS.im_state = current_CS->im_state;
+  temp_CS.in_method = current_CS->in_method;
+  temp_CS.tsin_pho_mode = current_CS->tsin_pho_mode;
+#endif
+}
+
+
+void save_CS_temp_to_current()
+{
+#if UNIX
+  if (!gcin_single_state)
+    return;
+
+//  dbg("save_CS_temp_to_current\n");
+  current_CS->b_half_full_char = temp_CS.b_half_full_char;
+  current_CS->im_state = temp_CS.im_state;
+  current_CS->in_method = temp_CS.in_method;
+  current_CS->tsin_pho_mode = temp_CS.tsin_pho_mode;
+#endif
+}
+
 
 gboolean init_in_method(int in_no);
 
@@ -228,7 +275,7 @@ void set_output_buffer_bak_to_clipboard()
   char *text, *utf8_gbtext=NULL;
 
   if (gb_output) {
-    int len = trad2sim(output_buffer_raw_bak, strlen(output_buffer_raw_bak),
+    trad2sim(output_buffer_raw_bak, strlen(output_buffer_raw_bak),
       &utf8_gbtext);
     text = utf8_gbtext;
   } else
@@ -245,7 +292,7 @@ void set_output_buffer_bak_to_clipboard()
   free(utf8_gbtext);
 }
 
-void sendkey_b5(char *bchar)
+void send_utf8_ch(char *bchar)
 {
   char tt[CH_SZ+1];
   int len = utf8_sz(bchar);
@@ -259,7 +306,7 @@ void sendkey_b5(char *bchar)
 
 void send_ascii(char key)
 {
-  sendkey_b5(&key);
+  send_utf8_ch(&key);
 }
 
 #if USE_XIM
@@ -281,7 +328,7 @@ void export_text_xim()
 #endif
 
 #if DEBUG && 0
-  dbg("sendkey_b5: %s\n", text);
+  dbg("send_utf8_ch: %s\n", text);
 #endif
 
   ((IMCommitStruct*)current_forward_eve)->flag |= XimLookupChars;
@@ -303,7 +350,6 @@ static void bounce_back_key()
 
 void hide_win0();
 void hide_win_gtab();
-void hide_win_int();
 void hide_win_pho();
 
 int current_in_win_x = -1, current_in_win_y = -1;  // request x/y
@@ -313,7 +359,17 @@ void reset_current_in_win_xy()
   current_in_win_x = current_in_win_y = -1;
 }
 
-void hide_win_anthy();
+GCIN_module_callback_functions *module_cb1(ClientState *cs)
+{
+  return inmd[cs->in_method].mod_cb_funcs;
+}
+
+GCIN_module_callback_functions *module_cb()
+{
+  if (!current_CS)
+    return NULL;
+  return module_cb1(current_CS);
+}
 
 void hide_in_win(ClientState *cs)
 {
@@ -342,14 +398,10 @@ void hide_in_win(ClientState *cs)
       hide_win0();
       break;
 #endif
-    case method_type_INT_CODE:
-      hide_win_int();
+    case method_type_MODULE:
+      if (inmd[cs->in_method].mod_cb_funcs)
+        module_cb1(cs)->module_hide_win();
       break;
-#if USE_ANTHY
-    case method_type_ANTHY:
-      hide_win_anthy();
-      break;
-#endif
     default:
       hide_win_gtab();
   }
@@ -359,18 +411,28 @@ void hide_in_win(ClientState *cs)
 
 void show_win_pho();
 void show_win0();
-void show_win_int();
-void show_win_gtab(), show_win_anthy();
+void show_win_gtab();
+void disp_tray_icon();
 
 void check_CS()
 {
   if (!current_CS) {
+//    dbg("!current_CS");
     current_CS = &temp_CS;
-
-    temp_CS.input_style = InputStyleOverSpot;
+//    temp_CS.input_style = InputStyleOverSpot;
+//    temp_CS.im_state = GCIN_STATE_CHINESE;
+#if TRAY_ENABLED
+    disp_tray_icon();
+#endif
   }
-  else
-    temp_CS = *current_CS;
+  else {
+#if 0
+    if (gcin_single_state)
+      save_CS_temp_to_current();
+    else
+#endif
+      temp_CS = *current_CS;
+  }
 }
 
 gboolean force_show;
@@ -393,14 +455,11 @@ void show_in_win(ClientState *cs)
       show_win0();
       break;
 #endif
-    case method_type_INT_CODE:
-      show_win_int();
+    case method_type_MODULE:
+      if (!module_cb1(cs))
+        return;
+      module_cb1(cs)->module_show_win();
       break;
-#if USE_ANTHY
-    case method_type_ANTHY:
-      show_win_anthy();
-      break;
-#endif
     default:
       show_win_gtab();
   }
@@ -411,10 +470,8 @@ void show_in_win(ClientState *cs)
 
 
 void move_win_gtab(int x, int y);
-void move_win_int(int x, int y);
 void move_win0(int x, int y);
 void move_win_pho(int x, int y);
-void move_win_anthy(int x, int y);
 
 void move_in_win(ClientState *cs, int x, int y)
 {
@@ -432,7 +489,7 @@ void move_in_win(ClientState *cs, int x, int y)
 #if 0
   dbg("move_in_win %d %d\n",x, y);
 #endif
-#if 1
+#if 0
   if (current_in_win_x == x && current_in_win_y == y)
     return;
 #endif
@@ -447,14 +504,10 @@ void move_in_win(ClientState *cs, int x, int y)
       move_win0(x, y);
       break;
 #endif
-    case method_type_INT_CODE:
-      move_win_int(x, y);
+    case method_type_MODULE:
+      if (inmd[cs->in_method].mod_cb_funcs)
+        module_cb1(cs)->module_move_win(x, y);
       break;
-#if USE_ANTHY
-    case method_type_ANTHY:
-      move_win_anthy(x, y);
-      break;
-#endif
     default:
       if (!cs->in_method)
         return;
@@ -493,18 +546,19 @@ void getRootXY(Window win, int wx, int wy, int *tx, int *ty)
 void move_IC_in_win(ClientState *cs)
 {
 #if 0
-   dbg("move_IC_in_win\n");
+   dbg("move_IC_in_win %d,%d\n", cs->spot_location.x, cs->spot_location.y);
 #endif
    Window inpwin = cs->client_win;
 #if UNIX
    if (!inpwin) {
-//	   dbg("no inpwin\n");
-      return;
+     dbg("no inpwin\n");
+     return;
    }
 #endif
    // non focus win filtering is done in the client lib
-   if (inpwin != focus_win && focus_win && !cs->b_gcin_protocol)
+   if (inpwin != focus_win && focus_win && !cs->b_gcin_protocol) {
       return;
+   }
 
    int inpx = cs->spot_location.x;
    int inpy = cs->spot_location.y;
@@ -512,8 +566,9 @@ void move_IC_in_win(ClientState *cs)
 #if UNIX
    XWindowAttributes att;
    XGetWindowAttributes(dpy, inpwin, &att);
-   if (att.override_redirect)
-     return;
+// chrome window is override_redirect
+//   if (att.override_redirect)
+//     return;
 
    if (inpx >= att.width)
      inpx = att.width - 1;
@@ -522,7 +577,7 @@ void move_IC_in_win(ClientState *cs)
 #else
    if (inpwin) {
      RECT rect;
-	 GetClientRect((HWND)inpwin, &rect);
+     GetClientRect((HWND)inpwin, &rect);
      if (inpx >= rect.right)
        inpx = rect.right - 1;
      if (inpy >= rect.bottom)
@@ -543,9 +598,9 @@ void move_IC_in_win(ClientState *cs)
 
 void update_in_win_pos()
 {
-//  dbg("update_in_win_pos %d\n", current_CS->input_style);
-
   check_CS();
+
+//  dbg("update_in_win_pos %x %d\n", current_CS, current_CS->input_style);
 
   if (current_CS->input_style == InputStyleRoot) {
 #if UNIX
@@ -585,10 +640,11 @@ void update_in_win_pos()
 void win_pho_disp_half_full();
 void win_tsin_disp_half_full();
 void win_gtab_disp_half_full();
-extern char eng_full_str[], full_char_str[];
 void update_tray_icon(), load_tray_icon(), load_tray_icon_win32();
 static int current_gcin_win32_icon = -1;
 void restart_gcin0();
+extern void destroy_tray_win32();
+extern void destroy_tray_icon();
 
 #if TRAY_ENABLED
 #if UNIX
@@ -647,7 +703,6 @@ void disp_im_half_full()
 
 void flush_tsin_buffer();
 void reset_gtab_all();
-void set_tsin_pho_mode();
 void set_tsin_pho_mode0(ClientState *cs);
 
 //static u_int orig_caps_state;
@@ -664,6 +719,8 @@ void init_state_chinese(ClientState *cs)
     last_input_method = default_input_method;
   init_in_method(last_input_method);
 #endif
+
+  save_CS_current_to_temp();
 }
 
 gboolean output_gbuf();
@@ -674,7 +731,7 @@ void toggle_im_enabled()
 //    dbg("toggle_im_enabled\n");
     check_CS();
 
-    if (current_CS->in_method < 0 || current_CS->in_method > MAX_GTAB_NUM_KEY)
+    if (current_CS->in_method < 0)
       p_err("err found");
 
 
@@ -682,6 +739,7 @@ void toggle_im_enabled()
       if (current_CS->im_state == GCIN_STATE_ENG_FULL) {
         current_CS->im_state = GCIN_STATE_CHINESE;
         disp_im_half_full();
+        save_CS_current_to_temp();
         return;
       }
 
@@ -727,13 +785,13 @@ void toggle_im_enabled()
       disp_tray_icon();
 #endif
     }
+
+    save_CS_current_to_temp();
 }
 
 void get_win_gtab_geom();
 void get_win0_geom();
 void get_win_pho_geom();
-void get_win_anthy_geom();
-void get_win_int_geom();
 
 void update_active_in_win_geom()
 {
@@ -747,22 +805,17 @@ void update_active_in_win_geom()
       get_win0_geom();
       break;
 #endif
-    case method_type_INT_CODE:
-	  get_win_int_geom();
+    case method_type_MODULE:
+      if (module_cb() && module_cb()->module_get_win_geom)
+        module_cb()->module_get_win_geom();
       break;
-#if USE_ANTHY
-    case method_type_ANTHY:
-      get_win_anthy_geom();
-      break;
-#endif
     default:
       get_win_gtab_geom();
       break;
   }
 }
 
-extern GtkWidget *gwin_pho, *gwin0, *gwin_gtab, *gwin_int;
-int anthy_visible();
+extern GtkWidget *gwin_pho, *gwin0, *gwin_gtab;
 
 gboolean win_is_visible()
 {
@@ -775,12 +828,10 @@ gboolean win_is_visible()
     case method_type_TSIN:
       return gwin0 && GTK_WIDGET_VISIBLE(gwin0);
 #endif
-    case method_type_INT_CODE:
-	  return gwin_int && GTK_WIDGET_VISIBLE(gwin_int);
-#if USE_ANTHY
-    case method_type_ANTHY:
-      return anthy_visible();
-#endif
+    case method_type_MODULE:
+      if (!module_cb())
+        return FALSE;
+      return module_cb()->module_win_visible();
     default:
       if (!gwin_gtab)
         return FALSE;
@@ -793,7 +844,6 @@ gboolean win_is_visible()
 
 void disp_gtab_half_full(gboolean hf);
 void tsin_toggle_half_full();
-extern char eng_full_str[];
 
 void toggle_half_full_char()
 {
@@ -833,10 +883,11 @@ void toggle_half_full_char()
 //    dbg("current_CS->in_method %d\n", current_CS->in_method);
     disp_im_half_full();
   }
+
+  save_CS_current_to_temp();
 //  dbg("half full toggle\n");
 }
 
-void init_inter_code();
 void init_tab_pp(gboolean init);
 void init_tab_pho();
 
@@ -845,9 +896,18 @@ extern int b_show_win_kbm;
 
 void hide_win_kbm();
 extern gboolean win_sym_enabled;
-int init_win_anthy();
 void show_win_kbm();
+extern char *TableDir;
 void set_gtab_input_method_name(char *s);
+GCIN_module_callback_functions *init_GCIN_module_callback_functions(char *sofile);
+time_t find_tab_file(char *fname, char *out_file);
+gboolean tsin_page_up(), tsin_page_down();
+int tsin_sele_by_idx(int);
+
+static void tsin_set_win1_cb()
+{
+  set_win1_cb((cb_selec_by_idx_t)tsin_sele_by_idx, (cb_page_ud_t)tsin_page_up, (cb_page_ud_t)tsin_page_down);
+}
 
 void update_win_kbm_inited()
 {
@@ -859,7 +919,7 @@ gboolean init_in_method(int in_no)
 {
   gboolean init_im = !(cur_inmd && (cur_inmd->flag & FLAG_GTAB_SYM_KBM));
 
-  if (in_no < 0 || in_no > MAX_GTAB_NUM_KEY)
+  if (in_no < 0)
     return FALSE;
 
   check_CS();
@@ -868,9 +928,7 @@ gboolean init_in_method(int in_no)
   if (current_CS->in_method != in_no) {
     if (!(inmd[in_no].flag & FLAG_GTAB_SYM_KBM)) {
       if (current_method_type() == method_type_TSIN) {
-#if USE_TSIN
-      flush_tsin_buffer();
-#endif
+        flush_tsin_buffer();
       } else
         output_gbuf();
 
@@ -881,36 +939,57 @@ gboolean init_in_method(int in_no)
       hide_win_kbm();
   }
 
+
   reset_current_in_win_xy();
 
 //  dbg("switch init_in_method %x %d\n", current_CS, in_no);
+  set_tsin_pho_mode0(current_CS);
+  tsin_set_win1_cb();
 
   switch (inmd[in_no].method_type) {
     case method_type_PHO:
       current_CS->in_method = in_no;
       init_tab_pho();
       break;
-#if USE_TSIN
     case method_type_TSIN:
+      set_wselkey(pho_selkey);
       current_CS->in_method = in_no;
-      set_tsin_pho_mode0(current_CS);
       init_tab_pp(init_im);
       break;
-#endif
-    case method_type_INT_CODE:
-      current_CS->in_method = in_no;
-      init_inter_code();
+    case method_type_SYMBOL_TABLE:
+      toggle_symbol_table();
       break;
-#if USE_ANTHY
-    case method_type_ANTHY:
-      if (init_win_anthy()) {
+    case method_type_MODULE:
+    {
+      GCIN_module_main_functions gmf;
+      init_GCIN_module_main_functions(&gmf);
+      if (!inmd[in_no].mod_cb_funcs) {
+        char ttt[256];
+        strcpy(ttt, inmd[in_no].filename);
+
+        dbg("module %s\n", ttt);
+        if (!(inmd[in_no].mod_cb_funcs = init_GCIN_module_callback_functions(ttt))) {
+          dbg("module not found\n");
+          return FALSE;
+        }
+      }
+
+      if (inmd[in_no].mod_cb_funcs->module_init_win(&gmf)) {
         current_CS->in_method = in_no;
-        show_win_anthy();
+        module_cb()->module_show_win();
+        set_wselkey(pho_selkey);
       } else {
         return FALSE;
       }
+
       break;
-#endif
+    }
+    case method_type_EN:
+    {
+      if (current_CS && current_CS->im_state==GCIN_STATE_CHINESE)
+        toggle_im_enabled();
+      return TRUE;
+    }
     default:
       init_gtab(in_no);
       if (!inmd[in_no].DefChars)
@@ -928,12 +1007,18 @@ gboolean init_in_method(int in_no)
   }
 #if WIN32
   if (current_CS && current_CS->in_method != last_input_method)
-	  last_input_method = current_CS->in_method;
+    last_input_method = current_CS->in_method;
 #endif
 
 #if TRAY_ENABLED
   disp_tray_icon();
 #endif
+
+  if (inmd[current_CS->in_method].selkey) {
+    set_wselkey(inmd[current_CS->in_method].selkey);
+    gtab_set_win1_cb();
+//    dbg("aa selkey %s\n", inmd[current_CS->in_method].selkey);
+  }
 
   update_in_win_pos();
   update_win_kbm_inited();
@@ -949,9 +1034,10 @@ static void cycle_next_in_method()
   if (test_mode)
     return;
 #endif
-  for(i=0; i < MAX_GTAB_NUM_KEY; i++) {
-    int v = ((current_CS->in_method + i) % MAX_GTAB_NUM_KEY) + 1;
-    if (!(gcin_flags_im_enabled & (1<<v)))
+
+  for(i=0; i < inmdN; i++) {
+    int v = (current_CS->in_method + 1 + i) % inmdN;
+    if (!inmd[v].in_cycle)
       continue;
     if (!inmd[v].cname || !inmd[v].cname[0])
       continue;
@@ -998,8 +1084,6 @@ int feedkey_pho(KeySym xkey, int kbstate);
 int feedkey_pp(KeySym xkey, int state);
 int feedkey_gtab(KeySym key, int kbstate);
 int feed_phrase(KeySym ksym, int state);
-int feedkey_intcode(KeySym key);
-gboolean feedkey_anthy(int kv, int kvstate);
 void tsin_set_eng_ch(int nmod);
 static KeySym last_keysym;
 
@@ -1012,7 +1096,67 @@ gboolean timeout_raise_window(gpointer data)
 }
 
 extern Window xwin_pho, xwin0, xwin_gtab;
-void create_win_sym();
+void create_win_sym(), win_kbm_disp_caplock();
+
+#if !GTK_CHECK_VERSION(2,16,0)
+gboolean get_caps_lock_state()
+{
+	XkbStateRec states;
+
+	if (XkbGetState(GDK_DISPLAY_XDISPLAY(gdk_display_get_default()), XkbUseCoreKbd, &states) == Success)
+	{
+		if (states.locked_mods & LockMask) return TRUE;
+	}
+	return FALSE;
+}
+#endif
+
+void disp_win_kbm_capslock()
+{
+  if (!b_show_win_kbm)
+    return;
+
+  gboolean o_state = old_capslock_on;
+  old_capslock_on = gdk_keymap_get_caps_lock_state(gdk_keymap_get_default());
+
+//  dbg("%x %x\n", old_capslock_on, o_state);
+
+  if (o_state != old_capslock_on) {
+    win_kbm_disp_caplock();
+  }
+}
+
+
+void disp_win_kbm_capslock_init()
+{
+  old_capslock_on = gdk_keymap_get_caps_lock_state(gdk_keymap_get_default());
+//  dbg("disp_win_kbm_capslock_init %d\n",old_capslock_on);
+
+  if (b_show_win_kbm)
+    win_kbm_disp_caplock();
+}
+
+void toggle_symbol_table()
+{
+  if (current_CS->im_state == GCIN_STATE_CHINESE) {
+    if (!win_is_visible())
+      win_sym_enabled=1;
+    else
+      win_sym_enabled^=1;
+  } else
+    win_sym_enabled=0;
+
+  create_win_sym();
+  if (win_sym_enabled) {
+    force_show = TRUE;
+    if (current_CS->im_state == GCIN_STATE_CHINESE)
+      show_in_win(current_CS);
+    force_show = FALSE;
+  }
+}
+
+
+void destroy_phrase_save_menu();
 int gcin_switch_keys_lookup(int key);
 
 // return TRUE if the key press is processed
@@ -1021,12 +1165,19 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
 #if 0
   dbg("key press %x %x\n", keysym, kev_state);
 #endif
+  destroy_phrase_save_menu();
+
+  disp_win_kbm_capslock();
   check_CS();
 
   if (current_CS->client_win)
     focus_win = current_CS->client_win;
 
-  if (!test_mode && callback_str_buffer && strlen(callback_str_buffer)) {
+  if (
+#if WIN32
+  !test_mode &&
+#endif
+  callback_str_buffer && strlen(callback_str_buffer)) {
     send_text(callback_str_buffer);
     callback_str_buffer[0]=0;
     return TRUE;
@@ -1090,35 +1241,18 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
       return TRUE;
     }
 
-    if (keysym == ',') {
-#if 1
-      if (current_CS->im_state == GCIN_STATE_CHINESE) {
-        if (!win_is_visible())
-          win_sym_enabled=1;
-        else
-          win_sym_enabled^=1;
-      } else
-        win_sym_enabled=0;
-#else
-      win_sym_enabled^=1;
-#endif
-
-      create_win_sym();
-      if (win_sym_enabled) {
-        force_show = TRUE;
-        if (current_CS->im_state == GCIN_STATE_CHINESE)
-          show_in_win(current_CS);
-        force_show = FALSE;
-      }
-      return TRUE;
-    }
-
     if (!gcin_enable_ctrl_alt_switch)
       return FALSE;
 
     int kidx = gcin_switch_keys_lookup(keysym);
-    if (kidx <= 0)
+    if (kidx < 0)
       return FALSE;
+
+    if (inmd[kidx].method_type == method_type_SYMBOL_TABLE) {
+
+      toggle_symbol_table();
+      return TRUE;
+    }
 
     if (!inmd[kidx].cname)
       return FALSE;
@@ -1166,12 +1300,10 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
     case method_type_TSIN:
       return feedkey_pp(keysym, kev_state);
 #endif
-    case method_type_INT_CODE:
-      return feedkey_intcode(keysym);
-#if USE_ANTHY
-    case method_type_ANTHY:
-      return feedkey_anthy(keysym, kev_state);
-#endif
+    case method_type_MODULE:
+      if (!module_cb())
+        return FALSE;
+      return module_cb()->module_feedkey(keysym, kev_state);
     default:
       return feedkey_gtab(keysym, kev_state);
   }
@@ -1180,11 +1312,13 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
 }
 
 int feedkey_pp_release(KeySym xkey, int kbstate);
-int feedkey_anthy_release(KeySym xkey, int kbstate);
+int feedkey_gtab_release(KeySym xkey, int kbstate);
 
 // return TRUE if the key press is processed
 gboolean ProcessKeyRelease(KeySym keysym, u_int kev_state)
 {
+  disp_win_kbm_capslock();
+
   check_CS();
 #if 0
   dbg_time("key release %x %x\n", keysym, kev_state);
@@ -1206,17 +1340,16 @@ gboolean ProcessKeyRelease(KeySym keysym, u_int kev_state)
   }
 #endif
 
-
-#if USE_TSIN
   switch(current_method_type()) {
     case method_type_TSIN:
       return feedkey_pp_release(keysym, kev_state);
-#if USE_ANTHY
-    case method_type_ANTHY:
-      return feedkey_anthy_release(keysym, kev_state);
-#endif
+    case method_type_MODULE:
+      if (!module_cb())
+        return FALSE;
+      return module_cb()->module_feedkey_release(keysym, kev_state);
+    default:
+      return feedkey_gtab_release(keysym, kev_state);
   }
-#endif
 
   return FALSE;
 }
@@ -1276,10 +1409,10 @@ void gcin_reset();
 
 int gcin_FocusIn(ClientState *cs)
 {
+//  dbg("gcin_FocusIn\n");
   Window win = cs->client_win;
 
-  gcin_reset();
-#if UNIX
+#if UNIX && 0
   if (skip_window(win))
     return FALSE;
 #endif
@@ -1290,12 +1423,16 @@ int gcin_FocusIn(ClientState *cs)
     Window win = cs->client_win;
 
     if (focus_win != win) {
+#if 1
+      gcin_reset();
+#endif
       hide_in_win(current_CS);
       focus_win = win;
     }
   }
 
   current_CS = cs;
+  save_CS_temp_to_current();
 
 //  dbg("current_CS %x %d %d\n", cs, cs->im_state, current_CS->im_state);
 
@@ -1303,11 +1440,16 @@ int gcin_FocusIn(ClientState *cs)
     if (cs->im_state != GCIN_STATE_DISABLED) {
       show_in_win(cs);
       move_IC_in_win(cs);
-#if 0
-      set_win_status_inmd(inmd[cs->in_method].cname);
-#endif
     } else
       hide_in_win(cs);
+  }
+
+  if (inmd[cs->in_method].selkey)
+    set_wselkey(inmd[cs->in_method].selkey);
+  else {
+    set_wselkey(pho_selkey);
+    gtab_set_win1_cb();
+    tsin_set_win1_cb();
   }
 
   update_win_kbm();
@@ -1338,7 +1480,7 @@ int xim_gcin_FocusIn(IMChangeFocusStruct *call_data)
       load_IC(ic);
     }
 
-#if DEBUG && 0
+#if DEBUG
     dbg("xim_gcin_FocusIn %d\n", call_data->icid);
 #endif
     return True;
@@ -1352,11 +1494,12 @@ static gint64 last_focus_out_time;
 int gcin_FocusOut(ClientState *cs)
 {
   gint64 t = current_time();
+//  dbg("gcin_FocusOut\n");
 
   if (cs != current_CS)
      return FALSE;
 
-#if UNIX
+#if UNIX && 0
 //  dbg("gcin_FocusOut\n");
   if (skip_window(cs->client_win))
     return FALSE;
@@ -1385,12 +1528,11 @@ int gcin_FocusOut(ClientState *cs)
 }
 
 int tsin_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *cursor, int *sub_comp_len);
-int anthy_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *pcursor);
 int gtab_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *pcursor, int *sub_comp_len);
 int int_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *cursor, int *sub_comp_len);
 int pho_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *cursor, int *sub_comp_len);
 
-int gcin_get_preedit(ClientState *cs, char *str, GCIN_PREEDIT_ATTR attr[], int *cursor, int *sub_comp_len)
+int gcin_get_preedit(ClientState *cs, char *str, GCIN_PREEDIT_ATTR attr[], int *cursor, int *comp_flag)
 {
 //  dbg("gcin_get_preedit %x\n", current_CS);
   if (!current_CS) {
@@ -1402,25 +1544,22 @@ empty:
   }
 
   str[0]=0;
-  *sub_comp_len=0;
+  *comp_flag=0;
 
 //  cs->use_preedit = TRUE;
 
   switch(current_method_type()) {
     case method_type_PHO:
-		return pho_get_preedit(str, attr, cursor, sub_comp_len);
-    case method_type_INT_CODE:
-		return int_get_preedit(str, attr, cursor, sub_comp_len);
+      return pho_get_preedit(str, attr, cursor, comp_flag);
 #if USE_TSIN
     case method_type_TSIN:
-      return tsin_get_preedit(str, attr, cursor, sub_comp_len);
+      return tsin_get_preedit(str, attr, cursor, comp_flag);
 #endif
-#if USE_ANTHY
-    case method_type_ANTHY:
-      return anthy_get_preedit(str, attr, cursor);
-#endif
+    case method_type_MODULE:
+      if (inmd[current_CS->in_method].mod_cb_funcs)
+        return module_cb()->module_get_preedit(str, attr, cursor, comp_flag);
     default:
-      return gtab_get_preedit(str, attr, cursor, sub_comp_len);
+      return gtab_get_preedit(str, attr, cursor, comp_flag);
 //      dbg("metho %d\n", current_CS->in_method);
   }
 
@@ -1428,7 +1567,7 @@ empty:
 }
 
 void pho_reset();
-int tsin_reset(),gcin_anthy_reset();
+int tsin_reset();
 void gtab_reset();
 
 void gcin_reset()
@@ -1442,18 +1581,15 @@ void gcin_reset()
     case method_type_PHO:
       pho_reset();
       return;
-    case method_type_INT_CODE:
-      return;
 #if USE_TSIN
     case method_type_TSIN:
       tsin_reset();
       return;
 #endif
-#if USE_ANTHY
-    case method_type_ANTHY:
-      gcin_anthy_reset();
+    case method_type_MODULE:
+      if (inmd[current_CS->in_method].mod_cb_funcs)
+        module_cb()->module_reset();
       return;
-#endif
     default:
       gtab_reset();
 //      dbg("metho %d\n", current_CS->in_method);
@@ -1481,11 +1617,17 @@ gboolean gcin_edit_display_ap_only()
   if (test_mode)
     return TRUE;
 #endif
+  if (!current_CS)
+    return FALSE;
 //  dbg("gcin_edit_display_ap_only %d\n", current_CS->use_preedit)
   return current_CS->use_preedit && gcin_edit_display==GCIN_EDIT_DISPLAY_ON_THE_SPOT;
 }
 
-void flush_anthy_input();
+
+gboolean gcin_display_on_the_spot_key()
+{
+  return gcin_edit_display_ap_only() && gcin_on_the_spot_key;
+}
 
 void flush_edit_buffer()
 {
@@ -1499,11 +1641,10 @@ void flush_edit_buffer()
       flush_tsin_buffer();
       break;
 #endif
-#if USE_ANTHY
-    case method_type_ANTHY:
-      flush_anthy_input();
+    case method_type_MODULE:
+      if (inmd[current_CS->in_method].mod_cb_funcs)
+      module_cb()->module_flush_input();
       break;
-#endif
     default:
       output_gbuf();
 //      dbg("metho %d\n", current_CS->in_method);
@@ -1534,18 +1675,13 @@ gboolean ProcessTestKeyPress(KeySym keysym, u_int kev_state)
       v = ProcessKeyPress(keysym, kev_state);
       pho_restore_gst();
       break;
-    case method_type_INT_CODE:
-      v = ProcessKeyPress(keysym, kev_state);
-      break;
     case method_type_TSIN:
       tsin_save_gst();
       v = ProcessKeyPress(keysym, kev_state);
       tsin_restore_gst();
       break;
-#if USE_ANTHY
-    case method_type_ANTHY:
+    case method_type_MODULE:
       break;
-#endif
     default:
       gtab_save_gst();
       v = ProcessKeyPress(keysym, kev_state);

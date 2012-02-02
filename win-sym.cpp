@@ -114,9 +114,9 @@ static gboolean read_syms()
     bzero(tt, sizeof(tt));
     myfgets(tt, sizeof(tt), fp);
 //    dbg("%d] %s\n",strlen(tt), tt);
-    int len=strlen(tt);
 
 #if 0
+    int len=strlen(tt);
     if (!len)
       continue;
 
@@ -193,7 +193,7 @@ static void cb_button_sym(GtkButton *button, GtkWidget *label)
 #if USE_TSIN
   if (current_method_type() == method_type_TSIN && current_CS->im_state == GCIN_STATE_CHINESE) {
     add_to_tsin_buf_str(str);
-    if (tsin_cursor_end()) {
+    if (gcin_punc_auto_send && tsin_cursor_end()) {
       flush_tsin_buffer();
       output_buffer_call_back();
     } else {
@@ -204,7 +204,7 @@ static void cb_button_sym(GtkButton *button, GtkWidget *label)
 #endif
   if (gtab_phrase_on()) {
     insert_gbuf_nokey(str);
-    if (gtab_cursor_end()) {
+    if (gcin_punc_auto_send && gtab_cursor_end()) {
       output_gbuf();
       output_buffer_call_back();
     } else
@@ -222,10 +222,8 @@ static void cb_button_sym(GtkButton *button, GtkWidget *label)
        tsin_reset_in_pho();
        break;
 #endif
-#if USE_ANTHY
-    case method_type_ANTHY:
+    case method_type_MODULE:
        break;
-#endif
     default:
        reset_gtab_all();
        break;
@@ -305,6 +303,9 @@ void show_win_sym()
 #endif
   gtk_widget_show_all(gwin_sym);
   move_win_sym();
+#if WIN32
+  gtk_window_present(GTK_WINDOW(gwin_sym));
+#endif
 }
 
 
@@ -346,6 +347,9 @@ static void disp_win_sym()
   destory_win();
 //  win_sym_enabled = 0;
   create_win_sym();
+#if WIN32
+  show_win_sym();
+#endif
 }
 
 gboolean win_sym_page_up()
@@ -405,11 +409,11 @@ void create_win_sym()
     return;
   }
 
-  if (current_CS->in_method < 0 || current_CS->in_method >= MAX_GTAB_NUM_KEY) {
+  if (current_CS->in_method < 0) {
     p_err("bad current_CS %d\n", current_CS->in_method);
   }
 
-  if (current_method_type() != method_type_PHO && current_method_type() != method_type_TSIN && current_method_type() != method_type_ANTHY && !cur_inmd)
+  if (current_method_type() != method_type_PHO && current_method_type() != method_type_TSIN && current_method_type() != method_type_MODULE && !cur_inmd)
     return;
 
   if (read_syms() || cur_in_method != current_CS->in_method) {
@@ -431,6 +435,9 @@ void create_win_sym()
 
   gwin_sym = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_sym), FALSE);
+#if UNIX
+  gtk_window_set_resizable(GTK_WINDOW(gwin_sym), FALSE);
+#endif
 #if WIN32
   set_no_focus(gwin_sym);
 #endif
@@ -441,6 +448,7 @@ void create_win_sym()
   gtk_container_add (GTK_CONTAINER (gwin_sym), hbox_top);
 
   GtkWidget *vbox_top = gtk_vbox_new (FALSE, 0);
+  gtk_orientable_set_orientation(GTK_ORIENTABLE(vbox_top), GTK_ORIENTATION_VERTICAL);
   gtk_box_pack_start (GTK_BOX (hbox_top), vbox_top, TRUE, TRUE, 0);
 
   gtk_container_set_border_width (GTK_CONTAINER (vbox_top), 0);
@@ -492,8 +500,11 @@ void create_win_sym()
   gtk_box_pack_start (GTK_BOX (hbox_top), gtk_vseparator_new(), FALSE, FALSE, 0);
 
   GtkWidget *vbox_arrow = gtk_vbox_new (TRUE, 0);
+  gtk_orientable_set_orientation(GTK_ORIENTABLE(vbox_arrow), GTK_ORIENTATION_VERTICAL);
   gtk_box_pack_start (GTK_BOX (hbox_top), vbox_arrow, TRUE, TRUE, 0);
   GtkWidget *eve_up=gtk_event_box_new(), *eve_down=gtk_event_box_new();
+  gtk_event_box_set_visible_window (GTK_EVENT_BOX(eve_up), FALSE);
+  gtk_event_box_set_visible_window (GTK_EVENT_BOX(eve_down), FALSE);
   gtk_box_pack_start (GTK_BOX (vbox_arrow), eve_up, TRUE, TRUE, 0);
   gtk_container_add(GTK_CONTAINER(eve_up), gtk_arrow_new(GTK_ARROW_UP, GTK_SHADOW_IN));
   gtk_box_pack_start (GTK_BOX (vbox_arrow), eve_down, TRUE, TRUE, 0);
@@ -516,7 +527,11 @@ void create_win_sym()
 
   g_signal_connect (G_OBJECT (gwin_sym), "scroll-event", G_CALLBACK (button_scroll_event), NULL);
 
+#if WIN32
+  show_win_sym();
+#else
   move_win_sym();
+#endif
 #if 0
   dbg("in_method:%d\n", current_CS->in_method);
 #endif

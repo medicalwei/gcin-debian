@@ -7,6 +7,7 @@
 #include <X11/Xatom.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
+#include <ifaddrs.h>
 
 #include "gcin.h"
 #include "gcin-protocol.h"
@@ -111,13 +112,14 @@ static gboolean cb_new_gcin_client(GIOChannel *source, GIOCondition condition, g
 
 static int get_ip_address(u_int *ip)
 {
+
+#if 0
   char hostname[64];
 
   if (gethostname(hostname, sizeof(hostname)) < 0) {
     perror("cannot get hostname\n");
     return -1;
   }
-
   dbg("hostname %s\n", hostname);
   struct hostent *hent;
 
@@ -127,6 +129,33 @@ static int get_ip_address(u_int *ip)
   }
 
   memcpy(ip, hent->h_addr_list[0], hent->h_length);
+#else
+  struct ifaddrs *ifaddr = NULL, *ifa;
+  int family;
+
+  if (getifaddrs(&ifaddr) == -1) {
+    perror("getifaddrs");
+    exit(EXIT_FAILURE);
+  }
+
+  for (ifa = ifaddr; ifa; ifa = ifa->ifa_next) {
+      if (!ifa->ifa_addr)
+        continue;
+
+      family = ifa->ifa_addr->sa_family;
+      if (family == AF_INET) {
+        struct sockaddr_in *padd=(struct sockaddr_in *)ifa->ifa_addr;
+        char *ipaddr = inet_ntoa(padd->sin_addr);
+        if (!strcmp(ipaddr, "127.0.0.1"))
+          continue;
+        dbg("ip addr %s\n", ipaddr);
+        memcpy(ip, &padd->sin_addr.s_addr, INET_ADDRSTRLEN);
+        break;
+      }
+  }
+
+  freeifaddrs(ifaddr);
+#endif
   return 0;
 }
 
@@ -239,7 +268,7 @@ void init_gcin_im_serv(Window win)
 
   if (listen(im_tcp_sockfd, 5) < 0) {
     perror("cannot listen: ");
-	exit(1);
+    exit(1);
   }
 
   dbg("after listen\n");

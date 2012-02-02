@@ -76,9 +76,10 @@ void GCINIMContext::update_preedit()
   QList<QAttribute> preedit_attributes;
 //  QString preedit_string;
   int preedit_cursor_position=0;
+  int sub_comp_len;
   char *str=NULL;
   GCIN_PREEDIT_ATTR att[GCIN_PREEDIT_ATTR_MAX_N];
-  int attN = gcin_im_client_get_preedit(gcin_ch, &str, att, &preedit_cursor_position);
+  int attN = gcin_im_client_get_preedit(gcin_ch, &str, att, &preedit_cursor_position, &sub_comp_len);
 
   if (gcin_ch) {
     int ret;
@@ -88,7 +89,7 @@ void GCINIMContext::update_preedit()
   preedit_attributes.push_back (QAttribute (QInputMethodEvent::Cursor, preedit_cursor_position, true, 0));
 
   const QWidget *focused_widget = qApp->focusWidget ();
-  if (!focused_widget || !str || !*str) {
+  if (!focused_widget || !str) {
 free_mem:
     free(str);
     return;
@@ -100,7 +101,7 @@ free_mem:
   const QBrush &reversed_background = palette.text ();
 
 #if DBG || 0
-  printf("gtk_im_context_gcin_get_preedit_string attN:%d '%s'\n", attN, str);
+  printf("update_preedit attN:%d '%s'\n", attN, str);
 #endif
   int i;
   for(i=0; i < attN; i++) {
@@ -240,8 +241,8 @@ bool GCINIMContext::isComposing() const
 {
   char *str;
   GCIN_PREEDIT_ATTR att[GCIN_PREEDIT_ATTR_MAX_N];
-  int preedit_cursor_position;
-  gcin_im_client_get_preedit(gcin_ch, &str, att, &preedit_cursor_position);
+  int preedit_cursor_position, sub_comp_len;
+  gcin_im_client_get_preedit(gcin_ch, &str, att, &preedit_cursor_position, &sub_comp_len);
   bool is_compose = str[0]>0;
   free(str);
 

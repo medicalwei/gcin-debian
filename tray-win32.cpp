@@ -15,7 +15,7 @@
 gboolean tsin_pho_mode();
 extern int tsin_half_full, gb_output;
 extern int win32_tray_disabled;
-GtkStatusIcon *icon_main, *icon_state;
+GtkStatusIcon *icon_main=NULL, *icon_state=NULL;
 
 void get_icon_path(char *iconame, char fname[]);
 
@@ -48,12 +48,13 @@ void cb_tog_phospeak(GtkCheckMenuItem *checkmenuitem, gpointer dat)
   phonetic_speak= gtk_check_menu_item_get_active(checkmenuitem);
 }
 
+#if 0
 void show_inmd_menu();
-
 void cb_inmd_menu(GtkCheckMenuItem *checkmenuitem, gpointer dat)
 {
   show_inmd_menu();
 }
+#endif
 
 void close_all_clients();
 void do_exit();
@@ -96,9 +97,17 @@ void exec_gcin_setup_(GtkCheckMenuItem *checkmenuitem, gpointer dat)
   exec_gcin_setup();
 }
 
+void kbm_open_close(gboolean b_show);
 void kbm_toggle_(GtkCheckMenuItem *checkmenuitem, gpointer dat)
 {
-  kbm_toggle();
+  kbm_open_close(gtk_check_menu_item_get_active(checkmenuitem));
+}
+
+void create_about_window();
+
+static void cb_about_window(GtkCheckMenuItem *checkmenuitem, gpointer dat)
+{
+  create_about_window();
 }
 
 gint inmd_switch_popup_handler (GtkWidget *widget, GdkEvent *event);
@@ -108,15 +117,16 @@ extern gboolean win_kbm_inited;
 extern int win_kbm_on;
 
 static MITEM mitems_main[] = {
-  {N_(_L("設定")), GTK_STOCK_PREFERENCES, exec_gcin_setup_},
+  {N_(_L("關於gcin/常見問題")), GTK_STOCK_ABOUT, cb_about_window},
+  {N_(_L("設定/工具")), GTK_STOCK_PREFERENCES, exec_gcin_setup_},
 #if USE_GCB
   {N_(_L("gcb(剪貼區暫存)")), NULL, cb_tog_gcb, &gcb_enabled},
 #endif
   {N_(_L("重新執行gcin")), GTK_STOCK_QUIT, restart_gcin},
   {N_(_L("念出發音")), NULL, cb_tog_phospeak, &phonetic_speak},
   {N_(_L("小鍵盤")), NULL, kbm_toggle_, &win_kbm_on},
-#if UNIX
-  {N_(_L("選擇輸入法")), NULL, cb_inmd_menu, NULL},
+#if UNIX && 0
+  {N_(_L("選擇輸入法")), GTK_STOCK_INDEX, cb_inmd_menu, NULL},
 #endif
   {NULL}
 };
@@ -133,7 +143,6 @@ void load_setttings(), load_tab_pho_file();;
 void update_win_kbm();
 void update_win_kbm_inited();
 extern gboolean win_kbm_inited, stat_enabled;
-void toggle_stat_win();
 static void cb_fast_phonetic_kbd_switch(GtkCheckMenuItem *checkmenuitem, gpointer dat)
 {
   char bak[128], cur[128];
@@ -158,7 +167,7 @@ static MITEM mitems_state[] = {
 };
 
 
-static GtkWidget *tray_menu, *tray_menu_state;
+static GtkWidget *tray_menu=NULL, *tray_menu_state=NULL;
 
 
 void toggle_im_enabled();
@@ -196,10 +205,6 @@ GtkWidget *create_tray_menu(MITEM *mitems)
   return menu;
 }
 
-void _null_cb(GtkCheckMenuItem *checkmenuitem, gpointer dat)
-{
-}
-
 void update_item_active(MITEM *mitems)
 {
   int i;
@@ -234,7 +239,7 @@ void inmd_popup_tray();
 
 static void cb_activate(GtkStatusIcon *status_icon, gpointer user_data)
 {
-#if UNIX
+#if UNIX && 0
 //  dbg("cb_activate\n");
   toggle_im_enabled();
 
@@ -261,12 +266,13 @@ static void cb_popup(GtkStatusIcon *status_icon, guint button, guint activate_ti
       break;
 #endif
     case 3:
+//      dbg("tray_menu %x\n", tray_menu);
       if (!tray_menu)
         tray_menu = create_tray_menu(mitems_main);
 #if 0
       gtk_menu_popup(GTK_MENU(tray_menu), NULL, NULL, gtk_status_icon_position_menu, status_icon, button, activate_time);
 #else
-	  gtk_menu_popup(GTK_MENU(tray_menu), NULL, NULL, NULL, NULL, button, activate_time);
+      gtk_menu_popup(GTK_MENU(tray_menu), NULL, NULL, NULL, NULL, button, activate_time);
 #endif
       break;
   }
@@ -276,13 +282,16 @@ void toggle_half_full_char();
 static void cb_activate_state(GtkStatusIcon *status_icon, gpointer user_data)
 {
 //  dbg("cb_activate\n");
-  toggle_half_full_char();
+  if (gcin_tray_hf_win_kbm) {
+    kbm_toggle();
+    update_item_active_all();
+  } else
+    toggle_half_full_char();
 }
 
 
 static void cb_popup_state(GtkStatusIcon *status_icon, guint button, guint activate_time, gpointer user_data)
 {
-//  dbg("cb_popup_state\n");
   switch (button) {
 
     case 1:
@@ -295,11 +304,11 @@ static void cb_popup_state(GtkStatusIcon *status_icon, guint button, guint activ
       break;
     case 3:
     {
-      char bak[128], cur[128];
+      char bak[512], cur[512];
       get_gcin_conf_fstr(PHONETIC_KEYBOARD, cur, "");
       get_gcin_conf_fstr(PHONETIC_KEYBOARD_BAK, bak, "");
       if (bak[0] && strcmp(bak, cur)) {
-        char kbm[128];
+        char kbm[512];
 
         strcpy(kbm, bak);
         char *p=strchr(kbm, ' ');
@@ -313,18 +322,24 @@ static void cb_popup_state(GtkStatusIcon *status_icon, guint button, guint activ
             }
 
           if (kbm_sel[i].kbm) {
-            static unich_t tt[32];
+            unich_t tt[128];
+            if (mitems_state[0].name)
+              free(mitems_state[0].name);
 #if UNIX
             sprintf(tt, "注音換 %s %s", kbm_sel[i].name, p);
+            mitems_state[0].name = strdup(tt);
 #else
             swprintf(tt, L"注音換 %s %S", kbm_sel[i].name, p);
+            mitems_state[0].name = wcsdup(tt);
 #endif
-            mitems_state[0].name = tt;
           }
         }
 
-        gtk_widget_destroy(tray_menu_state);
-        tray_menu_state = NULL;
+//        dbg("hhhhhhhhhhhh %x\n", tray_menu_state);
+        if (tray_menu_state) {
+          gtk_widget_destroy(tray_menu_state);
+          tray_menu_state = NULL;
+        }
       }
 
       if (!tray_menu_state)
@@ -334,6 +349,8 @@ static void cb_popup_state(GtkStatusIcon *status_icon, guint button, guint activ
       break;
     }
   }
+
+//  dbg("zzzzzzzzzzzzz\n");
 }
 
 
@@ -349,8 +366,8 @@ void load_tray_icon_win32()
 
 #if WIN32
   // when login, creating icon too early may cause block in gtk_status_icon_new_from_file
-  if (win32_tray_disabled)
-	  return;
+  if (win32_tray_disabled || !gcin_status_tray)
+    return;
 #endif
 
 //  dbg("load_tray_icon_win32\n");
@@ -369,10 +386,17 @@ void load_tray_icon_win32()
     iconame=inmd[current_CS->in_method].icon;
   }
 
+//  dbg("tsin_pho_mode() %d\n", tsin_pho_mode());
+
   char tt[32];
-  if (current_CS && (current_method_type()==method_type_TSIN || current_method_type()==method_type_ANTHY) &&current_CS->im_state == GCIN_STATE_CHINESE && !tsin_pho_mode()) {
-    strcpy(tt, "en-");
-    strcat(tt, iconame);
+  if (current_CS && current_CS->im_state == GCIN_STATE_CHINESE && !tsin_pho_mode()) {
+    if ((current_method_type()==method_type_TSIN || current_method_type()==method_type_MODULE)) {
+      strcpy(tt, "en-");
+      strcat(tt, iconame);
+    } else {
+      strcpy(tt, "en-tsin.png");
+    }
+
     iconame = tt;
   }
 
@@ -391,23 +415,22 @@ void load_tray_icon_win32()
   if (current_CS && (current_CS->im_state == GCIN_STATE_ENG_FULL ||
       current_CS->im_state != GCIN_STATE_DISABLED && current_CS->b_half_full_char ||
       current_method_type()==method_type_TSIN && tss.tsin_half_full)) {
-		if (gb_output) {
-          icon_st="full-simp.png";
-		   tip = _L("全形/簡體輸出");
-		}
-		else {
-          icon_st="full-trad.png";
-		  tip = _L("全形/正體輸出");
-		}
+      if (gb_output) {
+        icon_st="full-simp.png";
+        tip = _L("全形/簡體輸出");
+      }
+      else {
+        icon_st="full-trad.png";
+        tip = _L("全形/正體輸出");
+      }
   } else {
-	  if (gb_output) {
-        icon_st="half-simp.png";
-		tip= _L("半形/簡體輸出");
-	  }
-	  else {
-        icon_st="half-trad.png";
-		tip = _L("半形/正體輸出");
-	  }
+    if (gb_output) {
+      icon_st="half-simp.png";
+      tip= _L("半形/簡體輸出");
+    } else {
+      icon_st="half-trad.png";
+      tip = _L("半形/正體輸出");
+    }
   }
 
   get_icon_path(icon_st, fname_state);
@@ -440,7 +463,7 @@ void load_tray_icon_win32()
 
   if (icon_main) {
     char tt[64];
-    if (current_CS && current_CS->in_method && inmd[current_CS->in_method].cname[0])
+    if (current_CS && inmd[current_CS->in_method].cname[0])
       strcpy(tt, inmd[current_CS->in_method].cname);
 
     if (!iconame || !strcmp(iconame, GCIN_TRAY_PNG) || !tsin_pho_mode())
