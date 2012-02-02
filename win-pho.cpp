@@ -6,7 +6,6 @@ static int current_pho_in_row1;
 
 GtkWidget *gwin_pho;
 static GtkWidget *top_bin, *hbox_row2;
-Window xwin_pho;
 static GtkWidget *label_pho_sele;
 static GtkWidget *label_pho;
 static GtkWidget *label_full;
@@ -17,7 +16,32 @@ void disp_pho_sub(GtkWidget *label, int index, char *pho);
 
 void disp_pho(int index, char *phochar)
 {
+//  dbg("%d '", index); utf8_putchar(phochar); dbg("'\n");
   disp_pho_sub(label_pho, index, phochar);
+}
+
+#if WIN32
+static int timeout_handle_pho;
+gboolean timeout_minimize_win_pho(gpointer data)
+{
+  if (!gwin_pho)
+    return FALSE;
+  gtk_window_resize(GTK_WINDOW(gwin_pho), 1, 1);
+//  gtk_window_present(GTK_WINDOW(gwin0));
+  timeout_handle_pho = 0;
+  return FALSE;
+}
+#endif
+
+
+void minimize_win_pho()
+{
+  gtk_window_resize(GTK_WINDOW(gwin_pho), 1, 1);
+
+#if WIN32
+  if (!timeout_handle_pho)
+	timeout_handle_pho = g_timeout_add(50, timeout_minimize_win_pho, NULL);
+#endif
 }
 
 
@@ -26,7 +50,8 @@ void move_win_pho(int x, int y);
 void get_win_size(GtkWidget *win, int *width, int *height)
 {
   GtkRequisition sz;
-  gtk_widget_size_request(GTK_WIDGET(win), &sz);
+  sz.width = sz.height = 0;
+  gtk_widget_get_preferred_size(GTK_WIDGET(win), NULL, &sz);
   *width = sz.width;
   *height = sz.height;
 }
@@ -45,6 +70,8 @@ void disp_pho_sel(char *s)
 {
   gtk_label_set_markup(GTK_LABEL(label_pho_sele), s);
 
+  minimize_win_pho();
+
   if (win_size_exceed(gwin_pho)) {
     move_win_pho(current_in_win_x, current_in_win_y);
   }
@@ -56,7 +83,13 @@ void set_key_codes_label_pho(char *s)
   if (!label_key_codes)
     return;
 
+  if (!s || !*s) {
+    gtk_widget_hide(label_key_codes);
+	return;
+  }
+
   gtk_label_set_text(GTK_LABEL(label_key_codes), s);
+  gtk_widget_show(label_key_codes);
 }
 
 
@@ -67,6 +100,9 @@ void move_win_pho(int x, int y)
   int twin_xl, twin_yl;
 
   win_x = x;  win_y = y;
+
+  if (!gwin_pho)
+    return;
 
   get_win_size(gwin_pho, &twin_xl, &twin_yl);
 
@@ -84,11 +120,6 @@ void move_win_pho(int x, int y)
   move_win_sym();
 }
 
-void minimize_win_pho()
-{
-  gtk_window_resize(GTK_WINDOW(gwin_pho), 10, 10);
-}
-
 
 void create_win_pho()
 {
@@ -96,7 +127,11 @@ void create_win_pho()
     return;
 
   gwin_pho = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_default_size(GTK_WINDOW(gwin_pho), 1 ,1);
   gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_pho), FALSE);
+#if UNIX
+  gtk_window_set_resizable(GTK_WINDOW(gwin_pho), FALSE);
+#endif
 #if WIN32
   set_no_focus(gwin_pho);
 #endif
@@ -104,7 +139,6 @@ void create_win_pho()
   gtk_widget_realize (gwin_pho);
 #if UNIX
   GdkWindow *gdkwin = gtk_widget_get_window(gwin_pho);
-  xwin_pho = GDK_WINDOW_XWINDOW(gdkwin);
   set_no_focus(gwin_pho);
 #else
   win32_init_win(gwin_pho);
@@ -139,8 +173,16 @@ void create_win_pho_gui_simple()
     return;
 
   GtkWidget *vbox_top = gtk_vbox_new (FALSE, 0);
+  gtk_orientable_set_orientation(GTK_ORIENTABLE(vbox_top), GTK_ORIENTATION_VERTICAL);
 
-  GtkWidget *event_box_pho = gtk_event_box_new();
+  GtkWidget *event_box_pho;
+  if (gtab_in_area_button)
+	event_box_pho = gtk_button_new();
+  else {
+	event_box_pho = gtk_event_box_new();
+	gtk_event_box_set_visible_window (GTK_EVENT_BOX(event_box_pho), FALSE);
+  }
+
   gtk_container_set_border_width (GTK_CONTAINER (event_box_pho), 0);
 
   if (gcin_inner_frame) {
@@ -148,6 +190,7 @@ void create_win_pho_gui_simple()
     gtk_container_set_border_width (GTK_CONTAINER (frame), 0);
     gtk_container_add (GTK_CONTAINER(gwin_pho), frame);
     gtk_container_add (GTK_CONTAINER (frame), vbox_top);
+    gtk_frame_set_shadow_type (GTK_FRAME (frame), GTK_SHADOW_ETCHED_OUT);
   } else {
     gtk_container_add (GTK_CONTAINER(gwin_pho), vbox_top);
     top_bin = vbox_top;
@@ -183,13 +226,20 @@ void create_win_pho_gui_simple()
   g_signal_connect(G_OBJECT(event_box_pho),"button-press-event",
                    G_CALLBACK(mouse_button_callback), NULL);
 
-  GtkWidget *frame_pho = gtk_frame_new(NULL);
-  gtk_container_add (GTK_CONTAINER (event_box_pho), frame_pho);
-  gtk_container_set_border_width (GTK_CONTAINER (frame_pho), 0);
 
   label_pho = gtk_label_new(NULL);
-  gtk_container_add (GTK_CONTAINER (frame_pho), label_pho);
 
+  GtkWidget *frame_pho;
+  if (gtab_in_area_button) {
+	gtk_container_add (GTK_CONTAINER (event_box_pho), label_pho);
+  }
+  else {
+	frame_pho = gtk_frame_new(NULL);
+	gtk_frame_set_shadow_type(GTK_FRAME(frame_pho), GTK_SHADOW_OUT);
+	gtk_container_add (GTK_CONTAINER (event_box_pho), frame_pho);
+	gtk_container_set_border_width (GTK_CONTAINER (frame_pho), 0);
+	gtk_container_add (GTK_CONTAINER (frame_pho), label_pho);
+  }
 
   if (left_right_button_tips) {
 #if GTK_CHECK_VERSION(2,12,0)
@@ -208,6 +258,8 @@ void create_win_pho_gui_simple()
 
   gtk_widget_show_all (gwin_pho);
 
+  gtk_widget_hide(label_key_codes);
+
   gtk_widget_hide(label_full);
 }
 
@@ -217,7 +269,7 @@ void create_win_pho_gui()
 
   if (pho_hide_row2) {
     gtk_widget_hide(hbox_row2);
-    gtk_window_resize(GTK_WINDOW(gwin_pho), 10, 20);
+    gtk_window_resize(GTK_WINDOW(gwin_pho), 1, 1);
   }
 
   current_gcin_inner_frame = gcin_inner_frame;
@@ -245,7 +297,9 @@ void show_win_pho()
   }
 
   gtk_widget_show(gwin_pho);
+#if UNIX
   if (current_CS->b_raise_window)
+#endif
     gtk_window_present(GTK_WINDOW(gwin_pho));
 
   show_win_sym();
@@ -264,6 +318,14 @@ void hide_win_pho()
 // dbg("hide_win_pho\n");
   if (!gwin_pho)
     return;
+
+#if WIN32
+  if (timeout_handle_pho) {
+	  g_source_remove(timeout_handle_pho);
+	  timeout_handle_pho = 0;
+  }
+#endif
+
   gtk_widget_hide(gwin_pho);
   hide_win_sym();
 }
@@ -283,7 +345,10 @@ char *get_full_str();
 
 void win_pho_disp_half_full()
 {
-  gtk_label_set_text(GTK_LABEL(label_pho), get_full_str());
+  if (gcin_win_color_use)
+     gtk_label_set_markup(GTK_LABEL(label_pho), get_full_str());
+  else
+     gtk_label_set_text(GTK_LABEL(label_pho), get_full_str());
 
   if (current_CS->im_state == GCIN_STATE_CHINESE && (!current_CS->b_half_full_char))
     gtk_widget_hide(label_full);

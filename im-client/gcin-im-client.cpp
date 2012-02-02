@@ -45,15 +45,32 @@ Atom get_gcin_addr_atom(Display *dpy);
 
 
 
+#if UNIX
+Window find_gcin_window(Display *dpy)
+{
+  Atom gcin_addr_atom = get_gcin_addr_atom(dpy);
+  if (!gcin_addr_atom)
+    return FALSE;
+  return XGetSelectionOwner(dpy, gcin_addr_atom);
+}
+#else
+HWND find_gcin_window()
+{
+  return FindWindowA(GCIN_WIN_NAME, NULL);
+}
+#endif
+
+
 #if WIN32
 bool sys_end_session;
 HWND serverWnd;
+
 
 HANDLE open_pipe_client()
 {
   int retried=0;
 restart:
-  serverWnd = FindWindowA(GCIN_WIN_NAME, NULL);
+  serverWnd = find_gcin_window();
   if (!serverWnd) {
     if (retried < 10) {
 	  if (!retried)
@@ -122,9 +139,9 @@ restart:
   return NULL;
 }
 #endif
-
-
-
+#if UNIX
+int is_special_user;
+#endif
 
 static GCIN_client_handle *gcin_im_client_reopen(GCIN_client_handle *gcin_ch, Display *dpy)
 {
@@ -145,6 +162,11 @@ static GCIN_client_handle *gcin_im_client_reopen(GCIN_client_handle *gcin_ch, Di
   char *addr;
   Server_IP_port srv_ip_port;
   u_char *pp;
+
+  int uid = getuid();
+  if (uid > 0 && uid < 500) {
+    is_special_user = TRUE;
+  }
 #else
   HANDLE sockfd;
 #endif
@@ -166,9 +188,10 @@ static GCIN_client_handle *gcin_im_client_reopen(GCIN_client_handle *gcin_ch, Di
 
 #define MAX_TRY 3
   int loop;
+
+  if (!is_special_user)
   for(loop=0; loop < MAX_TRY; loop++) {
-    if ((gcin_addr_atom && (gcin_win=XGetSelectionOwner(dpy, gcin_addr_atom))!=None)
-        || getenv("GCIN_IM_CLIENT_NO_AUTO_EXEC"))
+    if ((gcin_win=find_gcin_window(dpy))!=None || getenv("GCIN_IM_CLIENT_NO_AUTO_EXEC"))
       break;
     static time_t exec_time;
 
@@ -295,11 +318,11 @@ tcp:
   dbg("sock %d\n", sockfd);
 
   if (connect(sockfd, (struct sockaddr *)&in_serv_addr, servlen) < 0) {
-	dbg("gcin_im_client_open cannot open: ") ;
+    dbg("gcin_im_client_open cannot open: ") ;
     perror("");
     close(sockfd);
     sockfd = 0;
-	goto next;
+    goto next;
   }
 
   pp = (u_char *)&srv_ip_port.ip;
@@ -313,7 +336,6 @@ tcp:
   tcp = TRUE;
 
 next:
-
   if (!gcin_ch)
     handle = tzmalloc(GCIN_client_handle, 1);
   else {
@@ -359,6 +381,10 @@ static void validate_handle(GCIN_client_handle *gcin_ch)
 {
   if (gcin_ch->fd > 0)
     return;
+#if UNIX
+  if (is_special_user)
+    return;
+#endif
 
   gcin_im_client_reopen(gcin_ch, gcin_ch->disp);
 }
@@ -375,7 +401,8 @@ GCIN_client_handle *gcin_im_client_open(Display *disp)
 void gcin_im_client_close(GCIN_client_handle *handle)
 {
   if (!handle)
-	  return;
+    return;
+
   if (handle->fd > 0)
 #if WIN32
     CloseHandle((HANDLE)handle->fd);
@@ -563,7 +590,11 @@ static int handle_write(GCIN_client_handle *handle, void *ptr, int n)
 void gcin_im_client_focus_in(GCIN_client_handle *handle)
 {
   if (!handle)
-	  return;
+    return;
+#if UNIX
+  if (is_special_user)
+    return;
+#endif
 
   GCIN_req req;
 //  dbg("gcin_im_client_focus_in\n");
@@ -586,6 +617,10 @@ void gcin_im_client_focus_out(GCIN_client_handle *handle)
 {
   if (!handle)
     return;
+#if UNIX
+  if (is_special_user)
+    return;
+#endif
 
   GCIN_req req;
 //  dbg("gcin_im_client_focus_out\n");
@@ -607,14 +642,21 @@ void gcin_im_client_focus_out2(GCIN_client_handle *handle, char **rstr)
   GCIN_req req;
   GCIN_reply reply;
 
+  if (rstr)
+    *rstr = NULL;
+
   if (!handle)
     return;
+
+#if UNIX
+  if (is_special_user)
+    return;
+#endif
 
 #if DBG
   dbg("gcin_im_client_focus_out2\n");
 #endif
   handle->flag &= ~FLAG_GCIN_client_handle_has_focus;
-  *rstr = NULL;
 
   if (!gen_req(handle, GCIN_req_focus_out2, &req))
     return;
@@ -656,6 +698,10 @@ static int gcin_im_client_forward_key_event(GCIN_client_handle *handle,
   GCIN_req req;
 
   *rstr = NULL;
+#if UNIX
+  if (is_special_user)
+    return 0;
+#endif
 
   if (!gen_req(handle, event_type, &req))
     return 0;
@@ -739,7 +785,11 @@ int gcin_im_client_forward_key_release(GCIN_client_handle *handle,
 void gcin_im_client_set_cursor_location(GCIN_client_handle *handle, int x, int y)
 {
   if (!handle)
-	  return;
+    return;
+#if UNIX
+  if (is_special_user)
+    return;
+#endif
 
 //  dbg("gcin_im_client_set_cursor_location %d   %d,%d\n", handle->flag, x, y);
 
@@ -763,21 +813,36 @@ void gcin_im_client_set_cursor_location(GCIN_client_handle *handle, int x, int y
 void gcin_im_client_set_window(GCIN_client_handle *handle, Window win)
 {
   if (!handle)
-	  return;
+    return;
 //  dbg("gcin_im_client_set_window %x\n", win);
+
 #if UNIX
+  if (is_special_user)
+    return;
   if (!win)
     return;
 #endif
   handle->client_win = win;
+
+// For chrome
+//  gcin_im_client_set_cursor_location(handle, handle->spot_location.x, handle->spot_location.y);
 }
 
 void gcin_im_client_set_flags(GCIN_client_handle *handle, int flags, int *ret_flag)
 {
   GCIN_req req;
 
+#if DBG
+  dbg("gcin_im_client_set_flags\n");
+#endif
+
   if (!handle)
     return;
+
+#if UNIX
+  if (is_special_user)
+    return;
+#endif
 
   if (!gen_req(handle, GCIN_req_set_flags, &req))
     return;
@@ -786,10 +851,18 @@ void gcin_im_client_set_flags(GCIN_client_handle *handle, int flags, int *ret_fl
 
   flags_backup = req.flag;
 
+#if DBG
+  dbg("gcin_im_client_set_flags b\n");
+#endif
+
   if (handle_write(handle, &req, sizeof(req)) <=0) {
     error_proc(handle,"gcin_im_client_set_flags error");
   }
   send_req_msg(handle);
+
+#if DBG
+  dbg("gcin_im_client_set_flags c\n");
+#endif
 
   if (handle_read(handle, ret_flag, sizeof(int)) <= 0) {
     error_proc(handle, "cannot read reply str from gcin server");
@@ -803,6 +876,11 @@ void gcin_im_client_clear_flags(GCIN_client_handle *handle, int flags, int *ret_
 
   if (!handle)
     return;
+
+#if UNIX
+  if (is_special_user)
+    return;
+#endif
 
   if (!gen_req(handle, GCIN_req_set_flags, &req))
     return;
@@ -823,14 +901,19 @@ void gcin_im_client_clear_flags(GCIN_client_handle *handle, int flags, int *ret_
 
 
 int gcin_im_client_get_preedit(GCIN_client_handle *handle, char **str, GCIN_PREEDIT_ATTR att[], int *cursor
-#if WIN32
-				,int *sub_comp_len
+#if WIN32 || 1
+    ,int *sub_comp_len
 #endif
-			   )
+    )
 {
   *str=NULL;
   if (!handle)
     return 0;
+
+#if UNIX
+  if (is_special_user)
+    return 0;
+#endif
 
   int attN, tcursor, str_len;
 #if DBG
@@ -886,7 +969,7 @@ err_ret:
     *cursor = tcursor;
 
 
-#if WIN32
+#if WIN32 || 1
   int tsub_comp_len;
   tsub_comp_len=0;
   if (handle_read(handle, &tsub_comp_len, sizeof(tsub_comp_len))<=0) {
@@ -907,7 +990,12 @@ err_ret:
 void gcin_im_client_reset(GCIN_client_handle *handle)
 {
   if (!handle)
-	  return;
+    return;
+
+#if UNIX
+  if (is_special_user)
+    return;
+#endif
 
   GCIN_req req;
 #if DBG
@@ -969,7 +1057,7 @@ bool gcin_im_client_key_eaten(GCIN_client_handle *handle, int press_release,
     error_proc(handle, "cannot write to gcin server");
     return FALSE;
   }
-  send_req_msg();
+  send_req_msg(handle);
 
   bzero(&reply, sizeof(reply));
   if (handle_read(handle, &reply, sizeof(reply)) <=0) {

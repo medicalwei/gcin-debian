@@ -1,6 +1,7 @@
 #include "gcin.h"
 #include "config.h"
 #include "gcin-version.h"
+#include "gtab.h"
 #if UNIX
 #include <signal.h>
 #endif
@@ -18,16 +19,8 @@ int win_x, win_y;   // actual win x/y
 int dpy_xl, dpy_yl;
 DUAL_XIM_ENTRY xim_arr[1];
 
+extern unich_t *fullchar[];
 gboolean win_kbm_inited;
-
-unich_t *fullchar[]=
-{_L("　"),_L("！"),_L("”"),_L("＃"),_L("＄"),_L("％"),_L("＆"),_L("’"),_L("（"),_L("）"),_L("＊"),_L("＋"),
-_L("，"),_L("－"),_L("．"),_L("／"),_L("０"),_L("１"),_L("２"),_L("３"),_L("４"),_L("５"),_L("６"),_L("７"),_L("８"),_L("９"),_L("："),_L("；"),_L("＜"),_L("＝"),_L("＞"),_L("？"),
-_L("＠"),_L("Ａ"),_L("Ｂ"),_L("Ｃ"),_L("Ｄ"),_L("Ｅ"),_L("Ｆ"),_L("Ｇ"),_L("Ｈ"),_L("Ｉ"),_L("Ｊ"),_L("Ｋ"),_L("Ｌ"),_L("Ｍ"),_L("Ｎ"),_L("Ｏ"),_L("Ｐ"),_L("Ｑ"),_L("Ｒ"),_L("Ｓ"),
-_L("Ｔ"),_L("Ｕ"),_L("Ｖ"),_L("Ｗ"),_L("Ｘ"),_L("Ｙ"),_L("Ｚ"),_L("〔"),_L("＼"),_L("〕"),_L("︿"),_L("ˍ"),
-_L("‘"),_L("ａ"),_L("ｂ"),_L("ｃ"),_L("ｄ"),_L("ｅ"),_L("ｆ"),_L("ｇ"),_L("ｈ"),_L("ｉ"),_L("ｊ"),_L("ｋ"),_L("ｌ"),_L("ｍ"),
-_L("ｎ"),_L("ｏ"),_L("ｐ"),_L("ｑ"),_L("ｒ"),_L("ｓ"),_L("ｔ"),_L("ｕ"),_L("ｖ"),_L("ｗ"),_L("ｘ"),_L("ｙ"),_L("ｚ"),_L("｛"),_L("｜"),_L("｝"),_L("～")
-};
 
 char *half_char_to_full_char(KeySym xkey)
 {
@@ -37,31 +30,16 @@ char *half_char_to_full_char(KeySym xkey)
 }
 
 
-void create_win0();
-void create_win1(), create_win_gtab(),create_win_pho();
-extern Window xwin0, xwin1, xwin_gtab, xwin_pho;
-
-
-void start_inmd_window()
+#if UNIX
+static void start_inmd_window()
 {
-
-  switch (default_input_method) {
-    case 3:
-      create_win_pho();
-      xim_arr[0].xim_xwin = xwin_pho;
-      break;
-#if USE_TSIN
-    case 6:
-      create_win0();
-      xim_arr[0].xim_xwin = xwin0;
-      break;
-#endif
-    default:
-      create_win_gtab();
-      xim_arr[0].xim_xwin = xwin_gtab;
-      break;
-  }
+  GtkWidget *win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_widget_realize (win);
+  GdkWindow *gdkwin0 = gtk_widget_get_window(win);
+  xim_arr[0].xim_xwin = GDK_WINDOW_XWINDOW(gdkwin0);
+  dbg("xim_xwin %x\n", xim_arr[0].xim_xwin);
 }
+#endif
 
 
 #if USE_XIM
@@ -217,17 +195,17 @@ int gcin_ProtoHandler(XIMS ims, IMProtocol *call_data)
      MyTriggerNotifyHandler((IMTriggerNotifyStruct *)call_data);
      return True;
   case XIM_PREEDIT_START_REPLY:
-#if DEBUG && 0
+#if DEBUG && 1
      dbg("XIM_PREEDIT_START_REPLY\n");
 #endif
      return True;
   case XIM_PREEDIT_CARET_REPLY:
-#if DEBUG && 0
+#if DEBUG && 1
      dbg("XIM_PREEDIT_CARET_REPLY\n");
 #endif
      return True;
   case XIM_STR_CONVERSION_REPLY:
-#if DEBUG && 0
+#if DEBUG && 1
      dbg("XIM_STR_CONVERSION_REPLY\n");
 #endif
      return True;
@@ -257,20 +235,15 @@ void open_xim()
           IMServerWindow,         xim_arr[0].xim_xwin,        //input window
           IMModifiers,            "Xi18n",        //X11R6 protocol
           IMServerName,           xim_arr[0].xim_server_name, //XIM server name
-#if 0
-          IMLocale,               xim_arr[0].server_locale,
-#else
           IMLocale,               lc,
-#endif
           IMServerTransport,      "X/",      //Comm. protocol
           IMInputStyles,          &im_styles,   //faked styles
           IMEncodingList,         &encodings,
           IMProtocolHandler,      gcin_ProtoHandler,
           IMFilterEventMask,      KeyPressMask|KeyReleaseMask,
           IMOnKeysList, &triggerKeys,
-//        IMOffKeysList, &triggerKeys,
           NULL)) == NULL) {
-          p_err("IMOpenIM '%s' failed. Maybe another XIM server is running.\n",
+          p_err_no_alert("IMOpenIM '%s' failed. Maybe another XIM server is running.\n",
           xim_arr[0].xim_server_name);
   }
 }
@@ -286,13 +259,19 @@ void change_win_gtab_style();
 void update_item_active_all();
 void destroy_inmd_menu();
 void load_gtab_list(gboolean);
+void change_win1_font();
+void set_wselkey(char *s);
 
 static void reload_data()
 {
   dbg("reload_data\n");
   load_setttings();
+  if (current_method_type()==method_type_TSIN)
+    set_wselkey(pho_selkey);
+
 //  load_tsin_db();
   change_win0_style();
+  change_win1_font();
   change_win_gtab_style();
 //  change_win_pho_style();
   load_tab_pho_file();
@@ -325,6 +304,7 @@ static void change_font_size()
   change_win0_style();
   change_win_gtab_style();
   update_win_kbm_inited();
+  change_win1_font();
 //  change_win_pho_style();
 }
 
@@ -349,14 +329,22 @@ void cb_trad_sim_toggle()
 }
 void execute_message(char *message), show_win_kbm(), hide_win_kbm();
 int b_show_win_kbm=0;
+void disp_win_kbm_capslock_init();
+
+void kbm_open_close(gboolean b_show)
+{
+  b_show_win_kbm=b_show;
+  if (b_show) {
+    show_win_kbm();
+    disp_win_kbm_capslock_init();
+  } else
+    hide_win_kbm();
+}
+
 void kbm_toggle()
 {
   win_kbm_inited = 1;
-  b_show_win_kbm^=1;
-  if (b_show_win_kbm)
-    show_win_kbm();
-  else
-    hide_win_kbm();
+  kbm_open_close(!b_show_win_kbm);
 }
 
 
@@ -508,9 +496,57 @@ gboolean delayed_start_cb(gpointer data)
   return FALSE;
 }
 
+void get_dpy_xyl()
+{
+	dpy_xl = gdk_screen_width(), dpy_yl = gdk_screen_height();
+}
+
+void screen_size_changed(GdkScreen *screen, gpointer user_data)
+{
+	get_dpy_xyl();
+}
+
+#include "lang.h"
+
+extern int destroy_window;
 
 int main(int argc, char **argv)
 {
+#if WIN32
+   putenv("PANGO_WIN32_NO_UNISCRIBE=1");
+#endif
+
+  char *destroy = getenv("GCIN_DESTROY_WINDOW");
+  if (destroy)
+    destroy_window = atoi(destroy);
+//  printf("GCIN_DESTROY_WINDOW=%d\n",destroy_window);
+
+  gtk_init (&argc, &argv);
+
+#if GTK_CHECK_VERSION(2,91,6)
+  static char css[]=
+"GtkButton\n"
+"{\n"
+"  border-width: 0;\n"
+"  padding: 0;\n"
+"  -GtkButton-inner-border: 0;\n"
+"}";
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_data(provider, css, -1, NULL);
+  gtk_style_context_add_provider_for_screen(gdk_display_get_default_screen(gdk_display_get_default()), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  g_object_unref(provider);
+#else
+static char button_rc[]="style \"button\"\n"
+"{\n"
+"   GtkButton::inner-border = {0,0,0,0}\n"
+"\n"
+"xthickness = 1\n"
+"ythickness = 0\n"
+"}\n"
+"class \"GtkButton\" style \"button\"";
+  gtk_rc_parse_string(button_rc);
+#endif
+
 #if UNIX
   signal(SIGCHLD, SIG_IGN);
   signal(SIGPIPE, SIG_IGN);
@@ -527,27 +563,22 @@ int main(int argc, char **argv)
 
 //putenv("GDK_NATIVE_WINDOWS=1");
 #if WIN32
-#if 1
-        typedef BOOL (WINAPI* pImmDisableIME)(DWORD);
-        pImmDisableIME pd;
-        HMODULE imm32=LoadLibraryA("imm32");
-//      printf("****** imm32 %x\n", imm32);
-        if (imm32 && (pd=(pImmDisableIME)GetProcAddress(imm32, "ImmDisableIME"))) {
-//              puts("imm loaded");
-                (*pd)(0);
-        }
-#endif
+  typedef BOOL (WINAPI* pImmDisableIME)(DWORD);
+  pImmDisableIME pd;
+  HMODULE imm32=LoadLibraryA("imm32");
+  if (imm32 && (pd=(pImmDisableIME)GetProcAddress(imm32, "ImmDisableIME"))) {
+     (*pd)(0);
+  }
   init_gcin_program_files();
   init_gcin_im_serv();
 #endif
 
-#if USE_XIM
+  set_is_chs();
+
+#if UNIX
   char *lc_ctype = getenv("LC_CTYPE");
   char *lc_all = getenv("LC_ALL");
   char *lang = getenv("LANG");
-
-  dbg("gcin get env LC_CTYPE=%s  LC_ALL=%s  LANG=%s\n", lc_ctype, lc_all, lang);
-
   if (!lc_ctype && lang)
     lc_ctype = lang;
 
@@ -556,7 +587,10 @@ int main(int argc, char **argv)
 
   if (!lc_ctype)
     lc_ctype = "zh_TW.Big5";
+  dbg("gcin get env LC_CTYPE=%s  LC_ALL=%s  LANG=%s\n", lc_ctype, lc_all, lang);
+#endif
 
+#if USE_XIM
   char *t = strchr(lc_ctype, '.');
   if (t) {
     int len = t - lc_ctype;
@@ -570,13 +604,10 @@ int main(int argc, char **argv)
   else
     lc = lc_ctype;
 
-
   char *xim_server_name = get_gcin_xim_name();
 
   strcpy(xim_arr[0].xim_server_name, xim_server_name);
-#endif
 
-#if USE_XIM
   dbg("gcin XIM will use %s as the default encoding\n", lc_ctype);
 #endif
 
@@ -588,7 +619,6 @@ int main(int argc, char **argv)
   load_setttings();
   load_gtab_list(TRUE);
 
-  gtk_init (&argc, &argv);
 
 #if GCIN_i18n_message
   bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
@@ -601,7 +631,8 @@ int main(int argc, char **argv)
   dpy = GDK_DISPLAY();
   root=DefaultRootWindow(dpy);
 #endif
-  dpy_xl = gdk_screen_width(), dpy_yl = gdk_screen_height();
+  get_dpy_xyl();
+  g_signal_connect(gdk_screen_get_default(),"size-changed", G_CALLBACK(screen_size_changed), NULL);
 
   dbg("display width:%d height:%d\n", dpy_xl, dpy_yl);
 
@@ -637,6 +668,9 @@ int main(int argc, char **argv)
 #endif
 
   dbg("before gtk_main\n");
+
+  disp_win_kbm_capslock_init();
+
   gtk_main();
 
   return 0;

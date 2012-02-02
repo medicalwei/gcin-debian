@@ -10,27 +10,14 @@
 
 GtkWidget *hbox_buttons;
 char current_str[MAX_PHRASE_LEN*CH_SZ+1];
-PIN_JUYIN *pin_juyin;
-int pin_juyinN;
-PHOKBM phkbm;
-PHO_ST poo;
-TSIN_ST tss;
-int text_pho_N;
 
-gboolean b_pinyin;
+gboolean b_pinyin, is_chs;
 
 static GtkClipboard *pclipboard;
 
 GtkWidget *mainwin;
 GtkTextBuffer *buffer;
 
-void bell()
-{
-}
-
-void key_typ_pho(phokey_t phokey, u_char rtyp_pho[])
-{
-}
 
 void do_exit()
 {
@@ -48,31 +35,7 @@ void all_wrap()
   gtk_text_buffer_apply_tag_by_name (buffer, "char_wrap", &mstart, &mend);
 }
 
-char *phokey2pinyin(phokey_t k)
-{
-  static char tt[32];
-  phokey_t tonemask = 7;
-
-  int i;
-  for(i=0; i < pin_juyinN; i++) {
-
-    if ((k & ~tonemask) == pin_juyin[i].key)
-      break;
-  }
-
-  if (i==pin_juyinN)
-    strcpy(tt, "??");
-  else {
-static char tone[2];
-    tone[0] = (k & tonemask) + '0';
-    strcpy(tt, pin_juyin[i].pinyin);
-
-    if (tone[0]!='0')
-      strcat(tt, tone);
-  }
-
-  return tt;
-}
+char *phokey2pinyin(phokey_t k);
 
 static void selection_received(GtkClipboard *pclip, const gchar *text, gpointer data)
 {
@@ -131,7 +94,6 @@ gboolean cb_button_fetch()
   return TRUE;
 }
 
-void load_pin_juyin();
 void set_window_gcin_icon(GtkWidget *window);
 
 #if WIN32
@@ -139,6 +101,8 @@ void init_gcin_program_files();
 #pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 void init_TableDir();
 #endif
+
+gboolean is_pinyin_kbm();
 
 int main(int argc, char **argv)
 {
@@ -153,16 +117,7 @@ int main(int argc, char **argv)
   textdomain(GETTEXT_PACKAGE);
 #endif
 
-  char kbm_str[32];
-  get_gcin_conf_fstr(PHONETIC_KEYBOARD, kbm_str, "zo-asdf");
-#if 1
-  b_pinyin = strstr(kbm_str, "pinyin") != NULL;
-#else
-  b_pinyin = 1;
-#endif
-
-  if (b_pinyin)
-    load_pin_juyin();
+  b_pinyin = is_pinyin_kbm();
 
   pho_load();
 
@@ -177,9 +132,12 @@ int main(int argc, char **argv)
                                   GTK_POLICY_AUTOMATIC);
 
   GtkWidget *vbox_top = gtk_vbox_new (FALSE, 0);
+  gtk_orientable_set_orientation(GTK_ORIENTABLE(vbox_top), GTK_ORIENTATION_VERTICAL);
   gtk_container_add (GTK_CONTAINER(mainwin), vbox_top);
 
   GtkWidget *view = gtk_text_view_new ();
+  gtk_widget_set_hexpand (view, TRUE);
+  gtk_widget_set_vexpand (view, TRUE);
   gtk_container_add (GTK_CONTAINER(sw), view);
 
   gtk_box_pack_start (GTK_BOX (vbox_top), sw, TRUE, TRUE, 0);
@@ -200,7 +158,7 @@ int main(int argc, char **argv)
   g_signal_connect (G_OBJECT (button_fetch), "clicked",
      G_CALLBACK (cb_button_fetch), NULL);
 
-  GtkWidget *button_exit = gtk_button_new_with_label(_(_L("離開")));
+  GtkWidget *button_exit = gtk_button_new_from_stock(GTK_STOCK_QUIT);
   gtk_box_pack_start (GTK_BOX (hbox_buttons), button_exit, FALSE, FALSE, 0);
   g_signal_connect (G_OBJECT (button_exit), "clicked",
      G_CALLBACK (do_exit), NULL);

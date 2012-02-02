@@ -16,81 +16,23 @@
 #if UNIX
 #define _(STRING) (STRING)
 #else
+#if _USRDLL
+#define _(x) gmf.mf__utf16_8(x)
+#else
 #define _(x) __utf16_8(x)
+#endif
 #endif
 #endif
 
 #define N_(STRING) STRING
 
-#if !GTK_CHECK_VERSION(2,13,4)
-#define gtk_widget_get_window(x) (x)->window
-#define gtk_color_selection_dialog_get_color_selection(x) (x)->colorsel
-#endif
-
-#if !GTK_CHECK_VERSION(2,15,0)
-#define gtk_status_icon_set_tooltip_text(x,y) gtk_status_icon_set_tooltip(x,y)
-#endif
-
-#if GTK_CHECK_VERSION(2,17,5)
-#undef GTK_WIDGET_NO_WINDOW
-#define GTK_WIDGET_NO_WINDOW !gtk_widget_get_has_window
-#undef GTK_WIDGET_SET_FLAGS
-#define GTK_WIDGET_SET_FLAGS(x,y) gtk_widget_set_can_default(x,1)
-#endif
-
-#if GTK_CHECK_VERSION(2,17,7)
-#undef GTK_WIDGET_VISIBLE
-#define GTK_WIDGET_VISIBLE gtk_widget_get_visible
-#endif
-
-#if GTK_CHECK_VERSION(2,17,10)
-#undef GTK_WIDGET_DRAWABLE
-#define GTK_WIDGET_DRAWABLE gtk_widget_is_drawable
-#endif
-
-#if GTK_CHECK_VERSION(2,19,5)
-#undef GTK_WIDGET_REALIZED
-#define GTK_WIDGET_REALIZED gtk_widget_get_realized
-#endif
-
-#if GTK_CHECK_VERSION(2,21,8)
-#undef GDK_DISPLAY
-#define GDK_DISPLAY() GDK_DISPLAY_XDISPLAY(gdk_display_get_default())
-#endif
-
-#if GTK_CHECK_VERSION(2,91,0)
-#define GTK_OBJECT
-#endif
-
-#if !GTK_CHECK_VERSION(2,91,1)
-#define gtk_window_set_has_resize_grip(x,y);
-#endif
-
-#ifndef GTK_COMBO_BOX_TEXT
-#define GTK_COMBO_BOX_TEXT GTK_COMBO_BOX
-#endif
-
-#if GTK_CHECK_VERSION(2,91,2)
-#define gtk_combo_box_new_text gtk_combo_box_text_new
-#define gtk_combo_box_append_text gtk_combo_box_text_append_text
-#define gtk_widget_hide_all gtk_widget_hide
-#endif
-
-#if GTK_CHECK_VERSION(2,91,6)
-#define GDK_WINDOW_XWINDOW GDK_WINDOW_XID
-#endif
-
-#if GTK_CHECK_VERSION(2,91,7)
-#define gdk_window_lookup_for_display gdk_x11_window_lookup_for_display
-#endif
+#include "gcin-gtk-compatible.h"
 
 typedef enum {
   GCIN_STATE_DISABLED = 0,
   GCIN_STATE_ENG_FULL = 1,
   GCIN_STATE_CHINESE = 2
 } GCIN_STATE_E;
-
-
 
 /* change 3 to 4 if you want to use 4-byte UTF-8 characters, but you must
    regenerate *.gtab tsin
@@ -117,7 +59,7 @@ void *memdup(void *p, int n);
 extern Display *dpy;
 #endif
 
-
+extern char *TableDir;
 extern GtkWidget *gwin0;
 extern GdkWindow *gdkwin0;
 extern Window xwin0;
@@ -203,7 +145,7 @@ Atom get_gcin_atom(Display *dpy);
 void get_sys_table_file_name(char *name, char *fname);
 char *half_char_to_full_char(KeySym xkey);
 void send_text(char *text);
-void sendkey_b5(char *bchar);
+void send_utf8_ch(char *bchar);
 void send_ascii(char key);
 void bell();
 void set_label_font_size(GtkWidget *label, int size);
@@ -219,6 +161,7 @@ void change_win_fg_bg(GtkWidget *win, GtkWidget *label);
 void set_no_focus(GtkWidget *win);
 void change_win_bg(GtkWidget *win);
 gboolean gcin_edit_display_ap_only();
+gboolean gcin_display_on_the_spot_key();
 void char_play(char *utf8);
 void skip_utf8_sigature(FILE *fp);
 #if WIN32
@@ -227,9 +170,6 @@ void win32_init_win(GtkWidget *win);
 #endif
 
 #define BITON(flag, bit) ((flag) & (bit))
-
-extern int gcin_switch_keysN;
-extern char gcin_switch_keys[];
 
 typedef int usecount_t;
 

@@ -7,10 +7,13 @@
 #include "pho.h"
 #include "gcin-conf.h"
 
+gboolean is_chs;
 
 int main(int argc, char **argv)
 {
   int i;
+
+  gtk_init(&argc, &argv);
 
   load_setttings();
 

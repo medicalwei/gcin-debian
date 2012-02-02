@@ -2,6 +2,8 @@ include ../config.mak
 
 OBJS = imgcin.o gtkimcontextgcin.o
 GTK2IM=gtk-2.0/immodules
+GTKINC=`pkg-config --cflags gtk+-2.0`
+LDFLAGS=`pkg-config --libs gtk+-2.0`
 IMMODULES=$(libdir)/$(GTK2IM)
 IMMODULES_LOCAL=/usr/$(LIB)/$(GTK2IM)
 
@@ -13,10 +15,6 @@ endif
 .SUFFIXES:	.c .o .E
 CFLAGS = $(OPTFLAGS) $(EXTRA_INC) $(GTKINC) -I../im-client -I.. -DUNIX=1 \
 -I../IMdkit/include -DCLIENT_LIB=1 -DMAC_OS=$(MAC_OS) -DFREEBSD=$(FREEBSD)
-
-ifeq ($(NEW_GTK_IM),Y)
-CFLAGS += -DNEW_GTK_IM=1
-endif
 
 .c.o:
 	$(CC) -c -fPIC $(CFLAGS) -o $@ $<

@@ -57,7 +57,6 @@ u_char scanphr_e(int chpho_idx, int plen, gboolean pho_incr, int *rselN)
 
   u_int64_t pp64[MAX_PHRASE_LEN + 1];
   phokey_t *pp = (phokey_t*)pp64;
-  u_int *pp32 = (u_int *)pp64;
 
   if (ph_key_sz==2) {
     extract_pho(chpho_idx, plen, pp);
@@ -223,7 +222,7 @@ void tsin_scan_pre_select(gboolean b_incr)
   if (Maxlen > MAX_PHRASE_LEN)
     Maxlen = MAX_PHRASE_LEN;
 
-  int len, selN, pre_selN=0, max_len=-1, max_selN=-1;
+  int len, selN, max_len=-1, max_selN=-1;
   for(len=1; len <= Maxlen; len++) {
     int idx = tss.c_len - len;
     if (tss.chpho[idx].flag & FLAG_CHPHO_PHRASE_TAIL) {
@@ -241,8 +240,10 @@ void tsin_scan_pre_select(gboolean b_incr)
 
 //  dbg("max_len:%d  max_selN:%d\n", max_len, max_selN);
 
-  if (max_len < 0 || max_selN >= strlen(pho_selkey) * 2)
+  if (max_len < 0 || max_selN >= strlen(pho_selkey) * 2) {
+    tss.pre_selN=0;
     return;
+  }
 
   scanphr_e(tss.c_len - max_len, max_len, b_incr, &selN);
 

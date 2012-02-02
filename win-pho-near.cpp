@@ -70,6 +70,7 @@ static void cb_sel (GtkWidget *button, gpointer user_data)
   close_win_pho_near();
 }
 
+char *phokey2pinyin(phokey_t k);
 
 void create_win_pho_near(phokey_t pho)
 {
@@ -93,6 +94,7 @@ gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_pho_near), FALSE);
   gtk_container_add(GTK_CONTAINER (gwin_pho_near), frame);
 
   GtkWidget *vbox_top = gtk_vbox_new (FALSE, 0);
+  gtk_orientable_set_orientation(GTK_ORIENTABLE(vbox_top), GTK_ORIENTATION_VERTICAL);
   gtk_container_add (GTK_CONTAINER (frame), vbox_top);
   gtk_container_set_border_width (GTK_CONTAINER (vbox_top), 0);
 
@@ -116,7 +118,9 @@ gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_pho_near), FALSE);
       for (mtyp_pho[3]=0;  mtyp_pho[3]< 5; mtyp_pho[3]++) {
 //      dbg("  %d\n",mtyp_pho[2]);
         phokey_t pk = pho2key(mtyp_pho);
-        char *pho_str = phokey_to_str(pk);
+        char *pho_str = pin_juyin ?
+        phokey2pinyin(pk):phokey_to_str(pk);
+
         int start_i, stop_i;
 
         if (!get_start_stop_idx(pk, &start_i, &stop_i))
@@ -163,6 +167,9 @@ gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_pho_near), FALSE);
   }
 
   gtk_widget_show_all(gwin_pho_near);
+#if WIN32
+  gtk_window_present(GTK_WINDOW(gwin_pho_near));
+#endif
 }
 
 void close_win_pho_near()

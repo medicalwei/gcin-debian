@@ -1,139 +1,244 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="zh-tw"><head>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Changlog</title><meta content="Edward Liu" name="author"></head><body>** UTF-8 encoding **<br>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Changlog</title><meta content="Edward Liu" name="author"></head><body style="outline-color: navy ! important; outline-style: dashed ! important; outline-width: 2px ! important;">** UTF-8 encoding **<br>
+2.7.1<br>
+- 把 EN &amp; 符號表從循環中拿掉。<br>
+- update icons from ziyawu<br>
+- gtab.list from winlin<br>
+<br>
+2.7.0<br>
+- 切換到 latin letters 輸入法可能當掉<br>
+- gen-deb 有關 QT4_IM_MODULE environ variable 設定的錯誤<br>
+- 詞音的選字 menu 的 cursor 現在會從第2個字開始。<br>
+- KDE&nbsp; 'Maybe another XIM server is running' 拿掉了<br>
+- <a href="http://hyperrate.com/thread.php?tid=26213">KDE 在 ArchLinux </a>&amp; SUSE 的問題<br>
+<br>
+2.6.9<br>
+- gcin-tool → 內定輸入法開啟/關閉 → 使用 關閉時，也會自動把循環關閉。<br>
+- 注音鍵盤選擇鍵改成 123456789<br>
+- 左鍵 click status icon 改成選擇輸入法了，EN(英數) 可以在裏面選，有需要者刪除 ~/.gcin/gtab.list 重新設定。status icon menu 裡的選擇輸入法項目刪除。<br>
+- 內定改成中文輸入狀態<br>
+- ts-edit find 的改進<br>
+<br>
+2.6.8<br>
+- 在 status icon menu 選擇輸入法→符號表，可以開啟符號表了。<br>
+- compiling errors<br>
+<br>
+2.6.7<br>
+- 加強 warning，這樣 user 才看得到，不需要去看 terminal 的 message<br>
+- 新增結尾標點符號自動送出編輯區內容的選項，在內定輸入法 開啟/關閉<br>
+- .cin 新增 %flag_press_full_auto_send (按滿自動送字)、%flag_unique_auto_send(唯一選擇時自動送字)&nbsp; 的選項，可以在 gcin-tools 中改掉<br>
+<br>
+2.6.6<br>- 在 firefox 使用 facebook &amp; 露天搜尋有些不正常<br>
+<br>
+2.6.5<br>
+- 用 gcin-tools 設定使用、內定輸入法、循環時，在行列等一個 key bind 多個輸入法時會亂掉<br>
+<br>
+2.6.3<br>
+- .cin 新增&nbsp; %flag_vertical_selection，gtab設定的垂直選擇也改成可以用 .gtab 指定<br>
+<br>
+2.6.2<br>
+- 詞音的 shift+[] 改成 output 「」<br>
+-<a href="http://hyperrate.com/thread.php?tid=23300"> 新增行列31輸入法</a>，主要特點是支援直接用1234567890來選擇預選詞，不用按shift。符號輸入改成 'a 's 'd…<br>
+- 預覽/預選字 &amp; 顯示部份符合的字 改成選項，可以由 .gtab 指定。 .cin 中的選項是
+%flag_disp_partial_match %flag_disp_full_match，目前 ar30-big.cin,
+ar30.cin, greek.cin, hangul.cin, latin-letters.cin 有設定。<br>
+<br>
+2.6.1<br>
+- 在某些 display manger 無法 login 的問題<br>
+- 現在改成 uid&gt;0 &amp;&amp; uid&lt;500 時這些 special user 不會執行 gcin<br>
+- gcin-tools 有關 gtab 設定現在有 help button&nbsp; link 的 <a href="http://hyperrate.com/thread.php?tid=25947">winlin 提供的 help 文件</a><br>
+<br>
+2.6.0<br>
+- Ubuntu unity 輸入 window 右下方有小方塊<br>
+- 修改 內附的 gen-deb 的一些 bug。<br>
+<br>
+2.5.4<br>
+- 預選詞選單更改 font size，<a href="http://hyperrate.com/thread.php?tid=25840">不會立即反應<br>
+</a><br>
+2.5.3<br>
+- 用倚天26鍵注音，用','輸入'，'，按 shift enter 加入到詞庫，會導致詞庫毀損無法編輯。<br>
+<br>
+2.5.2<br>
+- 現在 gcin 有給 fedora rpmbuild 用的 gcin-fedora.spec<br>
+- gcb histroy window 現在不會在 LXDE/openbox 的task bar 顯示了。<br>
+- gcb 現在可以設定儲存格 &amp; 歷史格的數量了。<br>
+<br>
+<br>
+2.5.1<br>
+- 單一 icon menu 無法顯示的問題。<br>
+2.5.0<br>
+- <a href="http://hyperrate.com/thread.php?tid=25721#25721">Tetralet 有關 gtab </a>顏色的顯示。<br>
+- gcin-tools 勾選「取代主題顏色」不會馬上變色。<br>
+<br>
+2.4.4<br>
+- 純注音也內定改成 button，也可以用 echo 0 &gt; ~/.gcin/config/gtab-in-area-button 改成用 event box<br>
+- <a href="http://hyperrate.com/thread.php?tid=25715#25715">caleb 提供</a>的 gtk3 button css<br>
+<br>
+2.4.3<br>
+- <a href="http://hyperrate.com/thread.php?tid=25699#25699">Tetralet 提供的</a> gtab window patch<br>
+<br>
+2.4.2<br>
+- gtab window 現在內定改成 button 了，而且找到設定 inner border 的方法，所以 button 比較小了。詞音的注音輸入區字型可以 +4 點，否則 Window 的高度會變成忽大忽小。<br>
+<br>
+2.4.1<br>
+- 現在可以用 echo 1 &gt; ~/.gcin/config/gtab-in-area-button&nbsp; 設定 <a href="http://hyperrate.com/thread.php?tid=25674#25674">gtab 輸入區用 button</a><br>
+<br>
+2.4.0<br>
+- 按status icon 全半形右鍵選單後容易當掉的問題<br>
+<br>
+2.3.2<br>
+- 還原成 event_box 的方式，也<a href="http://hyperrate.com/thread.php?tid=25668#25668">解決了空白的問題</a><br>
+- <a href="http://hyperrate.com/thread.php?tid=25680">Tetralet 的 gtab 輸入法狀態</a><br>
+<br>
+2.3.1<br>
+- 把 gtab <a href="http://hyperrate.com/thread.php?tid=25661#25661">輸入區改成用 button的方式</a>，看是否可以避免空白區域的問題。<br>
+<br>
+2.3.0<br>
+- export GCIN_DESTROY_WINDOW=1 可以設定 gcin 關閉 window 時 destroy Window，可能可以避免輸入區出現空白的情形，不過這樣 window 比較容易閃爍。<br>
+<br>
+2.2.2<br>
+- ctrl-alt 切換輸入法的問題<br>
+<br>
+2.2.1<br>
+- Windows 的小鍵盤不正常重覆按鍵。<br>
+- 輸入法選單第一個輸入法不會顯示的問題。<br>
+<br>
+2.2.0<br>
+- <a href="http://hyperrate.com/thread.php?tid=25561">新增韓文</a>輸入法，有需要者自行 edit gtab.list<br>
+- ctrl-alt- 輸入法現在可以任意 bind 到任何 key 了，如果 key 有重覆，仍然可以用 menu 選擇<br>
+- 輸入法切換 menu 現在會顯示 icon 了。<br>
+<br>
+2.1.0<br>
+- gcin windows 內碼也改成 module.dll 的方式。<br>
+<br>
+2.0.0<br>
+- Rename gcin-setup → gcin-tools，因為不是安裝的程式。<br>
+- gcin 內定的字型改成粗體字(Sans Bold)<br>
+<br>
+1.8.0<br>
+- <a href="http://hyperrate.com/thread.php?tid=20442">現在可以設定粗體字了</a><br>
+<br>
+1.7.2<br>
+- <a href="http://hyperrate.com/thread.php?tid=25511">停止「↑」鍵功能</a>的選項在Libreoffice中連選到上一行的功能都停掉了<br>
+<br>
+1.7.1<br>
+- <a href="http://hyperrate.com/thread.php?tid=25179">Ctrl-Shift</a> 循環 chewing module 會當掉的問題<br>
+- <a href="http://hyperrate.com/thread.php?tid=25196">gtab 全形 </a>？ 無法輸入的問題<br>
+- gcb 用 mouse drag select 時，會把不完整的字串存進去。<br>
+- 在 Chrome 切換 Tab 時，status icon 英數狀態顯示錯誤。<br>
+- <a href="http://hyperrate.com/thread.php?tid=25336">新增「內定輸入法開啟→不記憶個別程式的輸入法狀態」的選項</a>。<br>
+- gcb 顯示現在會顯示完整的字，不會顯示方塊出來。<br>
+- 純注音按 Capslock 切到英數，按 Shift 出現亂碼。<br>
+- gcin Windows 無法使用「拼音」鍵盤的問題。<br>
+- 使用拼音來編輯詞庫時容易詞庫毀損的問題。<br>
+- 新增「↑鍵近似音查詢」的選項以<a href="http://hyperrate.com/thread.php?tid=25476">解決ubuntu 11.10會當掉</a>的問題。<br>
+- 詞音↑鍵近似音查詢現在支援拼音顯示了。<br>
+- 拼音按 Backspace 清除輸入不會自動隱藏 windows<br>
+- 使用 status icon&nbsp; 選單快速切換注音鍵盤會當掉的問題。<br>
+- 把內碼輸入法變成 module了。<br>
+<br>
+1.7.0<br>
+- 用 gcc 4.4.3&nbsp; -O compile gcin，按 tray 全半形 menu 會當掉的問題。<br>
+<br>
+1.6.9<br>
+- ts-edit key區 用藍色顯示，這樣比較清楚。<br>
+- tsa2d32 現在會 popup dialog 顯示錯誤行數<br>
+- 「標點簡易」現在可以新增有 A-Z,0-9的詞了，其他的輸入法也需要定義 A-Z,0-9 的按鍵。<br>
+- phod2a&nbsp; &gt; pho.tab2.src dump出來的注音原始表格有亂碼的問題。 <br>
+- 使用gtab詞庫自動選字，如果用 `鍵 同音字查詢且有選字的情形，則` 同音字查詢 不正常。<br>
+- <a href="http://hyperrate.com/thread.php?tid=25113">qt4 程式</a>字殘留的問題。<br>
+- 在 linux google chrome tinymce editor 按middle button paste 會把 clipboard設定成 BOM BOM(\xef\xbb\xbf)，gcb 現在不會存這個 BOMBOM 了。<br>
+<br>
+1.6.8:<br>
+-&nbsp; Gdk-CRITICAL **: gdk_drawable_get_screen: assertion `GDK_IS_DRAWABLE (drawable)' failed<br>
+<br>
+1.6.7:<br>
+- <a href="http://hyperrate.com/thread.php?tid=24725">arch linux 的</a> gnome segfault 問題<br>
+<br>
+1.6.6:<br>
+- source code <a href="http://hyperrate.com/thread.php?tid=24699">改用 xz 壓縮</a>。解壓縮用 tar xvfJ gcin??.tar.xz<br>
+- <a href="http://hyperrate.com/thread.php?tid=24711">某些程式</a>用 gtk-im 會當掉<br><br>
+<br>
+1.6.5:<br>
+- gtab 輸入法的詞庫現在也可以用 tslearn 來從文章中學習新詞了。<br>
+- 自動選字的詞庫編輯改用 ts-edit，不用 text editor 了。<br>
+- 簡易輸入法改成<a href="http://hyperrate.com/thread.php?tid=16772#16772">winlin提供</a>的標點簡易，原本的舊簡易保留。<br>
+- <a href="http://hyperrate.com/thread.php?tid=24528">Tetralet 提供</a>的 GTK 2.12 patch<br>
+- 老刀提供的<a href="http://hyperrate.com/thread.php?tid=24556#24556">新的行列輸入法</a>.cin<br>
+- <a href="http://hyperrate.com/thread.php?tid=24641">純注音 \ 無法輸入</a>的問題。<br>
+- Chrome 輸入 window 位置不對的問題。<br>
+<br>
+1.6.4:<br>
+- <a href="http://hyperrate.com/thread.php?tid=23406">切換輸入法</a>時不會關閉 gtab 預選詞 window<br>
+- 內碼輸入法在 Linux 不會顯示 window<br>
+- 詞音在 gcin window 的編輯區按右鍵可以加詞到詞庫。<br>
+- tray menu 現在也有「關於gcin」了<br>
+- <a href="http://hyperrate.com/thread.php?tid=23556">gtab 不會顯示</a>輸入法名稱<br>
+- <a href="http://hyperrate.com/thread.php?tid=23552">&gt;= 64 keys</a> 的cin 如果使用「使用者外加字詞」會出問題。必須再編輯重新產生 append.gtab<br>
+- <a href="http://hyperrate.com/thread.php?tid=23571#23571"><b>desty</b></a><a href="http://hyperrate.com/thread.php?tid=23571#23571"> 提供的實驗性質</a>的新酷音module<br>
+- <a href="http://hyperrate.com/thread.php?tid=23577">gtab 編輯區顯示</a>於應用程式的選字window的問題。<br>
+- anthy日文輸入插入字會當掉。<br>
+- gtab 用 Shift 選擇預選詞會造成切換英數。<br>
+- 純注音(ctrl-alt-3) &amp; 26鍵 現在可以按 ,./;' 輸入 ，。？；、 了<br>
+- 純注音(ctrl-alt-3) 可以用 [] 輸入各種括號了，也可以用 &lt;&gt;?:" 輸入，。？：；：<br>
+- 注音鍵盤如果是用拼音，現在詞庫編輯時會改用拼音。<br>
+- LC_CTYPE or LC_ALL 設定成 zh_CN 現在會進入簡體中文。詞庫 &amp; 注音的 table 會改成用簡體的 s-pho.tab2, s-tsin32，內定注音輸入法是拼音。<br>
+- 純注音不會顯示聲調符號的問題。<br>
+- 純注音現在不會處理 ctrl 鍵了，所以 ctrl-A&nbsp; ctrl-S&nbsp; 現在可以用了。<br>
+- <a href="http://hyperrate.com/thread.php?tid=23826">因為某些 distribution</a> 強迫 .so 只能放在 /usr/lib，anthy-module.so chewing-module.so 搬到 /usr/lib/gcin<br>
+- ctrl-alt-3 純注音 Capslock 開啟的狀態可用來輸入英數。<br>
+- 簡易(速成」等輸入法用自動選字按滿不會自動送字的問題。<br>
+- <a href="http://hyperrate.com/thread.php?tid=24046">簡易自動選字手動選字</a>的問題。<br>
+- gtab 自動選字也可以按 page down 打開選字頁了。<br>
+- 注音新增「拼音無聲調」，這樣就可以用12345 選擇預選詞了。<br>
+<br>
+1.6.3<br>
+- 加回空白視窗(小灰) 的 gtk_bug_fix.o<br>
+<br>
+1.6.2<br>
+- 從全半形icon開啟小鍵盤會導致menu打勾顯示不一致。<br>
+- 純注音&amp;內碼輸入在 firefxo 4 一開始 gcin window 位置不對的問題。<br>
+- anthy 日文無法用 Shift 切換中英的問題。<br>
+- gtab 不會顯示頁數的問題<br>
+<br>
+1.6.1<br>
+- gtab.list ctrl-alt-4 與 ctrl-alt-, 交換，可以修改 gtab.list 決定要綁在那一個鍵上。如果發現符號表不見，請參考最新的 gtab.list。<br>
+- gtab 現在可以選擇 Shift or CapsLock 切換中英。<br>
+- linux firefox 4 一開始 gcin window 位置不對的問題。im-gcin.so &amp; libgcin-im-client.so 也必須一起更新，否則可能會不正常。<br>
+- gtab shift+key 如果有定義，則以 gtab 優先，不以預選詞優先。<br>
+- gcb 設定的 clipboard 內容， chrome 的 editor(例如 tinymce) ctrl-V 無法貼上的問題。<br>
+- <a href="http://hyperrate.com/thread.php?tid=22874#22874">gtab &amp; 純注音視窗美化</a><br>
+- tray 全半形切換 icon 可在 gcin-setup 中設定要切換半全形 or 切換小鍵盤。<br>
+- anthy 改成外部的 module anthy-module.so 了，有興趣自己開發輸入法 module 者可以參考 anthy.cpp <br>- gtab 選擇鍵現在最多可以到16鍵<br>
+- <a href="http://hyperrate.com/thread.php?tid=22967#22967">latin-letters</a> 新增一些字母<br>
+- <a href="http://hyperrate.com/thread.php?tid=22981">小鍵盤現在會顯示</a> CapsLock 的狀態了。<br>
+- 詞音按 Shift- 現在會出現破折號 —<br>
+- gtab 預選詞垂直顯示改與詞音一樣的獨立 window，超過螢幕範圍會自動換邊。<br>
+- gtab 現在可以用 mouse 點選預選詞了。<br>
+- gtab <a href="http://hyperrate.com/thread.php?tid=23252">不會顯示</a>拆字的問題。<br>
+- <a href="http://hyperrate.com/thread.php?tid=23272">gtab 無法用</a> shift-enter 增加詞<br>
+<br>
+1.6.0<br>
+- 螢幕變換解析度後 gcin 的邊界現在會更新了<br>
+- <a href="http://hyperrate.com/thread.php?tid=22500">gtab 預選詞</a>的字型大小現在與詞音的相同<br>
+- 點選符號表中的希臘字母會當掉的問題。<br>
+- <a href="http://hyperrate.com/thread.php?tid=22545">按鍵顯示在應用程式」時</a>，gtab預選詞就出不來<br>
+- <a href="http://hyperrate.com/thread.php?tid=22523">「預覽/預選 字」和「預選列中顯示部份符合的字」關閉</a>後，現在可以不用 Shift 選預選詞。<br>
+- 詞音的注音鍵盤如果選「倚天26]或「許氏」且選字鍵用1234，現在可以不用按 Shift 就可以選預選詞了。<br>
+- 許式、倚天26鍵、拼音用 ,./' 來輸入「，。？、」現在會自動送出編輯區的內容了。拼音'.'輸入輕聲請改用'5'。<br>
+- 注音選擇鍵新增5432167890的方式，這樣可以減少用小指按。<br><br>
 1.5.9<br>
 - 詞音的預選詞的按鍵更快速了。由於可以預選詞的情形大幅度增加，請注意你的手指不要按受傷了。<br>
 - 拼音新增不少近似英文發音的拼法，以方便沒學過拼音的人。例如 jong ㄓㄨㄥ jua ㄓㄨㄚ tseng ㄘㄥㄎ。<a href="http://hyperrate.com/thread.php?tid=22354">詳細列表在此</a><br>
 - 詞音&amp;gtab 輸入法除了使用 shift 去選預選詞(關連詞)之外，現在也可以按 Ctrl&amp;馬上放開，然後按選擇鍵的方式。Ctrl 馬上放開的方式會比較省力。<br>
+- <a href="http://hyperrate.com/thread.php?tid=22469#22469">gtab 預選詞</a>使用垂直顯示時會多空白列的問題。<br>
 <br>
 1.5.8:<br>
 - 詞音用 shift,./; 輸入標點符號不正常的情形<br>
 <br>
-<br>
 1.5.7:<br>
-
 - 詞音&amp;注音的單字注音現在可以定義詞了，目前定義有「ㄉㄧㄤ」「ㄉㄨㄞ」「ㄘㄟˋ」「ㄎㄧㄤ」了，只要直接輸入注音就可以，不用每個注音都按空白鍵。注音的檔案換成 pho.tab2 pho-huge.tab2，使用頻率從新開始計數排序。<br>
-
 - <a href="http://hyperrate.com/thread.php?tid=20847#20847">編輯區顯示設定成</a>「應用程式」則無法按 ` 查詢同音字的問題。<br>
 - 詞音keypad 的+-現在會加到編輯區了。<br>
 - 詞音的拼音改用一般可不輸入聲調且不用按空白的拼音。要輸入聲調也可以，1234鍵為對應的聲調，5為輕聲。<a href="http://hyperrate.com/thread.php?tid=3613">前導字元</a>輸入標點符號也可以用了。 <br>
@@ -163,9 +268,7 @@
 <br>
 1.5.6:<br>
 - 小鍵盤現在英數模式會顯示！@#$ 等按鍵了。<br>
-
 - anthy 日文輸入 page up/down 非選擇狀態仍然無法使用的問題。<br>
-
 - anthy 現在按F7可以切換到全形片假名，再按F7可以還原到平假名。按F8可以切換到半形片假名，再按F8可以還原到平假名。<br>
 - <a href="http://hyperrate.com/thread.php?tid=20304">小鍵盤現在可以</a>按住不放自動重覆按鍵了。<br>
 - 小鍵盤現在可以設定字型的大小了。<br>
@@ -260,8 +363,6 @@
 </ul>- 在 XIM 中可以用 Shift 切換詞音的中/英了。<br>
 - XIM 在某些 locale 無法使用的情形<br>
 <br>
-
-
 1.4.6:<br>- <a href="http://hyperrate.com/thread.php?tid=10751">gtab 自動選字時</a>，手動選字的問題。<br>- gtab shift+字母 改成大寫輸出<br>- <a href="http://hyperrate.com/edit.php?parent=10789">.cin 現在支援</a> %flag_auto_select_by_phrase 選項，有了這個表示產生的 .gtab 會自動啟用由詞庫自動選字。gcin-setup 中可以強迫開啟or關閉。<br>- <a href="http://hyperrate.com/thread.php?tid=10871#10871">gtab 詞庫自動選字</a>現可以用空白鍵送出編輯區的內容。<br>- <a href="http://hyperrate.com/thread.php?tid=10848#10848">pcmanx 無法顯示編輯區</a>的問題。<br>- mozilla thunderbird&nbsp;選單不正常的問題。<br>- 詞音注音選字時也可以用 mouse 選擇了。<br>- 如果 gtab 有指定保留大小寫的選項，則 CapsLock 輸入英數的功能自動關閉。<br>- 左鍵 click tray icon 改成中英切換，因為現在比較少用簡體輸出。有時候沒辦法使用 ctrl-space 切換中英時就可以用。簡體輸出改到右鍵的選單裡。<br>- GTK 程式 focus out 時現在會自動送出編輯區的內容。QT的程式目前還不行。<br>- <a href="http://hyperrate.com/thread.php?tid=11210">Eclipse</a> double click 會導致空白的問題。<br>- 在tray icon 按 Shift + 左鍵可以列出所有輸入法的選單。<br>- 詞音按 [] 輸入「」【】現在不需要按空白鍵。最好把詞庫中的 [] 定義的「」… 刪除會比較好用。<br>- 詞音空白鍵設定成送出空白，現在會先送出編輯區的內容 <br>- Windows win32 port，由於 Visual Studio 的關係，不得不大部份的 file rename 成 .cpp，在 Linux 仍然是用 c language 去 compile。<br>- gtab 詞庫選字新增 Escape 手動斷詞。<br>- Linux gcb 改成用改變時 callback 的方式，不再使用每隔3秒鐘抓的方式。<br>- <a href="http://hyperrate.com/thread.php?tid=14567#14567">winlin 回報</a>的 gtab 詞庫選字的 bug<br>- 新增 <b>ziyawu</b> 的 30x30 metal icon，<a href="http://hyperrate.com/thread.php?tid=919">歡迎大家繼續貢獻 icons &amp; 投票</a><br>- 新增關閉鈴聲的選項<br>- <a href="http://hyperrate.com/thread.php?tid=14989#14989">gtab 使用編輯區時</a>，同音字查詢選擇的字不會加到最後的問題。<br>
 - qt3 現在內定是不 compile 了，有需要的自己去 compile 或找舊版的 .rpm<br>
 - 由英數切到中文輸入狀時會自動把詞音自己的英數關閉。<br>

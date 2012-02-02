@@ -164,7 +164,7 @@ gboolean feed_phrase(KeySym ksym, int state)
     trN = tranN;
   }
 
-  char tt[2], *str;
+  char *str;
 
   for(i=0; i < trN; i++) {
     if (tr[i].ksym!= ksym)
@@ -177,14 +177,14 @@ send_it:
 #if USE_TSIN
       if (current_method_type() == method_type_TSIN && current_CS->im_state == GCIN_STATE_CHINESE) {
         add_to_tsin_buf_str(str);
-        if (tsin_cursor_end())
+        if (gcin_punc_auto_send && tsin_cursor_end())
           flush_tsin_buffer();
       }
       else
 #endif
       if (gtab_phrase_on()) {
         insert_gbuf_nokey(str);
-        if (gtab_cursor_end())
+        if (gcin_punc_auto_send && gtab_cursor_end())
           output_gbuf();
       } else
         send_text(str);
@@ -193,6 +193,7 @@ send_it:
   }
 
 #if 0
+  char tt[2];
   if ((state&(ControlMask|ShiftMask|Mod1Mask|Mod4Mask|Mod5Mask))==ShiftMask && ksym>=' ' && ksym < 0x7e) {
     str = tt;
     tt[0]=ksym;

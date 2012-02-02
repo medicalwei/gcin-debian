@@ -9,9 +9,14 @@
 #include "pho.h"
 #include "tsin.h"
 #include "gtab.h"
+#include "gst.h"
+
+void load_pin_juyin();
+phokey_t pinyin2phokey(char *s);
 
 static char *bf;
 static int bfN_a = 0;
+static gboolean b_pinyin;
 
 int *phidx, *sidx, phcount;
 int bfsize, phidxsize;
@@ -71,7 +76,6 @@ static int qcmp(const void *a, const void *b)
   int idxa=*((int *)a);  char *pa = (char *)&bf[idxa];
   int idxb=*((int *)b);  char *pb = (char *)&bf[idxb];
   u_char lena,lenb, len;
-  int i;
   usecount_t usecounta, usecountb;
 
   lena=*(pa++); memcpy(&usecounta, pa, sizeof(usecount_t)); pa+= sizeof(usecount_t);
@@ -111,7 +115,6 @@ static int qcmp_eq(const void *a, const void *b)
   int idxa=*((int *)a);  char *pa = (char *)&bf[idxa];
   int idxb=*((int *)b);  char *pb = (char *)&bf[idxb];
   u_char lena,lenb, len;
-  int i;
 
   lena=*(pa++);  pa+= sizeof(usecount_t);
   char *ka = pa;
@@ -146,7 +149,6 @@ static int qcmp_usecount(const void *a, const void *b)
   int idxa=*((int *)a);  char *pa = (char *)&sf[idxa];
   int idxb=*((int *)b);  char *pb = (char *)&sf[idxb];
   u_char lena,lenb, len;
-  int i;
   usecount_t usecounta, usecountb;
 
   lena=*(pa++); memcpy(&usecounta, pa, sizeof(usecount_t)); pa+= sizeof(usecount_t);
@@ -181,6 +183,8 @@ void send_gcin_message(Display *dpy, char *s);
  #pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 #endif
 
+void init_TableDir();
+
 int main(int argc, char **argv)
 {
   FILE *fp,*fw;
@@ -197,10 +201,22 @@ int main(int argc, char **argv)
   int lineCnt=0;
   gboolean reload = getenv("GCIN_NO_RELOAD")==NULL;
 
+  if (reload) {
+    dbg("need reload\n");
+  } else {
+    dbg("NO_GTK_INIT\n");
+  }
+
+  if (getenv("NO_GTK_INIT")==NULL)
+    gtk_init(&argc, &argv);
+
   dbg("enter %s\n", argv[0]);
 
   if (argc < 2)
     p_err("must specify input file");
+
+
+  init_TableDir();
 
   if ((fp=fopen(argv[1], "rb"))==NULL) {
      printf("Cannot open %s\n", argv[1]);
@@ -208,9 +224,17 @@ int main(int argc, char **argv)
   }
 
   skip_utf8_sigature(fp);
-
   char *outfile;
   int fofs = ftell(fp);
+  myfgets(s, sizeof(s), fp);
+  if (strstr(s, "!!pinyin")) {
+    b_pinyin = TRUE;
+    printf("is pinyin\n");
+    load_pin_juyin();
+  } else
+    fseek(fp, fofs, SEEK_SET);
+
+  fofs = ftell(fp);
   int keybits=0, maxkey=0;
   char keymap[128];
   char kno[128];
@@ -288,8 +312,8 @@ int main(int argc, char **argv)
     if (s[0]=='#')
       continue;
 
-	if (strstr(s, TSIN_GTAB_KEY))
-	  continue;
+    if (strstr(s, TSIN_GTAB_KEY))
+      continue;
 
     if (s[len-1]=='\n')
       s[--len]=0;
@@ -331,14 +355,21 @@ int main(int argc, char **argv)
           phbuf32[phbufN++]=(u_int)kk64;
       } else {
         kk=0;
-        while (s[i]!=' ' && i<len) {
-          if (kk==(BACK_QUOTE_NO << 9))
-            kk|=s[i];
-          else
-            kk |= lookup((u_char *)&s[i]);
+        if (b_pinyin) {
+          kk = pinyin2phokey(s+i);
+          while (s[i]!=' ' && i<len)
+            i++;
+        } else {
+          while (s[i]!=' ' && i<len) {
+            if (kk==(BACK_QUOTE_NO << 9))
+              kk|=s[i];
+            else
+              kk |= lookup((u_char *)&s[i]);
 
-          i+=utf8_sz((char *)&s[i]);
+            i+=utf8_sz((char *)&s[i]);
+          }
         }
+
         phbuf[phbufN++]=kk;
       }
 
@@ -507,15 +538,17 @@ int main(int argc, char **argv)
   printf("%d phrases\n",phcount);
 
   fclose(fw);
+  free(sf);
+  free(bf);
+
 
   if (reload) {
     printf("reload....\n");
-    gtk_init(&argc, &argv);
     send_gcin_message(
 #if UNIX
-		GDK_DISPLAY(),
+    GDK_DISPLAY(),
 #endif
-		RELOAD_TSIN_DB);
+    RELOAD_TSIN_DB);
   }
 
   exit(0);

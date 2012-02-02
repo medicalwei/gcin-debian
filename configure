@@ -5,11 +5,11 @@ if [ "$1" = "-h" -o "$1" = "--help" -o "$1" = "-help" ]; then
     echo "** valid options:"
     echo "  --use_xim=N    : disable the support of XIM"
     echo "  --prefix=dir_name : install prefix(e.g. /usr)"
-    echo "  --new_gtk_im=N : disable new gtk immodule for firefox over-the-spot"
     echo "  --use_tray=N   : disable system tray"
     echo "  --use_i18n=Y   : enable i18n"
     echo "  --use_tsin=N   : disable Tsin input method"
     echo "  --use_anthy=N  : disable Anthy input method"
+    echo "  --use_chewing=N: disable Chewing input method"
     echo "  --use_gcb=N    : disable gcb (gtk copy-paste buffer)"
     echo "  --use_qt3=N    : disable Qt3 immodule"
     echo "  --use_qt4=N    : disable Qt4 immodule"
@@ -46,13 +46,12 @@ fi
 
 prefix="/usr/local"
 use_xim='Y'
-new_gtk_im='N'
-#new_gtk_im='Y'
 use_tray='Y'
 use_i18n='N'
 use_tsin='Y'
 use_gcb='Y'
 use_anthy='Y'
+use_chewing='Y'
 use_qt3='N'
 use_qt4='Y'
 use_gtk3='Y'
@@ -67,8 +66,6 @@ for opt do
   ;;
   --use_xim=*) use_xim=`echo $opt | cut -d '=' -f 2`
   ;;
-  --new_gtk_im=*) new_gtk_im=`echo $opt | cut -d '=' -f 2`
-  ;;
   --use_tray=*) use_tray=`echo $opt | cut -d '=' -f 2`
   ;;
   --use_i18n=*) use_i18n=`echo $opt | cut -d '=' -f 2`
@@ -78,6 +75,8 @@ for opt do
   --use_gcb=*) use_gcb=`echo $opt | cut -d '=' -f 2`
   ;;
   --use_anthy*) use_anthy=`echo $opt | cut -d '=' -f 2`
+  ;;
+  --use_chewing*) use_chewing=`echo $opt | cut -d '=' -f 2`
   ;;
   --use_qt3*) use_qt3=`echo $opt | cut -d '=' -f 2`
   ;;
@@ -133,9 +132,7 @@ else
 fi
 
 echo -n ".... Testing anthy    :  "
-
 USE_ANTHY=`pkg-config --libs anthy`
-
 if [ $? != 0 ]; then
   USE_ANTHY=N
   echo "It's ok if you don't want anthy support."
@@ -149,15 +146,32 @@ else
   fi
 fi
 
+echo -n ".... Testing chewing  :  "
+USE_CHEWING=`pkg-config --libs chewing`
+if [ $? != 0 ]; then
+  USE_CHEWING=N
+  echo "It's ok if you don't want libchewing support."
+else
+  if [ $use_chewing = "N" ]; then
+    USE_CHEWING='N'
+    echo "disabled."
+  else
+    USE_CHEWING='Y'
+    echo "found."
+  fi
+fi
+
+
 LIB='lib'
-if [ -d /lib64 ]; then
-LIB='lib64'
+if [ -d /usr/lib64foo -a -d /lib64 ]; then
+LIB='lib64foo'
 fi
 
 QT_IM='N'
 QT_IM_DIR=/usr/$LIB/qt3/plugins/inputmethods
 echo "testing if you have qt3 support"
-if [ -d  $QT_IM_DIR ]; then
+pkg-config --libs qt-mt > /dev/null 2> /dev/null
+if [ $? = 0 ]; then
   QT_IM='Y'
 fi
 
@@ -176,7 +190,8 @@ fi
 QT4_IM='N'
 QT4_IM_DIR=/usr/$LIB/qt4/plugins/inputmethods
 echo "testing if you have qt4 support"
-if [ -d  $QT4_IM_DIR ]; then
+pkg-config --libs QtCore QtGui > /dev/null 2> /dev/null
+if [ $? = 0 ]; then
   QT4_IM='Y'
 fi
 
@@ -218,33 +233,30 @@ optdir=/opt
 GCIN_VERSION=`cat VERSION.gcin`
 sed -e "s/__gcin_version__/$GCIN_VERSION/" < gcin.spec.in > gcin.spec
 
-
-# SUSE
-if [ -d /opt/gnome/share/control-center-2.0/capplets ]; then
-  GCIN_SETUP_DESKTOP=/opt/gnome/share/control-center-2.0/capplets
-  GCIN_SETUP_DESKTOP_rpm='$(optdir)/gnome/share/control-center-2.0/capplets'
-else
-  GCIN_SETUP_DESKTOP=/usr/share/control-center-2.0/capplets
-  GCIN_SETUP_DESKTOP_rpm='$(datadir)/control-center-2.0/capplets'
-fi
-
-
 if [ $QT_IM = 'N' ]; then
   mv gcin.spec gcin.spec.tmp
   grep -v qt3/plugins/inputmethods gcin.spec.tmp > gcin.spec
 fi
 
 
+echo $QT4_IM
+
 if [ $QT4_IM = 'N' ]; then
   mv gcin.spec gcin.spec.tmp
   grep -v qt4/plugins/inputmethods gcin.spec.tmp > gcin.spec
+else
+  for i in /usr/share/qt4/bin/moc /usr/lib/qt4/bin/moc /usr/lib64/qt4/bin/moc
+  do
+	[ -x $i ] && QT4_MOC=$i
+  done
 fi
 
-
-OPTFLAGS="-g"
-if [ $prefix = /usr ]; then
-  OPTFLAGS="-O"
+BUILD_MODULE='N'
+if [ $USE_ANTHY = 'Y' ] || [ $USE_CHEWING = 'Y' ]; then
+  BUILD_MODULE='Y'
 fi
+
+OPTFLAGS="-O"
 
 if [ -z $CC ]; then
   CC=gcc
@@ -266,7 +278,7 @@ echo "datadir_r=$datadir" >> config.mak
 echo "libdir=\$(DESTDIR)$libdir" >> config.mak
 echo "gcinlibdir=\$(libdir)/gcin" >> config.mak
 echo "includedir=\$(DESTDIR)$includedir" >> config.mak
-echo "LDFLAGS=$GTKLDFLAGS -lX11" >> config.mak
+echo "LDFLAGS=$GTKLDFLAGS -lX11 -ldl -lm" >> config.mak
 echo "GCIN_VERSION=$GCIN_VERSION" >> config.mak
 echo "GCIN_TABLE_DIR=\$(datadir_r)/gcin/table" >> config.mak
 echo "GCIN_OGG_DIR=\$(datadir_r)/gcin/ogg" >> config.mak
@@ -287,9 +299,6 @@ echo "QT4_IM=$QT4_IM" >> config.mak
 echo "QT4_IM_DIR=$QT4_IM_DIR" >> config.mak
 echo "GTK3_IM=$GTK3_IM" >> config.mak
 echo "USE_XIM=$use_xim" >> config.mak
-echo "GCIN_SETUP_DESKTOP=$GCIN_SETUP_DESKTOP" >> config.mak
-echo "GCIN_SETUP_DESKTOP_rpm=$GCIN_SETUP_DESKTOP_rpm" >> config.mak
-echo "NEW_GTK_IM=$new_gtk_im" >> config.mak
 echo "LIB=$LIB" >> config.mak
 echo "MAC_OS=$MAC_OS" >> config.mak
 echo "SO_FLAGS=$SO_FLAGS" >> config.mak
@@ -297,28 +306,16 @@ echo "USE_TRAY=$use_tray" >> config.mak
 echo "USE_I18N=$use_i18n" >> config.mak
 echo "USE_TSIN=$use_tsin" >> config.mak
 echo "USE_ANTHY=$USE_ANTHY" >> config.mak
+echo "USE_CHEWING=$USE_CHEWING" >> config.mak
 echo "USE_GCB=$use_gcb" >> config.mak
+echo "BUILD_MODULE=$BUILD_MODULE" >> config.mak
+[ $QT4_IM = 'Y' ] && echo "QT4_MOC=$QT4_MOC" >> config.mak
 
-if [ $prefix = /usr ]; then
-  echo "gcin_ld_run_path=\$(gcinlibdir)" >> config.mak
-# moved to Makefile
-#  echo "LDFLAGS+=-Wl,-rpath,\$(gcinlibdir)" >> config.mak
+if [ $prefix = /usr/local ]; then
+  echo "gcin_ld_run_path=$PWD:\$(gcinlibdir)" >> config.mak
+  echo "GCIN_DEBUG=0" >> config.mak
 else
-  echo "gcin_ld_run_path=\$(PWD):\$(gcinlibdir)" >> config.mak
-  echo "GCIN_DEBUG=1" >> config.mak
+  echo "gcin_ld_run_path=\$(gcinlibdir)" >> config.mak
 fi
 
 echo "gcc_ld_run_path=-Wl,-rpath,\$(gcin_ld_run_path)" >> config.mak
-
-cd menu
-for i in *.in
-do
-  outf=`echo $i | sed -e "s/\.in//"`
-#  echo $outf
-  if [ $bindir = /usr/bin ]; then
-    sed -e "s~/usr/local/bin~/usr/bin~" < $i > $outf
-  else
-    cp $i $outf
-  fi
-done
-

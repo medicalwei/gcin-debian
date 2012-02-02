@@ -24,8 +24,9 @@ void inc_gtab_usecount(char *str), ClrSelArea();
 void lookup_gtabn(char *ch, char *out);
 char *htmlspecialchars(char *s, char out[]);
 void hide_gtab_pre_sel();
+gboolean gtab_vertical_select_on();
 
-extern gint64 key_press_time_ctrl;
+extern gint64 key_press_time, key_press_time_ctrl;
 
 extern gboolean test_mode;
 
@@ -85,7 +86,6 @@ _L("ŃńŅņŇňŉŊŋŌōŎŏŐőŒŒœœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦ
 
 int en_word_len(char *bf)
 {
-  int i;
   char *s;
 
   for(s=bf;*s;) {
@@ -192,7 +192,7 @@ static char *gen_buf_str_disp()
     char *t = spec;
 
     if (i==ggg.gbuf_cursor) {
-      sprintf(www, "<span background=\"%s\">%s</span>", "red", spec);
+      sprintf(www, "<span background=\"%s\">%s</span>", tsin_cursor_color, spec);
       t = www;
     }
 
@@ -337,6 +337,8 @@ void inc_dec_tsin_use_count(void *pho, char *ch, int N);
 
 gboolean output_gbuf()
 {
+  hide_gtab_pre_sel();
+
   if (!ggg.gbufN)
     return FALSE;
 #if WIN32
@@ -570,7 +572,7 @@ GEDIT *insert_gbuf_cursor(char **sel, int selN, u_int64_t key, gboolean b_gtab_e
   pbuf->keysN=1;
   pbuf->flag = b_gtab_en_no_spc ? FLAG_CHPHO_GTAB_BUF_EN_NO_SPC:0;
 
-  if (ggg.gbufN==ggg.gbuf_cursor && selN==1 && strstr(_(auto_end_punch), sel[0])) {
+  if (gcin_punc_auto_send && ggg.gbufN==ggg.gbuf_cursor && selN==1 && strstr(_(auto_end_punch), sel[0])) {
     char_play(pbuf->ch);
     output_gbuf();
   } else {
@@ -593,6 +595,7 @@ void set_gbuf_c_sel(int v)
 //  dbg("zzzsel v:%d %d %s\n",v, pbuf->c_sel,pbuf->ch);
   pbuf->flag |= FLAG_CHPHO_FIXED;
   ggg.gtab_buf_select = 0;
+  ggg.more_pg = 0;
   disp_gtab_sel("");
   gtab_parse();
   disp_gbuf();
@@ -828,6 +831,7 @@ int show_buf_select()
   ggg.pg_idx = 0;
 
   gtab_disp_sel();
+  hide_gtab_pre_sel();
 
   return 1;
 }
@@ -865,8 +869,12 @@ int gtab_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *pcursor, int *sub
   str[0]=0;
   *pcursor=0;
 
-#if WIN32
+#if WIN32 || 1
   *sub_comp_len = ggg.ci > 0;
+#if 1
+  if (ggg.gbufN && !gcin_edit_display_ap_only())
+	*sub_comp_len|=4;
+#endif
 #endif
   gboolean ap_only = gcin_edit_display_ap_only();
 
@@ -898,14 +906,14 @@ int gtab_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *pcursor, int *sub
       ch_N+=N;
       if (i < ggg.gbuf_cursor)
         *pcursor+=N;
-      if (i==ggg.gbuf_cursor) {
+      if (ap_only && i==ggg.gbuf_cursor) {
         attr[1].ofs0=*pcursor;
         attr[1].ofs1=*pcursor+N;
         attr[1].flag=GCIN_PREEDIT_ATTR_FLAG_REVERSE;
         attrN++;
       }
 
-      if (gcin_on_the_spot_key && i==ggg.gbuf_cursor)
+      if (gcin_display_on_the_spot_key() && i==ggg.gbuf_cursor)
         strN += get_DispInArea_str(str+strN);
 
       memcpy(str+strN, s, len);
@@ -914,7 +922,7 @@ int gtab_get_preedit(char *str, GCIN_PREEDIT_ATTR attr[], int *pcursor, int *sub
   }
 
 
-  if (ap_only && gcin_on_the_spot_key && i==ggg.gbuf_cursor)
+  if (gcin_display_on_the_spot_key() && i==ggg.gbuf_cursor)
     strN += get_DispInArea_str(str+strN);
 
   str[strN]=0;
@@ -930,13 +938,36 @@ void gtab_reset()
   if (!gwin_gtab)
     return;
 #endif
-  int v = ggg.gbufN > 0;
   clear_gtab_buf_all();
   clear_gbuf_sel();
   ClrIn();
   return;
 }
 
+int ch_to_gtab_keys(INMD *tinmd, char *ch, u_int64_t keys[]);
+
+void save_gtab_buf_phrase_idx(int idx0, int len)
+{
+  WSP_S wsp[MAX_PHRASE_LEN];
+
+  bzero(wsp, sizeof(wsp));
+  int i;
+  for(i=0; i < len; i++) {
+    u8cpy(wsp[i].ch, gbuf[idx0 + i].ch);
+    u_int64_t key = gbuf[idx0 + i].keys[0];
+
+    if (!key) {
+      u_int64_t keys[64];
+      int keysN = ch_to_gtab_keys(cur_inmd, wsp[i].ch, keys);
+      if (keysN)
+        key = keys[0];
+    }
+
+    wsp[i].key = key;
+  }
+
+  create_win_save_phrase(wsp, len);
+}
 
 void save_gtab_buf_phrase(KeySym key)
 {
@@ -947,96 +978,48 @@ void save_gtab_buf_phrase(KeySym key)
   if (idx0 < 0 || idx0 > idx1)
     return;
 
-  WSP_S wsp[MAX_PHRASE_LEN];
-
-  bzero(wsp, sizeof(wsp));
-  int i;
-  for(i=0; i < len; i++) {
-    u8cpy(wsp[i].ch, gbuf[idx0 + i].ch);
-    wsp[i].key = gbuf[idx0 + i].keys[0];
-  }
-
-  create_win_save_phrase(wsp, len);
+  save_gtab_buf_phrase_idx(idx0, len);
 }
 
 gboolean save_gtab_buf_shift_enter()
 {
-	if (ggg.gbuf_cursor== ggg.gbufN)
+	int N = ggg.gbufN - ggg.gbuf_cursor;
+	if (!N)
 		return 0;
 
-	int keys[512];
-	int N = ggg.gbufN - ggg.gbuf_cursor;
-	extract_gtab_key(ggg.gbuf_cursor, N, keys);
-	char *str = gen_buf_str(ggg.gbuf_cursor, FALSE);
-	save_phrase_to_db(keys, str, N, 1);
-
-	free(str);
+	save_gtab_buf_phrase_idx(ggg.gbuf_cursor, N);
 	gbuf_cursor_end();
 	return 1;
 }
 
 
 void load_tsin_db0(char *infname, gboolean is_gtab_i);
-void get_gcin_user_or_sys_fname(char *name, char fname[]);
+gboolean init_tsin_table_fname(INMD *p, char *fname);
 
 void init_tsin_table()
 {
-#if USE_TSIN
+  char fname[256];
   if (!current_CS)
     return;
 
-  INMD *p= &inmd[current_CS->in_method];
-
-  char fname[256], fname_idx[256], gtab_phrase_src[256], gtabfname[256];
-  if (p->filename_append) {
-//    dbg("filename_append %s\n",p->filename_append);
-    strcpy(fname, p->filename_append);
-    strcpy(gtabfname, fname);
-  } else
-  if (p->filename) {
-    get_gcin_user_fname(p->filename, fname);
-    get_gcin_user_or_sys_fname(p->filename, gtabfname);
-  } else {
-    dbg("no file name\n");
-    return;
-  }
-
-  strcat(fname, ".tsin-db");
-  strcat(strcpy(fname_idx, fname), ".idx");
-  strcat(strcpy(gtab_phrase_src, fname), ".src");
-//  dbg("init_tsin_table %s\n", fname);
-
-#if UNIX
-  putenv("GCIN_NO_RELOAD=");
-#else
-  _putenv("GCIN_NO_RELOAD=Y");
-#endif
-
-#if UNIX
-  if (access(fname, W_OK) < 0 || access(fname_idx, W_OK) < 0)
-#else
-  if (_access(fname, 02) < 0 || _access(fname, 02) < 0)
-#endif
-  {
-#if UNIX
-    unix_exec(GCIN_BIN_DIR"/tsin2gtab-phrase %s %s", gtabfname, gtab_phrase_src);
-    unix_exec(GCIN_BIN_DIR"/tsa2d32 %s %s", gtab_phrase_src, fname);
-#else
-    win32exec_va("tsin2gtab-phrase", gtabfname, gtab_phrase_src, NULL);
-    win32exec_va("tsa2d32", gtab_phrase_src, fname, NULL);
-#endif
-  }
-
+  init_tsin_table_fname(&inmd[current_CS->in_method], fname);
   load_tsin_db0(fname, TRUE);
-#endif
 }
 
 extern u_char scanphr_e(int chpho_idx, int plen, gboolean pho_incr, int *rselN);
 void init_pre_sel();
+void clear_sele();
+void set_sele_text(int tN, int i, char *text, int len);
+void get_win_gtab_geom();
+void disp_selections(int x, int y);
+
+gboolean use_tsin_sel_win();
+void init_tsin_selection_win();
 
 static int gtab_pre_select_phrase_len;
 
 void disp_gtab_pre_sel(char *s);
+extern GtkWidget *gwin1;
 
 void gtab_scan_pre_select(gboolean b_incr)
 {
@@ -1058,7 +1041,7 @@ void gtab_scan_pre_select(gboolean b_incr)
   if (Maxlen > MAX_PHRASE_LEN)
     Maxlen = MAX_PHRASE_LEN;
 
-  int len, selN, pre_selN=0, max_len=-1, max_selN;
+  int len, selN, max_len=-1, max_selN;
   for(len=1; len <= Maxlen; len++) {
     int idx = ggg.gbufN - len;
     if (gbuf[idx].flag & FLAG_CHPHO_PHRASE_TAIL)
@@ -1072,8 +1055,10 @@ void gtab_scan_pre_select(gboolean b_incr)
 
 //  dbg("max_len:%d  max_selN:%d\n", max_len, max_selN);
 
-  if (max_len < 0 || max_selN >= strlen(cur_inmd->selkey) * 2)
+  if (max_len < 0 || max_selN >= strlen(cur_inmd->selkey) * 2) {
+    tss.pre_selN = 0;
     return;
+  }
 
   gtab_pre_select_phrase_len = max_len;
 
@@ -1090,17 +1075,32 @@ void gtab_scan_pre_select(gboolean b_incr)
 
 //  dbg("selN %d %d\n",selN, tss.pre_selN);
 
+  if (use_tsin_sel_win()) {
+	if (gwin1)
+      clear_sele();
+	else
+      init_tsin_selection_win();
+
+    int i;
+    for(i=0;i<tss.pre_selN; i++)
+       set_sele_text(tss.pre_selN,i,tss.pre_sel[i].str, -1);
+    get_win_gtab_geom();
+    disp_selections(-1, -1);
+    return;
+  }
+
   char tt[4096];
   tt[0]=0;
   int i;
-  char *br=gtab_vertical_select?"\n":"";
 
   for(i=0;i<tss.pre_selN; i++) {
     char ts[(MAX_PHRASE_LEN+3) * CH_SZ + 1];
+    char *br= (i < tss.pre_selN-1 && gtab_vertical_select_on())?"\n":"";
+
     sprintf(ts, "<span foreground=\"%s\">%c</span>%s%s", gcin_sel_key_color,
       cur_inmd->selkey[i], tss.pre_sel[i].str, br);
     strcat(tt, ts);
-    if (!gtab_vertical_select && i < tss.pre_selN-1)
+    if (!gtab_vertical_select_on() && i < tss.pre_selN-1)
       strcat(tt, " ");
   }
 
@@ -1129,9 +1129,11 @@ gboolean gtab_pre_select_idx(int c)
   gbuf[ggg.gbufN-1].flag |= FLAG_CHPHO_PHRASE_TAIL;
 
   hide_gtab_pre_sel();
+  if (gcin_edit_display_ap_only())
+    hide_win_gtab();
+
   return TRUE;
 }
-
 
 gboolean gtab_pre_select_shift(KeySym key, int kbstate)
 {
@@ -1143,6 +1145,7 @@ gboolean gtab_pre_select_shift(KeySym key, int kbstate)
   return gtab_pre_select_idx(c);
 }
 
+void tsin_toggle_eng_ch();
 
 int feedkey_gtab_release(KeySym xkey, int kbstate)
 {
@@ -1160,8 +1163,35 @@ int feedkey_gtab_release(KeySym xkey, int kbstate)
           return 1;
         } else
           return 0;
+#if 1
+     case XK_Shift_L:
+     case XK_Shift_R:
+       kpt = key_press_time;
+       key_press_time = 0;
+
+// dbg("release xkey %x\n", xkey);
+        if (
+(  (tsin_chinese_english_toggle_key == TSIN_CHINESE_ENGLISH_TOGGLE_KEY_Shift) ||
+   (tsin_chinese_english_toggle_key == TSIN_CHINESE_ENGLISH_TOGGLE_KEY_ShiftL
+     && xkey == XK_Shift_L) ||
+   (tsin_chinese_english_toggle_key == TSIN_CHINESE_ENGLISH_TOGGLE_KEY_ShiftR
+     && xkey == XK_Shift_R))
+          &&  current_time() - kpt < 300000) {
+          if (!test_mode) {
+            tsin_toggle_eng_ch();
+          }
+          return 1;
+        } else
+          return 0;
+#endif
      default:
         return 0;
   }
 }
 
+#include "win1.h"
+
+void gtab_set_win1_cb()
+{
+  set_win1_cb((cb_selec_by_idx_t)gtab_pre_select_idx, NULL, NULL);
+}

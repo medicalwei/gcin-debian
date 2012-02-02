@@ -62,6 +62,8 @@ extern int ph_key_sz;
 static gboolean cb_ok(GtkWidget *widget, gpointer data)
 {
   SAVE_SESS *sess = (SAVE_SESS *)data;
+  g_source_remove(sess->countdown_handle);
+
   int i;
   phokey_t pho[MAX_PHRASE_LEN];
   u_int pho32[MAX_PHRASE_LEN];
@@ -125,15 +127,19 @@ void create_win_save_phrase(WSP_S *wsp, int wspN)
 {
 #if WIN32
   if (test_mode)
-	  return;
+    return;
 #endif
+
+  if (!wspN)
+    return;
+
   SAVE_SESS *sess = tzmalloc(SAVE_SESS, 1);
 
   GtkWidget *main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_has_resize_grip(GTK_WINDOW(main_window), FALSE);
   sess->win = main_window;
 
-  gtk_window_set_default_size(GTK_WINDOW (main_window), 200, 100);
+  gtk_window_set_default_size(GTK_WINDOW (main_window), 20, 10);
 
   gtk_window_set_title(GTK_WINDOW(main_window), _(_L("加片語到詞庫")));
 
@@ -143,6 +149,7 @@ void create_win_save_phrase(WSP_S *wsp, int wspN)
 #endif
 
   GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
+  gtk_orientable_set_orientation(GTK_ORIENTABLE(vbox), GTK_ORIENTATION_VERTICAL);
   gtk_container_add (GTK_CONTAINER (main_window), vbox);
 
   char tt[512];
@@ -157,7 +164,9 @@ void create_win_save_phrase(WSP_S *wsp, int wspN)
       strcat(tt, phokey_to_str(wsp[i].key));
     strcat(tt, " ");
   }
-  gtk_box_pack_start (GTK_BOX (vbox), gtk_label_new(tt), FALSE, FALSE, 0);
+
+  if (tt[0])
+    gtk_box_pack_start (GTK_BOX (vbox), gtk_label_new(tt), FALSE, FALSE, 0);
 
   sess->mywsp = tmemdup(wsp, WSP_S, wspN);
   sess->mywspN = wspN;
@@ -188,11 +197,7 @@ void create_win_save_phrase(WSP_S *wsp, int wspN)
 
 //  dbg("mmmmmmmmmmmmm\n");
 
-#if GTK_CHECK_VERSION(2,17,5)
-  gtk_widget_set_can_default (button_ok, TRUE);
-#else
   GTK_WIDGET_SET_FLAGS (button_ok, GTK_CAN_DEFAULT);
-#endif
   gtk_widget_grab_default (button_ok);
 
 

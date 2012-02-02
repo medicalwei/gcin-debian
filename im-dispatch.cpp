@@ -156,15 +156,17 @@ static void shutdown_client(HANDLE fd)
 
   free(gcin_clients[idx].cs);
   gcin_clients[idx].cs = NULL;
-  gcin_clients[idx].fd = NULL;
-
 #if UNIX
+  gcin_clients[idx].fd = 0;
+#else
+  gcin_clients[idx].fd = NULL;
+#endif
+
+#if UNIX && 0
   int uid = getuid();
   struct passwd *pwd;
-  if ((pwd=getpwuid(uid)) &&
-      (!strcmp(pwd->pw_name, "gdm") || !strcmp(pwd->pw_name, "kdm"))) {
+  if (uid>0 && uid<500)
     exit(0);
-  }
 #endif
 #if UNIX
   close(fd);
@@ -175,6 +177,9 @@ static void shutdown_client(HANDLE fd)
 }
 
 void message_cb(char *message);
+void save_CS_temp_to_current();
+void disp_tray_icon();
+
 
 #if UNIX
 void process_client_req(int fd)
@@ -183,7 +188,9 @@ void process_client_req(HANDLE fd)
 #endif
 {
   GCIN_req req;
-//  dbg("svr--> process_client_req %d\n", fd);
+#if DBG
+  dbg("svr--> process_client_req %d\n", fd);
+#endif
   int rn = myread(fd, &req, sizeof(req));
 
   if (rn <= 0) {
@@ -209,11 +216,11 @@ void process_client_req(HANDLE fd)
     cs = current_CS;
   } else {
 #if UNIX
-	int idx = fd;
+    int idx = fd;
     cs = gcin_clients[fd].cs;
 #else
-	int idx = find_im_client(fd);
-	cs = gcin_clients[idx].cs;
+    int idx = find_im_client(fd);
+    cs = gcin_clients[idx].cs;
 #endif
 
     int new_cli = 0;
@@ -225,8 +232,10 @@ void process_client_req(HANDLE fd)
     cs->client_win = req.client_win;
     cs->b_gcin_protocol = TRUE;
     cs->input_style = InputStyleOverSpot;
+
+
 #if WIN32
-	cs->use_preedit = TRUE;
+    cs->use_preedit = TRUE;
 #endif
 
 #if UNIX
@@ -234,9 +243,15 @@ void process_client_req(HANDLE fd)
 #else
     if (new_cli)
 #endif
-	{
+    {
       current_CS = cs;
+      dbg("new_cli default_input_method:%d\n", default_input_method);
+      save_CS_temp_to_current();
       init_state_chinese(cs);
+      cs->in_method = default_input_method;
+#if TRAY_ENABLED && UNIX
+      disp_tray_icon();
+#endif
     }
   }
 
@@ -256,6 +271,8 @@ void process_client_req(HANDLE fd)
     case GCIN_req_key_press:
     case GCIN_req_key_release:
       current_CS = cs;
+      save_CS_temp_to_current();
+
 #if DBG && 0
       {
         char tt[128];
@@ -319,6 +336,7 @@ void process_client_req(HANDLE fd)
     case GCIN_req_test_key_press:
     case GCIN_req_test_key_release:
       current_CS = cs;
+      save_CS_temp_to_current();
       to_gcin_endian_4(&req.keyeve.key);
       to_gcin_endian_4(&req.keyeve.state);
 
@@ -342,6 +360,7 @@ void process_client_req(HANDLE fd)
 #if DBG
       dbg_time("GCIN_req_focus_in  %x %d %d\n",cs, cs->spot_location.x, cs->spot_location.y);
 #endif
+//      current_CS = cs;
       gcin_FocusIn(cs);
       break;
     case GCIN_req_focus_out:
@@ -385,6 +404,7 @@ void process_client_req(HANDLE fd)
       update_in_win_pos();
       break;
     case GCIN_req_set_flags:
+//      dbg("GCIN_req_set_flags\n");
       if (BITON(req.flag, FLAG_GCIN_client_handle_raise_window)) {
 #if DBG
         dbg("********* raise * window\n");
@@ -426,8 +446,8 @@ void process_client_req(HANDLE fd)
       if (attrN > 0)
         write_enc(fd, attr, sizeof(GCIN_PREEDIT_ATTR)*attrN);
       write_enc(fd, &cursor, sizeof(cursor));
-#if WIN32
-	  write_enc(fd, &sub_comp_len, sizeof(sub_comp_len));
+#if WIN32 || 1
+      write_enc(fd, &sub_comp_len, sizeof(sub_comp_len));
 #endif
 //      dbg("uuuuuuuuuuuuuuuuu len:%d %d cursor:%d\n", len, attrN, cursor);
       }

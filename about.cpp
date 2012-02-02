@@ -10,20 +10,10 @@ static void callback_close( GtkWidget *widget, gpointer   data )
    about_window = NULL;
 }
 
-extern GtkWidget *main_window;
-
-void align_with_ui_window(GtkWidget *win)
-{
-    gint uix, uiy;
-
-    gtk_window_get_position(GTK_WINDOW(main_window), &uix, &uiy);
-
-    gtk_window_move(GTK_WINDOW(win), uix, uiy);
-}
-
 
 void align_with_ui_window(GtkWidget *win);
 int html_browser(char *fname);
+
 
 static void callback_forum( GtkWidget *widget, gpointer   data)
 {
@@ -36,14 +26,44 @@ static void callback_forum( GtkWidget *widget, gpointer   data)
 #endif
 }
 
+#define LOG_URL "http://www.csie.nctu.edu.tw/~cp76/gcin/download/Changelog.html"
 
 static void callback_changelog( GtkWidget *widget, gpointer   data)
 {
-#define LOG_URL "http://cle.linux.org.tw/gcin/download/Changelog.html"
 #if WIN32
 	ShellExecuteA(NULL, "open", LOG_URL, NULL, NULL, SW_SHOWNORMAL);
 #else
 	html_browser(LOG_URL);
+#endif
+}
+
+#define ET26_URL "http://hyperrate.com/thread.php?tid=22661"
+static void callback_et26( GtkWidget *widget, gpointer   data)
+{
+#if WIN32
+	ShellExecuteA(NULL, "open", ET26_URL, NULL, NULL, SW_SHOWNORMAL);
+#else
+	html_browser(ET26_URL);
+#endif
+}
+
+#define PUNC_URL "http://hyperrate.com/thread.php?tid=19444#19444"
+static void callback_punc( GtkWidget *widget, gpointer   data)
+{
+#if WIN32
+	ShellExecuteA(NULL, "open", PUNC_URL, NULL, NULL, SW_SHOWNORMAL);
+#else
+	html_browser(PUNC_URL);
+#endif
+}
+
+#define ADD_PHRASE_URL "http://hyperrate.com/thread.php?tid=23991#23991"
+static void callback_add_phrase( GtkWidget *widget, gpointer   data)
+{
+#if WIN32
+	ShellExecuteA(NULL, "open", ADD_PHRASE_URL, NULL, NULL, SW_SHOWNORMAL);
+#else
+	html_browser(PUNC_URL);
 #endif
 }
 
@@ -57,10 +77,13 @@ void create_about_window()
     }
 
     GtkWidget *vbox = gtk_vbox_new(FALSE,3);
+    gtk_orientable_set_orientation(GTK_ORIENTABLE(vbox), GTK_ORIENTATION_VERTICAL);
     GtkWidget *hbox;
 
     /* Create a new about_window */
     about_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_position(GTK_WINDOW(about_window), GTK_WIN_POS_CENTER);
+
     gtk_window_set_has_resize_grip(GTK_WINDOW(about_window), FALSE);
 
     gtk_window_set_title (GTK_WINDOW (about_window), _(_L("關於 gcin")));
@@ -75,7 +98,6 @@ void create_about_window()
     /* Sets the border width of the about_window. */
     gtk_container_set_border_width (GTK_CONTAINER (about_window), 10);
 
-    align_with_ui_window(about_window);
 
     GtkWidget *label_version;
     GtkWidget *image;
@@ -89,11 +111,25 @@ void create_about_window()
     GtkWidget *separator = gtk_hseparator_new ();
     gtk_box_pack_start(GTK_BOX(vbox), separator, FALSE, FALSE, 3);
 
-#if GTK_CHECK_VERSION(2,18,9)
-   GtkWidget *label = gtk_label_new(_(_L("<a href='http://hyperrate.com?eid=67'>點選連結前往 gcin 討論區</a>\n"
-_L("<a href='http://hyperrate.com?eid=215'>gcin也有 Windows版</a>\n")
-_L("<a href='http://cle.linux.org.tw/gcin/download/Changelog.html'>gcin改變記錄</a>\n")
-)));
+// this doesn't work on win32
+#if GTK_CHECK_VERSION(2,18,9) && UNIX
+   char tmp[512];
+   sprintf(tmp, "<a href='http://hyperrate.com/dir.php?eid=67'>%s</a>\n"
+                "<a href='http://hyperrate.com/dir.php?eid=215'>%s</a>\n"
+                "<a href='"LOG_URL"'>%s</a>\n"
+                "<a href='"ET26_URL"'>%s</a>\n"
+                "<a href='"PUNC_URL"'>%s</a>\n"
+                "<a href='"ADD_PHRASE_URL"'>%s</a>\n"
+                ,
+                _(_L("前往 gcin 討論區")),
+                _(_L("gcin也有 Windows版")),
+                _(_L("gcin改變記錄")),
+                _(_L("推薦使用26鍵的注音鍵盤")),
+                _(_L("使用詞音輸入標點符號")),
+                _(_L("如何新增詞"))
+
+          );
+   GtkWidget *label = gtk_label_new(tmp);
    gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
     gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
 #else
@@ -105,6 +141,23 @@ _L("<a href='http://cle.linux.org.tw/gcin/download/Changelog.html'>gcin改變記
     gtk_box_pack_start(GTK_BOX(vbox), button_changelog, FALSE, FALSE, 0);
     g_signal_connect (G_OBJECT (button_changelog), "clicked",
 		      G_CALLBACK (callback_changelog), NULL);
+
+    GtkWidget *button_et26 = gtk_button_new_with_label(_(_L("推薦使用26鍵的注音鍵盤")));
+    gtk_box_pack_start(GTK_BOX(vbox), button_et26, FALSE, FALSE, 0);
+    g_signal_connect (G_OBJECT (button_et26), "clicked",
+		      G_CALLBACK (callback_et26), NULL);
+
+    GtkWidget *button_punc = gtk_button_new_with_label(_(_L("使用詞音輸入標點符號")));
+    gtk_box_pack_start(GTK_BOX(vbox), button_punc, FALSE, FALSE, 0);
+    g_signal_connect (G_OBJECT (button_punc), "clicked",
+		      G_CALLBACK (callback_punc), NULL);
+
+    GtkWidget *button_add_phrase = gtk_button_new_with_label(_(_L("如何新增詞")));
+    gtk_box_pack_start(GTK_BOX(vbox), button_add_phrase, FALSE, FALSE, 0);
+    g_signal_connect (G_OBJECT (button_add_phrase), "clicked",
+		      G_CALLBACK (callback_add_phrase), NULL);
+
+
 #endif
 
 

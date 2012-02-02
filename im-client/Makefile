@@ -1,7 +1,7 @@
 include ../config.mak
 
 SOFILE=libgcin-im-client.so
-SOFILEVER=libgcin-im-client.so.1.2.2
+SOFILEVER=libgcin-im-client.so.1.2.5
 
 .SUFFIXES:      .c .o .E .cpp
 WALL=-Wall
@@ -34,21 +34,21 @@ install:
 	ln -sf $(SOFILEVER) $(SOFILE).1
 
 gcin-conf.o: ../gcin-conf.cpp
-	$(CC) -x c -c $(CFLAGS) -o $@ $<
+	$(CCX) -c $(CFLAGS) -o $@ $<
 
 util.o: ../util.cpp
-	$(CC) -x c -c $(CFLAGS) -o $@ $<
+	$(CCX) -c $(CFLAGS) -o $@ $<
 
 im-addr.o: ../im-addr.cpp
-	$(CC) -x c -c $(CFLAGS) -o $@ $<
+	$(CCX) -c $(CFLAGS) -o $@ $<
 
 gcin-crypt-fpic.o: ../gcin-crypt.cpp
-	$(CC) -x c -c $(CFLAGS) -o $@ $<
+	$(CCX) -c $(CFLAGS) -o $@ $<
 
 clean:
 	rm -f *.o *.so *.so.* *~ *.E *.db config.mak tags core.* .depend
 
 .depend:
-	$(CC) $(CFLAGS) -MM *.cpp > $@
+	$(CCX) $(CFLAGS) -MM *.cpp > $@
 
 include .depend

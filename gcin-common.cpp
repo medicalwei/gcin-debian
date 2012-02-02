@@ -61,7 +61,6 @@ void disp_pho_sub(GtkWidget *label, int index, char *pho)
   if (index>=text_pho_N)
     return;
 
-
   if (pho[0]==' ' && !pin_juyin) {
     u8cpy(text_pho[index], _(_L("　")));
   }
@@ -90,9 +89,7 @@ void disp_pho_sub(GtkWidget *label, int index, char *pho)
 
 void exec_gcin_setup()
 {
-#if DEBUG
   dbg("exec gcin\n");
-#endif
 #if UNIX
   if (geteuid() < 100 || getegid() < 100)
     return;
@@ -101,6 +98,7 @@ void exec_gcin_setup()
     return;
 #endif
 
+#if 0
   char pidstr[32];
   sprintf(pidstr, "GCIN_PID=%d",
 #if UNIX
@@ -110,10 +108,12 @@ void exec_gcin_setup()
 #endif
   );
   putenv(pidstr);
+#endif
+
 #if UNIX
-  system(GCIN_BIN_DIR"/gcin-setup &");
+  system(GCIN_BIN_DIR"/gcin-tools &");
 #else
-  win32exec("gcin-setup.exe");
+  win32exec("gcin-tools.exe");
 #endif
 }
 
@@ -123,11 +123,18 @@ void set_label_font_size(GtkWidget *label, int size)
     return;
 
   PangoContext *pango_context = gtk_widget_get_pango_context (label);
-  PangoFontDescription* font=pango_context_get_font_description
-       (pango_context);
+  PangoFontDescription* font=pango_context_get_font_description (pango_context);
+#if 0
   pango_font_description_set_family(font, gcin_font_name);
   pango_font_description_set_size(font, PANGO_SCALE * size);
-  gtk_widget_modify_font(label, font);
+#else
+  char tt[256];
+  sprintf(tt, "%s %d", gcin_font_name, size);
+  PangoFontDescription* nfont = pango_font_description_from_string(tt);
+  pango_font_description_merge(font, nfont, TRUE);
+  pango_font_description_free(nfont);
+#endif
+  gtk_widget_override_font(label, font);
 }
 
 // the width of ascii space in firefly song
