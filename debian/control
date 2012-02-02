@@ -1,12 +1,13 @@
 Source: gcin
 Section: utils
 Priority: optional
-Maintainer: Kan-Ru Chen <koster@debian.org>
+Maintainer: IME Packaging Team <pkg-ime-devel@lists.alioth.debian.org>
+Uploaders: Yao Wei (魏銘廷) <mwei@lxde.org>
 Homepage: http://www.csie.nctu.edu.tw/~cp76/gcin/
 Vcs-Git: git://git.debian.org/git/users/koster/gcin.git
 Vcs-Browser: http://git.debian.org/?p=users/koster/gcin.git;a=summary
-Build-Depends: debhelper (>= 7.0.50~), libgtk2.0-dev (>= 2.20.0), libxtst-dev, libqt4-dev, libanthy-dev
-Standards-Version: 3.9.1
+Build-Depends: debhelper (>= 8), libgtk2.0-dev (>= 2.20.0), libxtst-dev, libqt4-dev, libanthy-dev
+Standards-Version: 3.9.2
 
 Package: gcin
 Architecture: any
