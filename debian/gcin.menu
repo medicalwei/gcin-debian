@@ -8,8 +8,8 @@
 
 ?package(gcin): \
 	icon="/usr/share/pixmaps/gcin.xpm" \
-	title="gcin-setup" \
-	longtitle="gcin-setup, for gcin input method platform" \
+	title="gcin-tools" \
+	longtitle="Configuration tools for gcin input method platform" \
 	needs="x11" \
 	section="Applications/System/Language Environment" \
 	command="/usr/bin/gcin-setup"
