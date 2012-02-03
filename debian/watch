@@ -1,3 +1,2 @@
 version=3
-opts="uversionmangle=s/\.pre/~pre/" \
-http://cle.linux.org.tw/gcin/download/gcin-(.*)\.tar\.bz2
+http://www.csie.nctu.edu.tw/~cp76/gcin/download/ gcin-(.*)\.tar\.xz
