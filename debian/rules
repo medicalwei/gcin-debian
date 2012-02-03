@@ -27,7 +27,7 @@ override_dh_auto_install:
 	ln -s /usr/lib/gcin/table debian/tmp/usr/share/gcin/table
 
 override_dh_installchangelogs:
-	dh_installchangelogs ChangeLog
+	dh_installchangelogs Changelog.html
 
 override_dh_makeshlibs:
 	dh_makeshlibs -n
