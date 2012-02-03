@@ -6,7 +6,7 @@ export NO_GTK_INIT=
 export GCIN_NO_RELOAD=
 
 DATA=pho.tab2 tsin32.idx NewCJ3.gtab \
-     cj.gtab ar30.gtab ar30-big.gtab dayi3.gtab pinyin.gtab jyutping.gtab cj5.gtab \
+     cj.gtab ar30.gtab ar30-big.gtab pinyin.gtab jyutping.gtab cj5.gtab \
      et.kbm et26.kbm zo.kbm pinyin.kbm dvorak.kbm mitac.kbm colemak.kbm \
      ibm.kbm tsin32 hsu.kbm pho-huge.tab2 simplex.gtab symbols.gtab russian.gtab \
      greek.gtab cj-punc.gtab latin-letters.gtab tsin-1.src pin-juyin.xlt \
