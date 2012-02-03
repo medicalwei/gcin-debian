@@ -17,7 +17,6 @@ override_dh_auto_install:
 	mkdir -p debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules
 	mv debian/tmp/usr/lib/gtk-2.0/immodules/* debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules/
 	mkdir -p debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodule-files.d
-	sed -e s,@GTKVER@,$(GTKVER), debian/gcin.immodules.in > debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodule-files.d/gcin.immodules
 
 override_dh_installchangelogs:
 	dh_installchangelogs Changelog.html
