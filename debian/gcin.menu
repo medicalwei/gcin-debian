@@ -12,4 +12,4 @@
 	longtitle="Configuration tools for gcin input method platform" \
 	needs="x11" \
 	section="Applications/System/Language Environment" \
-	command="/usr/bin/gcin-setup"
+	command="/usr/bin/gcin-tools"
