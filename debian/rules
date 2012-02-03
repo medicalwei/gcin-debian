@@ -12,7 +12,6 @@ GTK3VER = $(shell pkg-config --variable=gtk_binary_version gtk+-3.0)
 
 override_dh_auto_clean:
 	make clean
-	rm config.mak
  
 override_dh_auto_install:
 	make install DESTDIR=$(CURDIR)/debian/tmp
