@@ -1,28 +1,34 @@
 #!/usr/bin/make -f
+# -*- makefile -*-
 
-GTKVER = $(shell pkg-config --variable=gtk_binary_version gtk+-2.0)
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+GTK2VER = $(shell pkg-config --variable=gtk_binary_version gtk+-2.0)
+GTK3VER = $(shell pkg-config --variable=gtk_binary_version gtk+-3.0)
 
 %:
-	dh $@
-
-override_dh_auto_configure:
-	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info CFLAGS="$(CFLAGS)"  \
-	--use_i18n=Y
+	dh $@ 
 
 override_dh_auto_clean:
 	make clean
-
+	rm config.mak
+ 
 override_dh_auto_install:
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
-	mkdir -p debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules
-	mv debian/tmp/usr/lib/gtk-2.0/immodules/* debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodules/
-	mkdir -p debian/gcin/usr/lib/gtk-2.0/$(GTKVER)/immodule-files.d
+	make install DESTDIR=$(CURDIR)/debian/tmp
+
+	# move libraries to the correspond gtk version
+	mkdir -p debian/tmp/usr/lib/gtk-2.0/$(GTK2VER)
+	mv debian/tmp/usr/lib/gtk-2.0/immodules debian/tmp/usr/lib/gtk-2.0/$(GTK2VER)/
+	mkdir -p debian/tmp/usr/lib/gtk-3.0/$(GTK3VER)
+	mv debian/tmp/usr/lib/gtk-3.0/immodules debian/tmp/usr/lib/gtk-3.0/$(GTK3VER)/
+
+	# workaround to move arch-dep tables to /usr/lib
+	mv debian/tmp/usr/share/gcin/table debian/tmp/usr/lib/gcin/
+	ln -s /usr/lib/gcin/table debian/tmp/usr/share/gcin/table
 
 override_dh_installchangelogs:
-	dh_installchangelogs Changelog.html
+	dh_installchangelogs ChangeLog
 
 override_dh_makeshlibs:
 	dh_makeshlibs -n
-
-override_dh_shlibdeps:
-	LD_LIBRARY_PATH=debian/gcin/usr/lib/gcin:$(LD_LIBRARY_PATH) dh_shlibdeps

@@ -1,12 +1,13 @@
-gcin (2.7.1-1) unstable; urgency=low
+gcin (2.7.1+dfsg-1) unstable; urgency=low
 
   [ Yao Wei (魏銘廷) ]
   * Reupload to Debian. (Closes: #??????)
   * Imported Upstream version 2.7.1
-  * Remove all patches.
+  * Removed Dayi input method for DFSG compliance.
+  * Remove all patches for cleanness.
   * Make copyright DEP-5 compliant.
 
- -- Yao Wei (魏銘廷) <mwei@lxde.org>  Thu, 02 Feb 2012 17:17:41 +0800
+ -- Yao Wei (魏銘廷) <mwei@lxde.org>  Fri, 03 Feb 2012 11:39:03 +0800
 
 gcin (1.5.8-1) unstable; urgency=low
 
