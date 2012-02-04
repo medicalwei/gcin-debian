@@ -13,6 +13,7 @@ case "$1" in
     remove|upgrade|deconfigure)
         ua_remove all_ALL gcin
         ua_remove zh_CN   gcin
+        ua_remove ja_JP   gcin
         ua_remove zh_TW   gcin
 	;;
     failed-upgrade)

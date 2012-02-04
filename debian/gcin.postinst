@@ -14,6 +14,7 @@ case "$1" in
         # Set up default
         ua_inst all_ALL gcin  0
         ua_inst zh_CN   gcin 30
+        ua_inst ja_JP   gcin 30
         ua_inst zh_TW   gcin 50
     ;;
 
