@@ -32,7 +32,7 @@ Description: icons, locales and scripts for gcin
 
 Package: gcin-tables
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${misc:Depends}
 Description: input method tables for gcin
  gcin is focused mainly on Traditional Chinese. However, it is also very useful
  for Simplified Chinese, Japanese, and many other languages.
