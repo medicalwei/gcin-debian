@@ -1,7 +1,7 @@
 gcin (2.7.2+dfsg-1) unstable; urgency=low
 
   [ Yao Wei (魏銘廷) ]
-  * Reupload to Debian. (Closes: #??????)
+  * Reupload to Debian. (Closes: #658449)
   * Imported Upstream version 2.7.2
   * Removed Dayi input method for DFSG compliance.
   * Remove all patches for cleanness.
