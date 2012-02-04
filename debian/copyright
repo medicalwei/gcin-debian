@@ -38,7 +38,7 @@ License: jyutping
  The romanisation system is a little bit different from common Hong Kong 
  usage, but this system is a lot more systematic.
 
-Files: data/ar30.cin data/ar30-big.cin
+Files: data/ar30.cin data/ar30-big.cin ./data/ar33.cin
 Copyright: 2010-2012 Ming-Te Liao
 License: ar30
  Array Input Method Public License
