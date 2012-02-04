@@ -7,5 +7,6 @@ usr/lib/gcin/libgcin-im-client.so
 usr/lib/gcin/libgcin-im-client.so.1
 usr/lib/gcin/libgcin-im-client.so.1.2.5
 usr/share/applications
+usr/share/doc
 debian/im-switch/gcin etc/X11/xinit/xinput.d
 debian/gcin.xpm usr/share/pixmaps
