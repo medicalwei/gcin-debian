@@ -11,5 +11,5 @@ man/phoa2d.1
 man/sim2trad.1
 man/tsa2d32.1
 man/tslearn.1
-debian/man/ts-contribute.1
-debian/man/ts-edit.1
+man/ts-contribute.1
+man/ts-edit.1
