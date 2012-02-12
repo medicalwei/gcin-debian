@@ -23,8 +23,7 @@ EN e !EN gcin-tray.png
 標點簡易 - simplex-punc.gtab simplex-punc.png
 
 #####大易類#########
-# removed for dfsg-compliance.
-#大易 7 dayi3.gtab dayi3.png
+大易 7 dayi3.gtab dayi3.png
 #大易 7 gdayi3.gtab dayi3.png
 
 #####行列類#########
