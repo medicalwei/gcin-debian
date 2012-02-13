@@ -1,8 +1,8 @@
 gcin (2.7.3+dfsg-1) unstable; urgency=low
 
   * Imported Upstream version 2.7.3
-  * Fix description on packages.
-  * Missing manpages are now included in upstream.
+  * debian/control: fix description on packages.
+  * debian/man: merged upstream.
 
  -- Yao Wei (魏銘廷) <mwei@lxde.org>  Sun, 12 Feb 2012 16:05:38 +0800
 
