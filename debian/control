@@ -26,17 +26,21 @@ Description: GTK+ based input method for Chinese users
 Package: gcin-data
 Architecture: all
 Depends: ${misc:Depends}
-Description: icons, locales and scripts for gcin
+Replaces: gcin (<< 2.7.2+dfsg-1)
+Breaks: gcin (<< 2.7.2+dfsg-1)
+Description: icons and scripts for gcin
  gcin is a GTK+ based input method which focused mainly on Traditional
  Chinese. However, it is also very useful for Simplified Chinese, Japanese,
  and many other languages.
  .
- This package contains icons, locales, scripts and other architecture- 
- independent things.
+ This package contains icons, scripts and other architecture-independent
+ things.
 
 Package: gcin-tables
 Architecture: any
 Depends: ${misc:Depends}
+Replaces: gcin (<< 2.7.2+dfsg-1)
+Breaks: gcin (<< 2.7.2+dfsg-1)
 Description: input method tables for gcin
  gcin is a GTK+ based input method which focused mainly on Traditional
  Chinese. However, it is also very useful for Simplified Chinese, Japanese,
@@ -79,6 +83,8 @@ Package: gcin-anthy
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, gcin (>= ${source:Version}), 
  anthy
+Replaces: gcin (<< 2.7.2+dfsg-1)
+Breaks: gcin (<< 2.7.2+dfsg-1)
 Description: support library to use Anthy in gcin
  gcin is a GTK+ based input method which focused mainly on Traditional
  Chinese. However, it is also very useful for Simplified Chinese, Japanese,
@@ -89,6 +95,8 @@ Description: support library to use Anthy in gcin
 Package: gcin-chewing
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, gcin (>= ${source:Version})
+Replaces: gcin (<< 2.7.2+dfsg-1)
+Breaks: gcin (<< 2.7.2+dfsg-1)
 Description: support library to use Chewing in gcin
  gcin is a GTK+ based input method which focused mainly on Traditional
  Chinese. However, it is also very useful for Simplified Chinese, Japanese,

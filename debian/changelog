@@ -1,7 +1,9 @@
 gcin (2.7.3+dfsg-1) unstable; urgency=low
 
   * Imported Upstream version 2.7.3
-  * debian/control: fix description on packages.
+  * debian/control:
+    - fix upgrading from gcin issues. (Closes: #659790)
+    - fix description on packages.
   * debian/man: merged upstream.
 
  -- Yao Wei (魏銘廷) <mwei@lxde.org>  Sun, 12 Feb 2012 16:05:38 +0800
