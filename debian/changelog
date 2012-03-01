@@ -1,3 +1,11 @@
+gcin (2.7.4+dfsg-1) unstable; urgency=low
+
+  * Imported Upstream version 2.7.4+dfsg
+  * debian/control, debian/copyright: 
+    upgrade debian policy standard version to 3.9.3
+
+ -- Yao Wei (魏銘廷) <mwei@lxde.org>  Thu, 01 Mar 2012 11:27:30 +0800
+
 gcin (2.7.3+dfsg-1) unstable; urgency=low
 
   * Imported Upstream version 2.7.3
