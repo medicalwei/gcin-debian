@@ -1,4 +1,4 @@
-Format: http://dep.debian.net/deps/dep5
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: gcin
 Upstream-Contact: Edward Der-Hua Liu <cp76@csie.nctu.edu.tw>
 Source: http://www.csie.nctu.edu.tw/~cp76/gcin/download/
