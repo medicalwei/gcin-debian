@@ -1,3 +1,9 @@
+gcin (2.7.5+dfsg-1) unstable; urgency=low
+
+  * Imported Upstream version 2.7.5+dfsg
+
+ -- Yao Wei (魏銘廷) <mwei@lxde.org>  Sun, 04 Mar 2012 19:53:04 +0800
+
 gcin (2.7.4+dfsg-1) unstable; urgency=low
 
   * Imported Upstream version 2.7.4+dfsg
