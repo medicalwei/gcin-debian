@@ -1,6 +1,7 @@
 gcin (2.7.5+dfsg-1) unstable; urgency=low
 
   * Imported Upstream version 2.7.5+dfsg
+  * debian/patches/ld_only_link_needed: patch tagged to comply DEP-3
 
  -- Yao Wei (魏銘廷) <mwei@lxde.org>  Sun, 04 Mar 2012 19:53:04 +0800
 

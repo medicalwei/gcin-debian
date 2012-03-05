@@ -1,3 +1,7 @@
+Description: Make ld only link needed library
+Author: Yao Wei (魏銘廷) <mwei@lxde.org>
+Forwarded: http://hyperrate.com/thread.php?tid=26780
+Last-Update: 2012-03-05
 --- a/configure
 +++ b/configure
 @@ -35,7 +35,7 @@
