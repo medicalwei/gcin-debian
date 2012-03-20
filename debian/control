@@ -9,6 +9,7 @@ Build-Depends: debhelper (>= 8.0.0), libgtk2.0-dev (>= 2.20.0), libgtk-3-dev,
 Standards-Version: 3.9.3
 Vcs-Git: git://git.debian.org/pkg-ime/gcin.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-ime/gcin.git;a=summary
+DM-Upload-Allowed: yes
 
 Package: gcin
 Architecture: any
