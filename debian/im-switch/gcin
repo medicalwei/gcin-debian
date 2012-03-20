@@ -4,9 +4,7 @@ XIM_ARGS=
 GTK_IM_MODULE=gcin
 if [ -e /usr/lib/qt4/plugins/inputmethods/im-gcin.so ]; then
     QT_IM_MODULE=gcin
-    QT4_IM_MODULE=gcin
 else
     QT_IM_MODULE=xim
-    QT4_IM_MODULE=xim
 fi
 DEPENDS=
