@@ -1,9 +1,12 @@
-gcin (2.7.5+dfsg-2) unstable; urgency=low
+gcin (2.7.6.1+dfsg-1) unstable; urgency=low
 
-  * remove QT4_IM_MODULE envvar since it won't work at all
-  * set DM-Upload-Allowed to yes
+  * Imported Upstream version 2.7.6.1+dfsg
+  * debian/patches: all fixed upstream
+  * debian/im-switch/gcin:
+    remove QT4_IM_MODULE envvar since it won't work at all
+  * debian/control: set DM-Upload-Allowed to yes
 
- -- Yao Wei (魏銘廷) <mwei@lxde.org>  Tue, 03 Apr 2012 15:46:32 +0800
+ -- Yao Wei (魏銘廷) <mwei@lxde.org>  Sat, 07 Apr 2012 15:48:18 +0800
 
 gcin (2.7.5+dfsg-1) unstable; urgency=low
 
