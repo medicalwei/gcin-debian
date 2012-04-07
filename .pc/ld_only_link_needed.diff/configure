@@ -14,7 +14,6 @@ if [ "$1" = "-h" -o "$1" = "--help" -o "$1" = "-help" ]; then
     echo "  --use_qt3=N    : disable Qt3 immodule"
     echo "  --use_qt4=N    : disable Qt4 immodule"
     echo "  --use_gtk3=N   : disable GTK+ 3.x immodule"
-    echo "  --gcinlibdir=dir   : runtime path of gcin's *.so"
     exit
 fi
 
@@ -36,7 +35,7 @@ if [ $? = 0 ]; then
   FREEBSD=1
 fi
 
-SO_FLAGS="-Wl,--as-needed -shared"
+SO_FLAGS="-shared"
 MAC_OS=0
 uname | grep Darwin > /dev/null 2> /dev/null
 if [ $? = 0 ]; then
@@ -84,41 +83,23 @@ for opt do
   --use_qt4*) use_qt4=`echo $opt | cut -d '=' -f 2`
   ;;
   --use_gtk3*) use_gtk3=`echo $opt | cut -d '=' -f 2`
-  ;;
-  --gcinlibdir*) gcinlibdir=`echo $opt | cut -d '=' -f 2`
   esac
 done
 
 echo "prefix: $prefix"
 
-for i in gtk+-3.0 gtk+-2.0
-do
-  echo -n ".... Testing $i : "
-  GTKINC=`pkg-config --cflags $i 2>/dev/null`
 
-  if [ $? != 0 ]; then
-    echo "not found"
-    continue
-  fi
+GTK=gtk+-2.0
 
-  GTKLDFLAGS=`pkg-config --libs $i`
-  if [ $? = 0 ]; then
-    GTK=$i
-    echo "found"
-    break
-  fi
-done
+echo -n ".... Testing $GTK : "
 
-if [ $GTK = '' ]; then
-  echo "According to pkg-config, GTK 2.0 or 3.0 WAS NOT FOUND."
-  echo "please install rpm/package libgtk+2.0_0-devel or libgtk+3.0_0-devel"
+GTKINC=`pkg-config --cflags $GTK`
+
+if [ $? != 0 ]; then
+  echo "$GTK or above required --cflags"
   rm -f config.mak
-  exits
+  exit -1;
 fi
-
-echo "$GTK will be used."
-echo "GTKINC: $GTKINC"
-echo "GTKLDFLAGS: $GTKLDFLAGS"
 
 ## problem in MacOS, by candyz
 if [ $MAC_OS = 1 ]; then
@@ -139,7 +120,16 @@ if [ ! -x /bin/bash ]; then
 fi
 
 
+GTKLDFLAGS=`pkg-config --libs $GTK`
 
+if [ $? != 0 ]; then
+  echo "$GTK or above required --libs"
+  echo "please install rpm/package libgtk+2.0_0-devel"
+  rm -f config.mak
+  exit -1;
+else
+  echo " found."
+fi
 
 echo -n ".... Testing anthy    :  "
 USE_ANTHY=`pkg-config --libs anthy`
@@ -245,10 +235,6 @@ optdir=/opt
 GCIN_VERSION=`cat VERSION.gcin`
 sed -e "s/__gcin_version__/$GCIN_VERSION/" < gcin.spec.in > gcin.spec
 
-if [ -z "$gcinlibdir" ]; then
-  gcinlibdir=$libdir/gcin
-fi
-
 if [ $QT_IM = 'N' ]; then
   mv gcin.spec gcin.spec.tmp
   grep -v qt3/plugins/inputmethods gcin.spec.tmp > gcin.spec
@@ -280,7 +266,7 @@ if [ $USE_ANTHY = 'Y' ] || [ $USE_CHEWING = 'Y' ]; then
   BUILD_MODULE='Y'
 fi
 
-OPTFLAGS="-g -O"
+OPTFLAGS="-O"
 
 if [ -z $CC ]; then
   CC=gcc
@@ -300,9 +286,9 @@ echo "bindir_r=$bindir" >> config.mak
 echo "datadir=\$(DESTDIR)$datadir" >> config.mak
 echo "datadir_r=$datadir" >> config.mak
 echo "libdir=\$(DESTDIR)$libdir" >> config.mak
-echo "gcinlibdir=\$(DESTDIR)$gcinlibdir" >> config.mak
+echo "gcinlibdir=\$(libdir)/gcin" >> config.mak
 echo "includedir=\$(DESTDIR)$includedir" >> config.mak
-echo "LDFLAGS=-Wl,--as-needed $GTKLDFLAGS -lX11 -ldl -lm" >> config.mak
+echo "LDFLAGS=$GTKLDFLAGS -lX11 -ldl -lm" >> config.mak
 echo "GCIN_VERSION=$GCIN_VERSION" >> config.mak
 echo "GCIN_TABLE_DIR=\$(datadir_r)/gcin/table" >> config.mak
 echo "GCIN_OGG_DIR=\$(datadir_r)/gcin/ogg" >> config.mak
