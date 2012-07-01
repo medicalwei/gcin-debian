@@ -40,7 +40,7 @@ EN e !EN gcin-tray.png
 
 #####外語類#########
 !日本anthy = anthy-module.so kana-nippon.png
-hangul / hangul.gtab hangul.png
+hangul / hangul.gtab hangul.png hangul-phrase.txt
 greek ` greek.gtab greek.png
 latin-letters [ latin-letters.gtab latin-letters.png
 En-words [ vocabulary.gtab vocabulary.png

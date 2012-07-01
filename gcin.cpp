@@ -17,6 +17,9 @@ Display *dpy;
 int win_xl, win_yl;
 int win_x, win_y;   // actual win x/y
 int dpy_xl, dpy_yl;
+#if WIN32
+int dpy_x_ofs, dpy_y_ofs;
+#endif
 DUAL_XIM_ENTRY xim_arr[1];
 
 extern unich_t *fullchar[];
@@ -323,10 +326,9 @@ void disp_tray_icon(), toggle_gb_output();
 void cb_trad_sim_toggle()
 {
   toggle_gb_output();
-#if TRAY_ENABLED
   disp_tray_icon();
-#endif
 }
+
 void execute_message(char *message), show_win_kbm(), hide_win_kbm();
 int b_show_win_kbm=0;
 void disp_win_kbm_capslock_init();
@@ -499,6 +501,10 @@ gboolean delayed_start_cb(gpointer data)
 void get_dpy_xyl()
 {
 	dpy_xl = gdk_screen_width(), dpy_yl = gdk_screen_height();
+#if WIN32
+	dpy_x_ofs = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	dpy_y_ofs = GetSystemMetrics(SM_YVIRTUALSCREEN);
+#endif
 }
 
 void screen_size_changed(GdkScreen *screen, gpointer user_data)

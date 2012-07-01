@@ -45,11 +45,25 @@ gboolean init_tsin_table_fname(INMD *p, char *fname)
 #endif
   {
 #if UNIX
-    unix_exec(GCIN_BIN_DIR"/tsin2gtab-phrase %s %s", gtabfname, gtab_phrase_src);
-    unix_exec(GCIN_BIN_DIR"/tsa2d32 %s %s", gtab_phrase_src, fname);
+    if (p->phrase_txt) {
+      char phrase_txt[512];
+      get_gcin_user_or_sys_fname(p->phrase_txt, phrase_txt);
+      unix_exec(GCIN_BIN_DIR"/txt2gtab-phrase %s %s %s", phrase_txt, gtabfname, gtab_phrase_src);
+      unix_exec(GCIN_BIN_DIR"/tsa2d32 %s %s", gtab_phrase_src, fname);
+    } else {
+      unix_exec(GCIN_BIN_DIR"/tsin2gtab-phrase %s %s", gtabfname, gtab_phrase_src);
+      unix_exec(GCIN_BIN_DIR"/tsa2d32 %s %s", gtab_phrase_src, fname);
+    }
 #else
-    win32exec_va("tsin2gtab-phrase", gtabfname, gtab_phrase_src, NULL);
-    win32exec_va("tsa2d32", gtab_phrase_src, fname, NULL);
+    if (p->phrase_txt) {
+      char phrase_txt[512];
+      get_gcin_user_or_sys_fname(p->phrase_txt, phrase_txt);
+      win32exec_va("txt2gtab-phrase", phrase_txt, gtabfname, gtab_phrase_src, NULL);
+      win32exec_va("tsa2d32", gtab_phrase_src, fname, NULL);
+    } else {
+      win32exec_va("tsin2gtab-phrase", gtabfname, gtab_phrase_src, NULL);
+      win32exec_va("tsa2d32", gtab_phrase_src, fname, NULL);
+    }
 #endif
   }
 

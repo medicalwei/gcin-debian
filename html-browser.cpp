@@ -22,6 +22,8 @@ int html_browser(char *fname)
   GError *error;
   error = NULL;
   gtk_show_uri (gdk_screen_get_default (),  fname, gtk_get_current_event_time (), &error);
+
+  return 0;
 #endif
 #endif
 }

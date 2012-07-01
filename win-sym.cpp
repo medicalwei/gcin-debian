@@ -381,10 +381,10 @@ static gboolean button_scroll_event(GtkWidget *widget,GdkEventScroll *event, gpo
 
   switch (event->direction) {
     case GDK_SCROLL_UP:
-	  win_sym_page_up();
+      win_sym_page_up();
       break;
     case GDK_SCROLL_DOWN:
-	  win_sym_page_down();
+      win_sym_page_down();
       break;
     default:
       break;
@@ -397,9 +397,9 @@ static gboolean button_scroll_event(GtkWidget *widget,GdkEventScroll *event, gpo
 
 static void mouse_button_callback_up_down( GtkWidget *widget,GdkEventButton *event, gpointer data)
 {
-	GdkEventScroll sc;
-	sc.direction = data ? GDK_SCROLL_UP : GDK_SCROLL_DOWN;
-	button_scroll_event(NULL, &sc, NULL);
+  GdkEventScroll sc;
+  sc.direction = data ? GDK_SCROLL_UP : GDK_SCROLL_DOWN;
+  button_scroll_event(NULL, &sc, NULL);
 }
 
 void create_win_sym()
@@ -433,14 +433,7 @@ void create_win_sym()
     return;
   }
 
-  gwin_sym = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_sym), FALSE);
-#if UNIX
-  gtk_window_set_resizable(GTK_WINDOW(gwin_sym), FALSE);
-#endif
-#if WIN32
-  set_no_focus(gwin_sym);
-#endif
+  gwin_sym = create_no_focus_win();
 
   cur_in_method = current_CS->in_method;
 

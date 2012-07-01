@@ -52,7 +52,7 @@ void get_line()
 {
   while (!feof(fr)) {
     bzero(tt, sizeof(tt));
-	myfgets(tt, sizeof(tt), fr);
+    myfgets(tt, sizeof(tt), fr);
     lineno++;
 
     int len=strlen(tt);

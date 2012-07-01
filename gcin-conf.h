@@ -29,6 +29,7 @@
 #define GCIN_TRAY_HF_WIN_KBM "gcin-tray-hf-win-kbm"
 #define GCIN_SINGLE_STATE "gcin-single-state"
 #define GCIN_PUNC_AUTO_SEND "gcin-punc-auto-send"
+#define GCIN_STATUS_WIN "gcin-status-win"
 
 #define GCIN_IM_TOGGLE_KEYS "gcin-im-toggle-keys"
 #define DEFAULT_INPUT_METHOD "default-input-method"
@@ -78,6 +79,7 @@
 #define TSIN_TAIL_SELECT_KEY "tsin-tail-select-key"
 #define TSIN_BUFFER_EDITING_MODE "tsin-buffer-editing-mode"
 #define TSIN_USE_PHO_NEAR "tsin-use-pho-near"
+#define TSIN_PHO_MODE "tsin-pho-mode"
 
 #define PHO_HIDE_ROW2 "pho-hide-row2"
 #define PHO_IN_ROW1 "pho-in-row1"
@@ -101,12 +103,13 @@ extern int gcin_font_size, gcin_font_size_tsin_presel, gcin_font_size_symbol,
            gcin_font_size_tsin_pho_in, gcin_font_size_pho_near,
            gcin_font_size_gtab_in, gcin_font_size_win_kbm, gcin_font_size_win_kbm_en,
            gcin_inner_frame, gcin_single_state,
-           gcin_remote_client,
+           gcin_remote_client, ini_tsin_pho_mode,
            gtab_disp_key_codes, gtab_disp_im_name, gcin_shift_space_eng_full,
            gtab_invalid_key_in, gtab_hide_row2, gtab_in_row1, gtab_capslock_in_eng,
            gcin_capslock_lower, pho_hide_row2, pho_in_row1,
            gcin_eng_phrase_enabled, gtab_que_wild_card, gcin_win_sym_click_close,
-           gcin_bell_volume, gcin_sound_play_overlap, gcin_enable_ctrl_alt_switch, gcin_on_the_spot_key;
+           gcin_bell_volume, gcin_sound_play_overlap, gcin_enable_ctrl_alt_switch, gcin_on_the_spot_key,
+           gcin_status_win;
 
 extern int default_input_method;
 extern int left_right_button_tips;

@@ -37,7 +37,8 @@ static GtkWidget *opt_im_toggle_keys, *check_button_gcin_remote_client,
        *check_button_gcin_init_im_enabled,
        *check_button_gcin_eng_phrase_enabled,
        *check_button_gcin_win_sym_click_close,
-       *check_button_gcin_punc_auto_send;
+       *check_button_gcin_punc_auto_send,
+       *check_button_ini_tsin_pho_mode;
 #if USE_GCB
 static GtkWidget *spinner_gcb_position_x, *spinner_gcb_position_y;
 static GtkWidget *spinner_gcb_history_n, *spinner_gcb_button_n;
@@ -205,7 +206,10 @@ static void save_gtab_list()
     char *icon = pinmd->icon;
     char *disabled = pinmd->disabled?"!":"";
 
-    fprintf(fp, "%s%s %c %s %s\n", disabled,name, pinmd->key_ch, file, icon);
+    if (pinmd->phrase_txt)
+      fprintf(fp, "%s%s %c %s %s %s\n", disabled,name, pinmd->key_ch, file, icon, pinmd->phrase_txt);
+    else
+      fprintf(fp, "%s%s %c %s %s\n", disabled,name, pinmd->key_ch, file, icon);
   }
 
   fclose(fp);
@@ -267,6 +271,9 @@ static void cb_ok (GtkWidget *button, gpointer data)
 
   save_gcin_conf_int(GCIN_INIT_IM_ENABLED,
     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gcin_init_im_enabled)));
+
+  save_gcin_conf_int(TSIN_PHO_MODE,
+    !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_ini_tsin_pho_mode)));
 
   save_gcin_conf_int(GCIN_ENG_PHRASE_ENABLED,
     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gcin_eng_phrase_enabled)));
@@ -452,7 +459,13 @@ add_columns (GtkTreeView *treeview)
   g_object_set_data (G_OBJECT (renderer), "column", (gint *)COLUMN_KEY);
 
   gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (treeview),
-                                               -1, _(_L("Ctrl-Alt-鍵")), renderer,
+                                               -1,
+#if UNIX
+											   _(_L("Ctrl-Alt-鍵"))
+#else
+											   _(_L("Ctrl-Shift-鍵"))
+#endif
+											   , renderer,
                                                "text", COLUMN_KEY,
                                                "editable", COLUMN_EDITABLE,
                                                NULL);
@@ -746,6 +759,16 @@ void create_gtablist_window (void)
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_gcin_init_im_enabled),
      gcin_init_im_enabled);
 #endif
+
+
+  GtkWidget *hbox_ini_tsin_pho_mode = gtk_hbox_new (FALSE, 10);
+  gtk_box_pack_start (GTK_BOX(vboxR), hbox_ini_tsin_pho_mode, FALSE, FALSE, 0);
+  GtkWidget *label_ini_tsin_pho_mode = gtk_label_new(_(_L("Shift切換中英初始英數")));
+  gtk_box_pack_start (GTK_BOX (hbox_ini_tsin_pho_mode), label_ini_tsin_pho_mode,  FALSE, FALSE, 0);
+  check_button_ini_tsin_pho_mode = gtk_check_button_new ();
+  gtk_box_pack_start (GTK_BOX (hbox_ini_tsin_pho_mode),check_button_ini_tsin_pho_mode,  FALSE, FALSE, 0);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_ini_tsin_pho_mode),
+     !ini_tsin_pho_mode);
 
 
   GtkWidget *hbox_gcin_shift_space_eng_full = gtk_hbox_new (FALSE, 10);

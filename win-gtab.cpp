@@ -338,28 +338,13 @@ void set_gtab_input_method_name(char *s)
 gboolean use_tsin_sel_win();
 void init_tsin_selection_win();
 
+
 void create_win_gtab()
 {
   if (gwin_gtab)
     return;
 
-  gwin_gtab = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_gtab), FALSE);
-#if UNIX
-  gtk_window_set_resizable(GTK_WINDOW(gwin_gtab), FALSE);
-#endif
-#if WIN32
-  set_no_focus(gwin_gtab);
-#endif
-  gtk_container_set_border_width (GTK_CONTAINER (gwin_gtab), 0);
-  gtk_widget_realize (gwin_gtab);
-
-#if UNIX
-  GdkWindow *gdkwin = gtk_widget_get_window(gwin_gtab);
-  set_no_focus(gwin_gtab);
-#else
-  win32_init_win(gwin_gtab);
-#endif
+  gwin_gtab = create_no_focus_win();
 
   if (use_tsin_sel_win())
     init_tsin_selection_win();

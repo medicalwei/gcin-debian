@@ -356,6 +356,7 @@ static void cb_popup_state(GtkStatusIcon *status_icon, guint button, guint activ
 
 #define GCIN_TRAY_PNG "gcin-tray.png"
 
+void disp_win_screen_status(char *in_method, char *half_status);
 
 void load_tray_icon_win32()
 {
@@ -403,7 +404,7 @@ void load_tray_icon_win32()
     iconame = tt;
   }
 
-//  dbg("iconame %s\n", iconame);
+  dbg("iconame %s\n", iconame);
   char fname[128];
   fname[0]=0;
   if (iconame)
@@ -444,6 +445,8 @@ void load_tray_icon_win32()
 //    dbg("set %s %s\n", fname, fname_state);
     gtk_status_icon_set_from_file(icon_main, fname);
     gtk_status_icon_set_from_file(icon_state, fname_state);
+    if (gcin_status_win)
+      disp_win_screen_status(fname, fname_state);
   }
   else {
 //    dbg("gtk_status_icon_new_from_file a\n");

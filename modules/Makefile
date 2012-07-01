@@ -33,7 +33,7 @@ install:
 	install $(GCIN_MODULE) $(gcinlibdir)
 
 clean:
-	rm -f *.pico *.so *.o
+	rm -f *.pico *.so *.o .depend
 .depend:
 	$(CCX) $(CFLAGS) -MM *.cpp > $@
 

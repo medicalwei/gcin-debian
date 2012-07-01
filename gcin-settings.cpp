@@ -13,7 +13,7 @@ int left_right_button_tips;
 int gcin_im_toggle_keys, gcin_bell_off;
 int gcin_capslock_lower, gcin_eng_phrase_enabled, gcin_init_im_enabled;
 int gcin_win_sym_click_close, gcin_edit_display, gcin_win32_icon;
-int gcin_on_the_spot_key, gcin_tray_hf_win_kbm, gcin_punc_auto_send;
+int gcin_on_the_spot_key, gcin_tray_hf_win_kbm, gcin_punc_auto_send, gcin_status_win;
 
 int gtab_dup_select_bell;
 int gtab_space_auto_first;
@@ -42,7 +42,7 @@ int tsin_chinese_english_toggle_key;
 int gcin_font_size_tsin_pho_in;
 int tsin_space_opt;
 int tsin_buffer_size, tsin_tail_select_key;
-int tsin_buffer_editing_mode;
+int tsin_buffer_editing_mode, ini_tsin_pho_mode;
 int gcin_shift_space_eng_full;
 char *tsin_phrase_line_color;
 char *tsin_cursor_color, *gcin_sel_key_color;
@@ -91,6 +91,8 @@ void load_setttings()
   gcin_inner_frame = get_gcin_conf_int(GCIN_INNER_FRAME, 1);
   gcin_eng_phrase_enabled = get_gcin_conf_int(GCIN_ENG_PHRASE_ENABLED, 1);
   gcin_tray_hf_win_kbm = get_gcin_conf_int(GCIN_TRAY_HF_WIN_KBM, 0);
+  gcin_status_win = get_gcin_conf_int(GCIN_STATUS_WIN, 0);
+
 #if UNIX
   gcin_init_im_enabled = get_gcin_conf_int(GCIN_INIT_IM_ENABLED, 0);
 #else
@@ -149,6 +151,7 @@ void load_setttings()
   tsin_tail_select_key = get_gcin_conf_int(TSIN_TAIL_SELECT_KEY, 0);
   tsin_buffer_editing_mode = get_gcin_conf_int(TSIN_BUFFER_EDITING_MODE, 1);
   tsin_use_pho_near = get_gcin_conf_int(TSIN_USE_PHO_NEAR, 0);
+  ini_tsin_pho_mode = get_gcin_conf_int(TSIN_PHO_MODE, 1);
 
   phonetic_char_dynamic_sequence = get_gcin_conf_int(PHONETIC_CHAR_DYNAMIC_SEQUENCE, 1);
   phonetic_huge_tab = get_gcin_conf_int(PHONETIC_HUGE_TAB, 0);

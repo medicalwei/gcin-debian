@@ -386,7 +386,7 @@ void gcb_main()
   gtk_window_set_skip_taskbar_hint(GTK_WINDOW(hist_window),TRUE);
   gtk_window_set_title (GTK_WINDOW (hist_window),"gcb history");
 
-  gtk_window_set_title (GTK_WINDOW(mainwin), "gcb: gtk copy-paste buffer");
+  gtk_window_set_title (GTK_WINDOW(mainwin), "gcb main");
   gtk_window_stick(GTK_WINDOW(mainwin));
 
 //  g_signal_connect(G_OBJECT (mainwin),"destroy", G_CALLBACK (do_exit), NULL);

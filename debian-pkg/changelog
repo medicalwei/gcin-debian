@@ -1,4 +1,10 @@
-gcin (2.7.6+eliu-0) unstable; urgency=low
+gcin (2.7.8+eliu-0) unstable; urgency=low
+
+  * for Ubuntu 12.04 (gtk3)
+
+ -- Edward Liu (my gpg) <eliu@hyperrate.com>  Sun, 18 Apr 2012 14:00:00 +0800
+
+gcin (2.7.6.2+eliu-0) unstable; urgency=low
 
   * for Ubuntu 11.10
   * For zh_TW, increase priority of gcin to 70, otherwise gcin cannot be selected.

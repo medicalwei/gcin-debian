@@ -12,6 +12,7 @@
 #include "gcin-im-client.h"
 #include "im-srv.h"
 #include <gtk/gtk.h>
+#include "util.h"
 
 #define DBG 0
 
@@ -21,17 +22,65 @@ static int myread(int fd, void *buf, int bufN)
 static int myread(HANDLE fd, void *buf, int bufN)
 #endif
 {
-#if UNIX
-  return read(fd, buf, bufN);
-#else
   int ofs=0, toN = bufN;
+
+#if UNIX
   while (toN) {
-	DWORD rn;
+    fd_set rfds;
+    struct timeval tv;
+    int retval;
+
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+
+    retval = select(fd+1, &rfds, NULL, NULL, &tv);
+
+    if (retval <= 0) {
+      dbg("select error\n");
+      return -1;
+    }
+
+    int rn;
+    if ((rn=read(fd, ((char *)buf) + ofs, toN)) < 0) {
+      dbg("read error");
+      return -1;
+    }
+
+    if (rn==0)
+      break;
+
+    ofs+=rn;
+    toN-=rn;
+  };
+  return ofs;
+#else
+  while (toN) {
+    DWORD bytes = 0;
+     for(int loop=0;loop < 2; loop++) {
+       bytes = 0;
+       if (PeekNamedPipe(fd, NULL, 0, NULL, &bytes, NULL)) {
+//         dbg("bytes %d\n", bytes);
+       } else
+         dbg("PeekNamedPipe failed %s", sys_err_strA());
+
+       if (bytes > 0)
+         break;
+
+       Sleep(5000);
+     }
+
+     if (!bytes)
+       return -1;
+
+    DWORD rn;
     BOOL r = ReadFile(fd, ((char *)buf) + ofs, toN, &rn, 0);
     if (!r)
       return -1;
     ofs+=rn;
-	toN-=rn;
+    toN-=rn;
   };
   return bufN;
 #endif
@@ -79,7 +128,7 @@ int gcin_FocusIn(ClientState *cs);
 int gcin_FocusOut(ClientState *cs);
 void update_in_win_pos();
 void hide_in_win(ClientState *cs);
-void init_state_chinese(ClientState *cs);
+void init_state_chinese(ClientState *cs, gboolean tsin_pho_mode);
 void clear_output_buffer();
 void flush_edit_buffer();
 int gcin_get_preedit(ClientState *cs, char *str, GCIN_PREEDIT_ATTR attr[], int *cursor, int *sub_comp_len);
@@ -179,7 +228,10 @@ static void shutdown_client(HANDLE fd)
 void message_cb(char *message);
 void save_CS_temp_to_current();
 void disp_tray_icon();
-
+void set_tsin_pho_mode_ini(ClientState *cs);
+#if WIN32
+extern int dpy_x_ofs, dpy_y_ofs;
+#endif
 
 #if UNIX
 void process_client_req(int fd)
@@ -233,7 +285,6 @@ void process_client_req(HANDLE fd)
     cs->b_gcin_protocol = TRUE;
     cs->input_style = InputStyleOverSpot;
 
-
 #if WIN32
     cs->use_preedit = TRUE;
 #endif
@@ -248,16 +299,13 @@ void process_client_req(HANDLE fd)
 #if UNIX
       if (!current_CS)
 #endif
-	  {
+      {
         current_CS = cs;
         save_CS_temp_to_current();
       }
 
-      init_state_chinese(cs);
-
-#if UNIX
+      init_state_chinese(cs, ini_tsin_pho_mode);
       disp_tray_icon();
-#endif
     }
   }
 
@@ -265,8 +313,15 @@ void process_client_req(HANDLE fd)
     p_err("bad cs\n");
 
   if (req.req_no != GCIN_req_message) {
+#if UNIX
     cs->spot_location.x = req.spot_location.x;
     cs->spot_location.y = req.spot_location.y;
+#else
+    cs->spot_location.x = req.spot_location.x - dpy_x_ofs;
+    cs->spot_location.y = req.spot_location.y - dpy_y_ofs;
+
+	dbg("req.spot_location.x %d %d\n", req.spot_location.x, dpy_x_ofs);
+#endif
   }
 
   gboolean status;

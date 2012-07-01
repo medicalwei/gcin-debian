@@ -40,17 +40,19 @@ gboolean tsin_pho_mode()
   return current_CS && current_CS->tsin_pho_mode;
 }
 
-void set_tsin_pho_mode0(ClientState *cs)
+void disp_tray_icon();
+
+void set_tsin_pho_mode0(ClientState *cs, gboolean tsin_pho_mode)
 {
   if (!cs)
     return;
-  cs->tsin_pho_mode = 1;
+  cs->tsin_pho_mode = tsin_pho_mode;
   save_CS_current_to_temp();
 }
 
 void set_tsin_pho_mode()
 {
-  set_tsin_pho_mode0(current_CS);
+  set_tsin_pho_mode0(current_CS, TRUE);
   show_tsin_stat();
 }
 
@@ -1187,6 +1189,18 @@ int tsin_sele_by_idx(int c)
 
 static char shift_sele[]="!@#$%^&*()asdfghjkl:zxcvbnm<>?qwertyuiop";
 static char noshi_sele[]="1234567890asdfghjkl;zxcvbnm,./qwertyuiop";
+
+char strip_shift_key(KeySym xkey)
+{
+  if (xkey >= 127)
+    return 0;
+  char *p;
+  if (!(p=strchr(shift_sele, xkey)))
+    return 0;
+  int c = p - shift_sele;
+  return noshi_sele[c];
+}
+
 int shift_key_idx(char *s, KeySym xkey)
 {
   if (xkey >= 0x7f)
@@ -1524,13 +1538,19 @@ static void tsin_create_win_save_phrase(int idx0, int len)
   create_win_save_phrase(wsp, len);
 }
 
-void tsin_sel_cursor_LR(gboolean is_inc)
+int tsin_sel_max_N()
 {
-  is_inc ^= pho_candicate_R2L;
   int N;
   N = phrase_count + pho_count - tss.current_page;
   if (N > phkbm.selkeyN)
     N = phkbm.selkeyN;
+  return N;
+}
+
+void tsin_sel_cursor_LR(gboolean is_inc)
+{
+  is_inc ^= pho_candicate_R2L;
+  int N = tsin_sel_max_N();
 
   if (is_inc) {
     tss.pho_menu_idx = (tss.pho_menu_idx+1) % N;
@@ -1543,7 +1563,12 @@ void tsin_sel_cursor_LR(gboolean is_inc)
   disp_current_sel_page();
 }
 
-int feedkey_pp(KeySym xkey, int kbstate)
+int is_pho_key(KeySym xkey)
+{
+  return xkey < 127 && phkbm.phokbm[xkey][0].num;
+}
+
+int feedkey_tsin(KeySym xkey, int kbstate)
 {
   char ctyp=0;
   static u_int ii;
@@ -1657,9 +1682,16 @@ int feedkey_pp(KeySym xkey, int kbstate)
 #if UNIX
      case XK_KP_Home:
 #endif
+        if (tss.sel_pho) {
+          tss.pho_menu_idx=0;
+          disp_current_sel_page();
+          return TRUE;
+        }
+
         close_selection_win();
         if (!tss.c_len)
           return 0;
+
         clrcursor();
         tss.c_idx=0;
         drawcursor();
@@ -1668,6 +1700,12 @@ int feedkey_pp(KeySym xkey, int kbstate)
 #if UNIX
      case XK_KP_End:
 #endif
+        if (tss.sel_pho) {
+          tss.pho_menu_idx=tsin_sel_max_N()-1;
+          disp_current_sel_page();
+          return TRUE;
+        }
+
         close_selection_win();
         if (!tss.c_len)
           return 0;
@@ -1753,12 +1791,14 @@ tab_phrase_end:
          return tss.c_len>0;
        }
 
-       int N;
-       N = phrase_count + pho_count - tss.current_page;
-       if (N > phkbm.selkeyN)
-         N = phkbm.selkeyN;
+#if 0
        if (tss.pho_menu_idx >=pho_candicate_col_N)
          tss.pho_menu_idx-=pho_candicate_col_N;
+#else
+       int N;
+       N = tsin_sel_max_N();
+       tss.pho_menu_idx = (tss.pho_menu_idx - pho_candicate_col_N + N) % N;
+#endif
        disp_current_sel_page();
        return 1;
      case XK_Prior:
@@ -1820,11 +1860,14 @@ change_char:
          if (xkey == XK_space)
            tsin_page_down();
          else {
-           int N = phrase_count + pho_count - tss.current_page;
-           if (N > phkbm.selkeyN)
-             N = phkbm.selkeyN;
+           int N;
+           N = tsin_sel_max_N();
+#if 0
            if (tss.pho_menu_idx+pho_candicate_col_N < N)
              tss.pho_menu_idx = tss.pho_menu_idx+pho_candicate_col_N;
+#else
+           tss.pho_menu_idx = (tss.pho_menu_idx+pho_candicate_col_N) % N;
+#endif
            disp_current_sel_page();
          }
        }
@@ -1957,7 +2000,7 @@ other_keys:
 
    if (!tsin_pho_mode() || poo.typ_pho[0]!=BACK_QUOTE_NO && (shift_m || key_pad ||
        (!phkbm.phokbm[xkey][0].num && !phkbm.phokbm[xkey][0].typ))) {
-       if (tsin_pho_mode() && !shift_m && strchr(hsu_punc, xkey) && !phkbm.phokbm[xkey][0].num) {
+       if (tsin_pho_mode() && !shift_m && strchr(hsu_punc, xkey) && !is_pho_key(xkey)) {
          if (pre_punctuation_hsu(xkey))
            return 1;
        }
@@ -1966,7 +2009,7 @@ other_keys:
          xkey = key_pad;
 asc_char:
         if (shift_m) {
-          if (pre_sel_handler(xkey)) {
+          if (is_pho_key(strip_shift_key(xkey)) && pre_sel_handler(xkey)) {
             call_tsin_parse();
             return 1;
           }

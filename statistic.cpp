@@ -91,20 +91,7 @@ gboolean timeout_update_stat(gpointer data)
 
 void create_stat_win()
 {
-  gwin_stat = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_stat), FALSE);
-#if WIN32
-  set_no_focus(gwin_stat);
-#endif
-  gtk_container_set_border_width (GTK_CONTAINER (gwin_stat), 0);
-  gtk_widget_realize (gwin_stat);
-#if UNIX
-  GdkWindow *gdkwin0 = gtk_widget_get_window(gwin_stat);
-  set_no_focus(gwin_stat);
-#else
-  win32_init_win(gwin_stat);
-#endif
-
+  gwin_stat = create_no_focus_win ();
 
   GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
   gtk_container_add (GTK_CONTAINER (gwin_stat), vbox);

@@ -954,6 +954,11 @@ gboolean feedkey_gtab(KeySym key, int kbstate)
     }
   }
 
+
+
+  if (cur_inmd && (cur_inmd->flag & FLAG_GTAB_SYM_KBM))
+    current_CS->tsin_pho_mode = TRUE;
+
   if ((kbstate & (Mod1Mask|Mod4Mask|Mod5Mask|ControlMask))==ControlMask
      && key>='1' && key<='9' && ggg.gbufN) {
     save_gtab_buf_phrase(key);
@@ -1009,7 +1014,7 @@ gboolean feedkey_gtab(KeySym key, int kbstate)
   lcase = tolower(key);
   int ucase;
   ucase = toupper(key);
-  if (key < 127 && cur_inmd->keymap[key]) {
+  if (key < 127 && cur_inmd && cur_inmd->keymap && cur_inmd->keymap[key]) {
      if (key < 'A' || key > 'z' || key > 'Z'  && key < 'a' )
        goto shift_proc;
      if (cur_inmd->keymap[lcase] != cur_inmd->keymap[ucase])

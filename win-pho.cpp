@@ -1,5 +1,6 @@
 #include "gcin.h"
 #include "win-sym.h"
+#include "gtab.h"
 
 static int current_gcin_inner_frame;
 static int current_pho_in_row1;
@@ -126,23 +127,8 @@ void create_win_pho()
   if (gwin_pho)
     return;
 
-  gwin_pho = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_default_size(GTK_WINDOW(gwin_pho), 1 ,1);
-  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_pho), FALSE);
-#if UNIX
-  gtk_window_set_resizable(GTK_WINDOW(gwin_pho), FALSE);
-#endif
-#if WIN32
-  set_no_focus(gwin_pho);
-#endif
-  gtk_container_set_border_width (GTK_CONTAINER (gwin_pho), 0);
-  gtk_widget_realize (gwin_pho);
-#if UNIX
-  GdkWindow *gdkwin = gtk_widget_get_window(gwin_pho);
-  set_no_focus(gwin_pho);
-#else
-  win32_init_win(gwin_pho);
-#endif
+  gwin_pho = create_no_focus_win();
+
   change_win_bg(gwin_pho);
 }
 
@@ -173,7 +159,7 @@ void create_win_pho_gui_simple()
     return;
 
   GtkWidget *vbox_top = gtk_vbox_new (FALSE, 0);
- 
+
   GtkWidget *event_box_pho;
   if (gtab_in_area_button)
 	event_box_pho = gtk_button_new();
@@ -284,7 +270,8 @@ void show_win_pho()
   create_win_pho();
   create_win_pho_gui();
 
-  if (gcin_pop_up_win && !pho_has_input())
+  if (gcin_pop_up_win && !pho_has_input() &&
+      inmd[default_input_method].method_type==method_type_PHO)
     return;
 
 #if UNIX

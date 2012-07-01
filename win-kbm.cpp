@@ -179,14 +179,7 @@ static void create_win_kbm()
 {
   gdk_color_parse("red", &red);
 
-  gwin_kbm = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin_kbm), FALSE);
-#if UNIX
-  gtk_window_set_resizable(GTK_WINDOW(gwin_kbm), FALSE);
-#endif
-#if WIN32
-  set_no_focus(gwin_kbm);
-#endif
+  gwin_kbm = create_no_focus_win();
 
   gtk_container_set_border_width (GTK_CONTAINER (gwin_kbm), 0);
   GtkWidget *hbox_top = gtk_hbox_new (FALSE, 0);
@@ -227,13 +220,13 @@ static void create_win_kbm()
 
       gboolean fill = (flag & K_FILL) > 0;
       gtk_box_pack_start (GTK_BOX (hbox), but, fill, fill, 0);
- 
+
       GtkWidget *v = gtk_vbox_new (FALSE, 0);
       gtk_container_set_border_width (GTK_CONTAINER (v), 0);
       gtk_container_add (GTK_CONTAINER (but), v);
       GtkWidget *laben = ppk->laben=gtk_label_new(_(ppk->enkey));
       set_label_font_size(laben, gcin_font_size_win_kbm_en);
- 
+
       gtk_box_pack_start (GTK_BOX (v), laben, fill, fill, 0);
 
       if (i>0&&i<5) {
