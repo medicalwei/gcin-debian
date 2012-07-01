@@ -89,6 +89,11 @@ static gboolean cb_new_gcin_client(GIOChannel *source, GIOCondition condition, g
     return FALSE;
   }
 
+#if 1
+  int flags = fcntl(newsockfd, F_GETFL, 0);
+  fcntl(newsockfd, F_SETFL, flags|O_NONBLOCK);
+#endif
+
 //  dbg("newsockfd %d\n", newsockfd);
 
   if (newsockfd >= gcin_clientsN) {

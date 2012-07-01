@@ -581,12 +581,34 @@ void init_gcin_program_files();
 #pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 #endif
 
+void page_up()
+{
+  page_ofs -= PAGE_LEN;
+  if (page_ofs < 0)
+    page_ofs = 0;
+}
+
+void page_down()
+{
+  page_ofs += PAGE_LEN;
+  if (page_ofs>= tsN)
+    page_ofs = tsN-1;
+}
+
 static gboolean  scroll_event(GtkWidget *widget,GdkEventScroll *event, gpointer user_data)
 {
   dbg("scroll_event\n");
 
-  if (event->direction!=GDK_SCROLL_DOWN)
-    return TRUE;
+  switch (event->direction) {
+    case GDK_SCROLL_UP:
+      page_up();
+      break;
+    case GDK_SCROLL_DOWN:
+      page_down();
+      break;
+    default:
+      break;
+  }
 
   return FALSE;
 }
@@ -609,15 +631,11 @@ gboolean key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer user_da
       break;
     case GDK_KP_Page_Up:
     case GDK_Page_Up:
-      page_ofs -= PAGE_LEN;
-      if (page_ofs < 0)
-        page_ofs = 0;
+      page_up();
       break;
     case GDK_KP_Page_Down:
     case GDK_Page_Down:
-      page_ofs += PAGE_LEN;
-      if (page_ofs>= tsN)
-        page_ofs = tsN-1;
+      page_down();
       break;
     case GDK_Home:
     case GDK_KP_Home:
@@ -826,9 +844,7 @@ int main(int argc, char **argv)
 
   mainwin = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(mainwin), GTK_WIN_POS_CENTER);
-
-  g_signal_connect (G_OBJECT (mainwin), "key-press-event",
-                   G_CALLBACK (key_press_event), NULL);
+  g_signal_connect (G_OBJECT (mainwin), "key-press-event",  G_CALLBACK (key_press_event), NULL);
 
   gtk_window_set_has_resize_grip(GTK_WINDOW(mainwin), FALSE);
 //  gtk_window_set_default_size(GTK_WINDOW (mainwin), 640, 520);
@@ -861,10 +877,7 @@ int main(int argc, char **argv)
     gtk_box_pack_start (GTK_BOX (hbox), button_check[i], FALSE, FALSE, 0);
 
     labels[i]=gtk_label_new(NULL);
-#if 0
-    g_signal_connect (G_OBJECT (labels[i]), "scroll-event",
-                      G_CALLBACK (scroll_event), NULL);
-#endif
+
     GtkWidget *align = gtk_alignment_new (0, 0, 0, 0);
     gtk_container_add(GTK_CONTAINER(align), labels[i]);
     gtk_box_pack_start (GTK_BOX (hbox), align, FALSE, FALSE, 0);
@@ -911,14 +924,19 @@ int main(int argc, char **argv)
        G_CALLBACK (cb_button_download), NULL);
   }
 
-  g_signal_connect (G_OBJECT (mainwin), "delete_event",
-                    G_CALLBACK (do_exit), NULL);
+  g_signal_connect (G_OBJECT (mainwin), "delete_event", G_CALLBACK (do_exit), NULL);
 
+  gtk_widget_realize (mainwin);
   gtk_widget_show_all(mainwin);
 
 //  load_ts_phrase();
 
   disp_page();
+
+#if 0
+  GdkWindow *gdkwin=gtk_widget_get_window(mainwin);
+  gdk_window_set_events(gdkwin, GDK_BUTTON_PRESS_MASK|GDK_SCROLL_MASK| gdk_window_get_events(gdkwin));
+#endif
 
   gtk_main();
   return 0;

@@ -3,7 +3,6 @@ typedef struct {
   int c_idx, c_len;
   int ph_sta;  // phrase start
   int sel_pho;
-//  int save_frm, save_to;
   int current_page;
   int startf;
   gboolean full_match;
@@ -14,7 +13,6 @@ typedef struct {
   int pre_selN;
   int last_cursor_idx;
   int pho_menu_idx;
-//  int pho_sel_menu_idx;
 } TSIN_ST;
 extern TSIN_ST tss;
 

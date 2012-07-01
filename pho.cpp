@@ -251,7 +251,8 @@ void clrin_pho()
   poo.maxi=poo.ityp3_pho=0;
   poo.cpg=0;
 
-  if (gcin_pop_up_win && !same_query_show_pho_win())
+  if (gcin_pop_up_win && !same_query_show_pho_win()
+      && inmd[default_input_method].method_type==method_type_PHO)
     hide_win_pho();
 }
 
@@ -401,8 +402,9 @@ void putkey_pho(u_short key, int idx)
 
   if (poo.same_pho_query_state==SAME_PHO_QUERY_pho_select && ggg.gbufN)
     insert_gbuf_nokey(pho_str);
-  else
+  else {
     send_text(pho_str);
+  }
 
   lookup_gtab(pho_str);
 
@@ -410,6 +412,7 @@ void putkey_pho(u_short key, int idx)
 
   clr_in_area_pho();
   ClrSelArea();
+  ClrPhoSelArea();
 
   if (is_gtab_query_mode())
     set_gtab_target_displayed();

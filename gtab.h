@@ -116,6 +116,7 @@ typedef struct {
   char WILD_QUES, WILD_STAR;
   struct _GCIN_module_callback_functions *mod_cb_funcs;
   char key_ch, in_cycle;
+  char *phrase_txt;
 } INMD;
 
 enum {

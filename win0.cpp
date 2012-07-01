@@ -397,7 +397,7 @@ GtkWidget *gwin_sym;
 
 void move_win0(int x, int y)
 {
-//  dbg("--- gwin0:%x move_win0 %d,%d\n", gwin0, x,y);
+  dbg("--- gwin0:%x move_win0 %d,%d\n", gwin0, x,y);
   best_win_x = x;
   best_win_y = y;
 
@@ -460,6 +460,27 @@ static void mouse_button_callback( GtkWidget *widget,GdkEventButton *event, gpoi
 void tsin_toggle_eng_ch();
 void set_no_focus();
 
+GtkWidget *create_no_focus_win()
+{
+  GtkWidget *win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+//  gtk_window_set_has_resize_grip(GTK_WINDOW(win), FALSE);
+#if UNIX
+  gtk_window_set_resizable(GTK_WINDOW(win), FALSE);
+#endif
+#if WIN32
+  set_no_focus(win);
+#endif
+  gtk_container_set_border_width (GTK_CONTAINER (win), 0);
+  gtk_widget_realize (win);
+#if UNIX
+  GdkWindow *gdkwin = gtk_widget_get_window(win);
+  set_no_focus(win);
+#else
+  win32_init_win(win);
+#endif
+
+  return win;
+}
 
 void create_win0()
 {
@@ -468,22 +489,7 @@ void create_win0()
 #if _DEBUG && 0
   dbg("create_win0\n");
 #endif
-  gwin0 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin0), FALSE);
-#if UNIX
-  gtk_window_set_resizable(GTK_WINDOW(gwin0), FALSE);
-#endif
-#if WIN32
-  set_no_focus(gwin0);
-#endif
-  gtk_container_set_border_width (GTK_CONTAINER (gwin0), 0);
-  gtk_widget_realize (gwin0);
-#if UNIX
-  GdkWindow *gdkwin0 = gtk_widget_get_window(gwin0);
-  set_no_focus(gwin0);
-#else
-  win32_init_win(gwin0);
-#endif
+  gwin0 = create_no_focus_win();
 }
 
 
@@ -770,10 +776,14 @@ void win_tsin_disp_half_full()
   if (test_mode)
     return;
 #endif
-  if (gcin_win_color_use)
-   gtk_label_set_markup(GTK_LABEL(label_pho), get_full_str());
-  else
-    gtk_label_set_text(GTK_LABEL(label_pho), get_full_str());
+
+  if (label_pho) {
+    if (gcin_win_color_use)
+     gtk_label_set_markup(GTK_LABEL(label_pho), get_full_str());
+    else
+      gtk_label_set_text(GTK_LABEL(label_pho), get_full_str());
+  }
+
   compact_win0();
 }
 

@@ -1,11 +1,10 @@
 ﻿%ename Hangul
-%cname 韓拼
-#%cncoding UTF-8
+%cname Hangul
 %selkey 123456789
 %keep_key_case
-%flag_disp_partial_match
-%flag_disp_full_match
 %flag_unique_auto_send
+%flag_auto_select_by_phrase
+%flag_vertical_selection
 %keyname begin
 A Ａ
 B Ｂ

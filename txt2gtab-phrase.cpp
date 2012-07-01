@@ -101,16 +101,12 @@ int main(int argc, char **argv)
   set_is_chs();
 
 #if 1
-  if (argc != 3)
-    p_err("%s a_file.gtab outfile", argv[0]);
+  if (argc != 4)
+    p_err("%s a_file.txt a_file.gtab outfile", argv[0]);
 #endif
-#if 1
-  char *infile = argv[1];
-  char *outfile = argv[2];
-#else
-  char *infile = "data/ar30.gtab";
-  char *outfile = "l";
-#endif
+  char *txtfile = argv[1];
+  char *infile = argv[2];
+  char *outfile = argv[3];
 
   FILE *fr;
   if ((fr=fopen(infile, "rb"))==NULL)
@@ -194,28 +190,30 @@ int main(int argc, char **argv)
 
   fclose(fr);
 
-  char fname[128];
-  get_gcin_user_fname(tsin32_f, fname);
 
   FILE *fp;
-  if ((fp=fopen(fname,"rb"))==NULL) {
-    printf("Cannot open %s", fname);
+  if ((fp=fopen(txtfile,"rb"))==NULL) {
+    printf("Cannot open %s", txtfile);
     exit(-1);
   }
 
 
   while (!feof(fp)) {
     int i;
+    usecount_t usecount=0;
+#if 0
     phokey_t phbuf[MAX_PHRASE_LEN];
     u_char clen;
-    usecount_t usecount;
-
     fread(&clen,1,1,fp);
     fread(&usecount, sizeof(usecount_t), 1,fp);
     fread(phbuf,sizeof(phokey_t), clen, fp);
+#endif
 
-    char str[MAX_PHRASE_LEN * CH_SZ + 1];
+    char str[4096];
     int strN = 0;
+
+    myfgets(str, sizeof(str), fp);
+
     KKARR kk[MAX_PHRASE_LEN];
     KKARR64 kk64[MAX_PHRASE_LEN];
     gboolean has_err = FALSE;
@@ -226,40 +224,33 @@ int main(int argc, char **argv)
       bzero(kk, sizeof(kk));
 
 //    dbg("clen %d\n", clen);
-    for(i=0;i<clen;i++) {
-      char ch[CH_SZ];
-
-      int n = fread(ch, 1, 1, fp);
-      if (n<=0)
-        goto stop;
-
+    char *ch = str;
+    int clen = 0;
+    while (*ch) {
       int len=utf8_sz(ch);
 
-      fread(&ch[1], 1, len-1, fp);
-//      utf8_putchar(ch);
-
       if (key64) {
-        if (!(kk64[i].arr = find_ch64(ch, &kk64[i].N)))
+        if (!(kk64[clen].arr = find_ch64(ch, &kk64[clen].N)))
           has_err = TRUE;
       } else {
-        if (!(kk[i].arr = find_ch(ch, &kk[i].N)))
+        if (!(kk[clen].arr = find_ch(ch, &kk[clen].N)))
           has_err = TRUE;
       }
 
-      memcpy(str+strN, ch, len);
-      strN+=len;
+      ch+=len;
+      clen++;
     }
 
     if (has_err) {
 //      dbg("has_error\n");
       continue;
     }
+
 #if 0
     for(i=0; i < clen; i++)
       printf("%d ", kk64[i].N);
     printf("\n");
 #endif
-    str[strN]=0;
 
     int permN;
     if (key64) {

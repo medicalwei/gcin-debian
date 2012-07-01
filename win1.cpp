@@ -61,23 +61,7 @@ void create_win1()
   if (gwin1)
     return;
 
-  gwin1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_has_resize_grip(GTK_WINDOW(gwin1), FALSE);
-
-#if UNIX
-  gtk_window_set_resizable(GTK_WINDOW(gwin1), FALSE);
-#endif
-
-#if WIN32
-  set_no_focus(gwin1);
-#endif
-  gtk_widget_realize (gwin1);
-
-#if UNIX
-  set_no_focus(gwin1);
-#else
-  win32_init_win(gwin1);
-#endif
+  gwin1 = create_no_focus_win();
 
   g_signal_connect (G_OBJECT (gwin1), "scroll-event", G_CALLBACK (button_scroll_event_tsin), NULL);
 }
@@ -306,12 +290,13 @@ gboolean timeout_minimize_win1(gpointer data)
 
 #if WIN32
 #include <gdk/gdkwin32.h>
+extern int dpy_x_ofs, dpy_y_ofs;
 void set_win_pos_size(GtkWidget *win, int x, int y, int xl, int yl)
 {
   dbg("set_win_size %d,%d %d %d\n", x, y, xl, yl);
   HWND hwnd=(HWND)gdk_win32_drawable_get_handle(win->window);
 #if 1
-  SetWindowPos(hwnd, HWND_TOP, x, y, xl, yl, SWP_SHOWWINDOW);
+  SetWindowPos(hwnd, HWND_TOP, x + dpy_x_ofs, y + dpy_y_ofs, xl, yl, SWP_SHOWWINDOW);
 #else
   MoveWindow(hwnd, x, y, xl, yl, false);
 #endif

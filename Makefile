@@ -13,7 +13,7 @@ OBJS=gcin.o eve.o util.o gcin-conf.o gcin-settings.o locale.o gcin-icon.o about.
      gcin-exec-script.o $(GCIN_SO) pho-play.o cache.o gtk_bug_fix.o phrase-save-menu.o \
      $(gcin_pho_o) $(gcin_gtab_o) gcin-common.o phrase.o t2s-lookup.o gtab-use-count.o \
      win-save-phrase.o unix-exec.o pho-kbm-name.o statistic.o tsin-scan.o gcin-module.o lang.o \
-     gcin-module-cb.o gtab-init.o fullchar.o gtab-tsin-fname.o
+     gcin-module-cb.o gtab-init.o fullchar.o gtab-tsin-fname.o win-screen-status.o
 
 OBJS_TSLEARN=tslearn.o util.o gcin-conf.o pho-util.o tsin-util.o gcin-send.o pho-sym.o \
              table-update.o locale.o gcin-settings.o gcin-common.o gcin-icon.o pho-dbg.o  \
@@ -38,8 +38,8 @@ OBJS_tsd2a32=tsd2a32.o pho-sym.o pho-dbg.o locale.o util.o gtab-dbg.o pho2pinyin
 	gcin-conf.o pinyin.o tsin-util.o lang.o unix-exec.o
 OBJS_gcin2tab=gcin2tab.o gtab-util.o util.o locale.o
 OBJS_gtab_merge=gtab-merge.o gtab-util.o util.o locale.o
-OBJS_gcin_tools=gcin-setup.o gcin-conf.o util.o gcin-send.o gcin-settings.o html-browser.o \
-	gcin-setup-list.o locale.o gcin-setup-pho.o about.o lang.o \
+OBJS_gcin_tools=gcin-tools.o gcin-conf.o util.o gcin-send.o gcin-settings.o html-browser.o \
+	gcin-setup-list.o locale.o gcin-setup-pho.o about.o lang.o gcin-tools-appearance.o \
 	gcin-icon.o gcin-setup-gtab.o gtab-list.o gcin-exec-script.o pho-kbm-name.o gcin-module-cb.o
 
 OBJS_gcin_gb_toggle = gcin-gb-toggle.o gcin-conf.o util.o gcin-send.o
@@ -49,6 +49,9 @@ OBJS_gcin_message = gcin-message.o gcin-conf.o util.o gcin-send.o
 OBJS_pin_juyin = pin-juyin.o util.o pho-lookup.o locale.o pho-sym.o
 
 OBJS_tsin2gtab_phrase = tsin2gtab-phrase.o gcin-conf.o util.o locale.o \
+	pho-dbg.o pho-sym.o gtab-dbg.o lang.o
+
+OBJS_txt2gtab_phrase = txt2gtab-phrase.o gcin-conf.o util.o locale.o \
 	pho-dbg.o pho-sym.o gtab-dbg.o lang.o
 
 #WALL=-Wall
@@ -82,7 +85,8 @@ OBJ_IMSRV=im-addr.o im-dispatch.o im-srv.o gcin-crypt.o
 
 PROGS=gcin tsd2a32 tsa2d32 phoa2d phod2a tslearn gcin-tools gcin2tab \
 	juyin-learn sim2trad gcin-gb-toggle gcin-message gtab-merge \
-	gcin-kbm-toggle tsin2gtab-phrase gcin-exit ts-edit ts-contribute
+	gcin-kbm-toggle tsin2gtab-phrase gcin-exit ts-edit ts-contribute \
+	txt2gtab-phrase
 PROGS_SYM=trad2sim
 PROGS_CV=kbmcv pin-juyin
 
@@ -172,6 +176,9 @@ pin-juyin:	$(OBJS_pin_juyin)
 tsin2gtab-phrase:       $(OBJS_tsin2gtab_phrase)
 	$(CCLD) -o $@ $(OBJS_tsin2gtab_phrase) $(LDFLAGS)
 
+txt2gtab-phrase:       $(OBJS_txt2gtab_phrase)
+	$(CCLD) -o $@ $(OBJS_txt2gtab_phrase) $(LDFLAGS)
+
 im-client/libgcin-im-client.so:
 	$(MAKE) -C im-client
 
@@ -244,7 +251,7 @@ clean:
 	$(MAKE) -C po clean
 	rm -fr *.o *.E *.db *.pico *.so config.mak tags $(PROGS) gcin-nocur $(PROGS_CV) \
 	$(DATA) .depend gcin.spec trad2sim gcin.spec.tmp gcin.log
-	find . '(' -name '.ted*' -o -name '*~' -o -name 'core*' -o -name 'vgcore.*' ')' -exec rm {} \;
+	find . '(' -name '.ted*' -o -name '*~' -o -name 'core*' -o -name 'vgcore.*' -o -name .depend ')' -exec rm {} \;
 
 .depend:
 	$(CCX) $(CFLAGS) -MM *.cpp > $@

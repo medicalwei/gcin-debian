@@ -15,11 +15,8 @@ void align_with_ui_window(GtkWidget *win);
 int html_browser(char *fname);
 
 
-#if WIN32
-#define FURL "http://hyperrate.com/dir.php?eid=215"
-#else
-#define FURL "http://hyperrate.com/dir.php?eid=67"
-#endif
+#define FURL_WIN32 "http://hyperrate.com/dir.php?eid=215"
+#define FURL_LINUX "http://hyperrate.com/dir.php?eid=67"
 
 #define LOG_URL "http://www.csie.nctu.edu.tw/~cp76/gcin/download/Changelog.html"
 #define ET26_URL "http://hyperrate.com/thread.php?tid=22661"
@@ -83,8 +80,8 @@ void create_about_window()
 // this doesn't work on win32
 #if GTK_CHECK_VERSION(2,18,9) && UNIX && 1
    char tmp[1024];
-   sprintf(tmp, "<a href='http://hyperrate.com/dir.php?eid=67'>%s</a>\n"
-                "<a href='http://hyperrate.com/dir.php?eid=215'>%s</a>\n"
+   sprintf(tmp, "<a href='"FURL_LINUX"'>%s</a>\n"
+                "<a href='"FURL_WIN32"'>%s</a>\n"
                 "<a href='"LOG_URL"'>%s</a>\n"
                 "<a href='"ET26_URL"'>%s</a>\n"
                 "<a href='"PUNC_URL"'>%s</a>\n"
@@ -106,7 +103,13 @@ void create_about_window()
     GtkWidget *button_forum = gtk_button_new_with_label(_(_L("討論區")));
     gtk_box_pack_start(GTK_BOX(vbox), button_forum, FALSE, FALSE, 0);
     g_signal_connect (G_OBJECT (button_forum), "clicked",
-		      G_CALLBACK (callback_url), FURL);
+		      G_CALLBACK (callback_url), FURL_WIN32);
+
+    GtkWidget *button_linux = gtk_button_new_with_label(_(_L("gcin也有 Linux版")));
+    gtk_box_pack_start(GTK_BOX(vbox), button_linux, FALSE, FALSE, 0);
+    g_signal_connect (G_OBJECT (button_linux), "clicked",
+		      G_CALLBACK (callback_url), FURL_LINUX);
+
 
     GtkWidget *button_changelog = gtk_button_new_with_label(_(_L("gcin改變記錄")));
     gtk_box_pack_start(GTK_BOX(vbox), button_changelog, FALSE, FALSE, 0);

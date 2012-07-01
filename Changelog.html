@@ -1,7 +1,22 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="zh-tw"><head>
 <meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Changlog</title><meta content="Edward Liu" name="author"></head><body style="outline-color: navy ! important; outline-style: dashed ! important; outline-width: 2px ! important;">** UTF-8 encoding **<br>
-<span style="color: rgb(234, 0, 0);">不反對 copy gcin 的 source code，但是可不可以 copy 的「有品」一些？請說明哪些改進/功能是從 gcin 的 source 來的。</span><br>
+<span style="color: rgb(234, 0, 0);">不反對 copy gcin 的 source code，但是可不可以 copy 的「有品」一些？請說明哪些改進/功能是從 gcin 的 source 來的。<br>
+</span>2.7.8<br>
+- gtab.list 的資料毀損，麻煩請刪除 ~/.gcin/gtab.list 再選一次輸入法<br>
+2.7.7<br>
+- 新增 Shift切換中英初始英數，在 gcin-tools→內定輸入法開啟關閉。這樣可以直接進入中文輸入狀態且在詞音或gtab自動選字模式可以一開始用英數。<br>
+- 為了方便使用者查詢gtab 輸入法的拆碼，ctrl-alt-3 的純注音的 popup window 只有在內定輸入法設定成純注音後才會有作用。<br>
+- 改成 non-block socket 以減少被不正常的 AP 卡住造成全部的 im client 卡住的情形。<br>
+- 詞音選字的選單可以用 home/end 移動游標了。<br>
+- Linux/win32 新增 Ctrl-Shift 123456…切換輸入法的按鍵。由於 ctrl-alt- 在 win32 無法使用，新增 Ctrl-Shift-F5 重複之前打過的，Ctrl-Shift-F8 正/簡輸出切換。<br>
+- 純注音如果沒有使用 popup window，會看到選字區在選字完成後沒有清除的問題。<br>
+- 新增「狀態跳出顯示」的功能，方便切換中英狀態時可以馬上在編輯區看到狀態，不用去 status icon 看，可以在 gcin-tools → 外觀設定→ 狀態跳出顯示 打開。<br>
+- 修正在 ubuntu 12.04 unity，新增詞的 window 會被 panel 擋住的問題。 <br>
+- 倚天26鍵注音等26鍵注音鍵盤由於不需要按 shift 就可以選預選詞，所以 shift 預選詞關閉，改用來輸入！@#$%^&amp;*()<br>
+- gtab.list 新增 phrase.txt 欄位，用來指定 gtab 由詞庫自動選字時所用的詞庫。可參考 hangul.gtab<br>
+- 新增韓文輸入法詞庫自動選字，需要使用的人 rm ~/.gcin/gtab.list ~/.gcin/hangul*。詞庫來自 libhangul。<br>
+<br>
 2.7.6<br>
 - 修改 debian-pkg，符合 i386 &amp; amd64 的 .so PATH<br>
 - fedora.spec gtk2 install 的問題<br>

@@ -48,6 +48,7 @@ int main(int argc, char **argv)
   char *fname_out_save = NULL;
   char fname_tmp[128];
   char ts_user_fname[128];
+  gboolean no_pho = FALSE;
 
 
   gtk_init(&argc, &argv);
@@ -72,6 +73,10 @@ int main(int argc, char **argv)
     if (!strcmp(argv[i], "-b")) {
       i++;
       binary_out = TRUE;
+    } else
+    if (!strcmp(argv[i], "-np")) {
+      i++;
+      no_pho = TRUE;
     } else
     if (!strcmp(argv[i], "-o")) {
       if (i==argc-1 || argv[i+1][0]=='-')
@@ -243,6 +248,12 @@ int main(int argc, char **argv)
 fou:
     if (minus_found)
       continue;
+
+
+    if (no_pho) {
+      fprintf(fp_out, "%s\n", tt);
+      continue;
+    }
 
     fprintf(fp_out, "%s ", tt);
     for(i=0;i<clen;i++) {

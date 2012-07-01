@@ -12,7 +12,7 @@ int pho_play(phokey_t key)
   if (!phonetic_speak)
     return 0;
   if (test_mode)
-    return;
+    return 0;
 
   static int pid;
   static time_t last_time;

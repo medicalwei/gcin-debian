@@ -23,7 +23,9 @@ override_dh_auto_install:
 	mkdir -p debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/gtk-2.0/$(GTK2VER)
 	mv debian/tmp/usr/lib/gtk-2.0/immodules debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/gtk-2.0/$(GTK2VER)/
 	mkdir -p debian/tmp/usr/lib/gtk-3.0/$(GTK3VER)
-	mv debian/tmp/usr/lib/gtk-3.0/immodules debian/tmp/usr/lib/gtk-3.0/$(GTK3VER)/
+	cp -a debian/tmp/usr/lib/gtk-3.0/immodules debian/tmp/usr/lib/gtk-3.0/$(GTK3VER)/
+	mkdir -p debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/gtk-3.0/$(GTK3VER)
+	mv debian/tmp/usr/lib/gtk-3.0/immodules debian/tmp/usr/lib/$(DEB_BUILD_MULTIARCH)/gtk-3.0/$(GTK3VER)/
 
 override_dh_installchangelogs:
 	dh_installchangelogs Changelog.html

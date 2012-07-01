@@ -14,7 +14,7 @@ DATA=pho.tab2 tsin32.idx NewCJ3.gtab \
      pinyin-no-tone.kbm simplex-punc.gtab hangul.gtab ar33.gtab array-symbols.gtab \
      vocabulary.gtab
 
-DATAKEEP=symbol-table gtab.list phrase.table phrase-ctrl.table
+DATAKEEP=symbol-table gtab.list phrase.table phrase-ctrl.table hangul-phrase.txt
 
 all:	$(DATA)
 
