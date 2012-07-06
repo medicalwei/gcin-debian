@@ -1,6 +1,6 @@
-gcin (2.7.8+dfsg-1) unstable; urgency=low
+gcin (2.7.8+dfsg2-1) unstable; urgency=low
 
-  * Imported Upstream version 2.7.8+dfsg
+  * Imported Upstream version 2.7.8+dfsg2
   * debian/patches: add patch to pass LDFLAGS for hardening
   * debian/rules: add hardening options
 
