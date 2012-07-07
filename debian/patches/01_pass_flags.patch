@@ -1,3 +1,11 @@
+Description: Pass CFLAGS and LDFLAGS to compiler and linker
+ For Debian hardening flags.
+ .
+ Mentioned, but not yet push to upstream.
+ Some hardening lintian warning still appears.
+Author: Yao Wei (魏銘廷) <mwei@lxde.org>
+Forwarded: http://hyperrate.com/thread.php?tid=27601
+Last-Update: 2012-07-07
 --- a/configure
 +++ b/configure
 @@ -36,7 +36,7 @@
