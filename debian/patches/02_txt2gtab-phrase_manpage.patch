@@ -1,0 +1,74 @@
+Description: Add manpage for txt2grab-phrase
+ Not yet pushed to upstream.
+Author: Yao Wei (魏銘廷) <mwei@lxde.org>
+Forwarded: http://hyperrate.com/thread.php?tid=27632
+Last-Update: 2012-07-11
+--- /dev/null
++++ b/man/txt2gtab-phrase.1
+@@ -0,0 +1,66 @@
++.TH GCIN 1 "11 JUL 2012" "GCIN 2.7.8" "gcin input method platform"
++
++
++
++.SH NAME
++txt2gtab-phrase \- gcin's phrase builder for table-based input methods
++
++
++
++.SH SYNOPSIS
++.B txt2gtab-phrase
++textfile
++gtab
++outfile
++
++
++
++.SH DESCRIPTION
++.B txt2gtab-phrase
++is a tool to generate input method table for specific phrases.
++
++.PP
++By inputing line-delimited phrases and a input method gtab file,
++it generates a input method table for the phrases according to the gtab file.
++
++
++
++.SH EXAMPLES
++Provide that we have a list named list.txt below:
++
++.RS
++.nf
++心情好
++我是個好人
++.fi
++.RE
++
++.PP
++and a CJ543 input method table provided with gcin.  By running:
++
++.RS
++txt2gtab-phrase list.txt cj543.gtab output.gtab
++.RE
++
++.PP
++We have the result output.gtab below:
++
++.RS
++.nf
++!!!!gtab-keys 6 5 abcdefghijklmnopqrstuvwxyz',.;/[]()~!:
++
++心情好 p pqb vnd 0
++心情好 p pqmb vnd 0
++我是個好人 hqi amo owjr vnd o 0
++我是個好人 hqi amyo owjr vnd o 0
++我是個好人 hqi amo owr vnd o 0
++我是個好人 hqi amyo owr vnd o 0
++.fi
++.RE
++
++
++
++.SH SEE ALSO
++.BR gcin (1).
++.SH AUTHOR
++txt2gtab-phrase is written by Edward Der-Hua Liu <cp76@csie.nctu.edu.tw>.
