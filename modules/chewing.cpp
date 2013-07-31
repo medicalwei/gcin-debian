@@ -96,8 +96,7 @@ gcin_label_cand_show (char *pszWord, int nIdx)
     int nX, nY;
     int nFontWidth, nFontHeight;
 
-    g_gcinModMainFuncs.mf_set_sele_text (chewing_cand_TotalChoice (g_pChewingCtx),
-                                         nIdx,
+    g_gcinModMainFuncs.mf_set_sele_text (nIdx,
                                          pszWord,
                                          -1);
 

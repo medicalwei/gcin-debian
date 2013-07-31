@@ -17,7 +17,7 @@ static GtkWidget *check_button_gtab_dup_select_bell,
                  *check_button_gtab_que_wild_card,
                  *check_button_gtab_phrase_pre_select;
 
-extern GtkWidget *check_button_gcin_capslock_lower;
+extern GtkWidget *check_button_gcin_capslock_lower, *opt_tsin_space;
 extern gboolean button_order;
 
 struct {
@@ -52,12 +52,14 @@ void save_menu_val(char *config, GtkWidget *opt)
   save_gcin_conf_int(config, auto_select_by_phrase_opts[idx].num);
 }
 
+void save_tsin_space_opt();
 
 static gboolean cb_gtab_conf_ok( GtkWidget *widget,
                                    GdkEvent  *event,
                                    gpointer   data )
-{
+{	
   save_tsin_eng_pho_key();
+  save_tsin_space_opt();
   save_gcin_conf_int(GTAB_DUP_SELECT_BELL,
     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gtab_dup_select_bell)));
 
@@ -241,6 +243,7 @@ static gboolean cb_gtab_help( GtkWidget *widget,
 
 
 GtkWidget *create_en_pho_key_sel(char *s);
+GtkWidget *create_tsin_space_opts();
 
 void create_gtab_conf_window()
 {
@@ -412,6 +415,8 @@ void create_gtab_conf_window()
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_gtab_que_wild_card),
      gtab_que_wild_card);
 
+
+  gtk_box_pack_start (GTK_BOX (vbox_gtab_r), create_tsin_space_opts(), FALSE, FALSE, 0);
 
   GtkWidget *button_edit_append = gtk_button_new_with_label(_(_L("編輯內定輸入法的使用者外加字詞")));
   gtk_box_pack_start (GTK_BOX (vbox_gtab_r), button_edit_append, FALSE, FALSE, 0);

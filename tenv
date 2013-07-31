@@ -2,12 +2,12 @@
 ulimit -c unlimited
 rm -f core.*
 export PATH=.:$PATH
-export GCIN_TABLE_DIR=./data
+export GCIN_TABLE_DIR=$PWD/data
 echo "GCIN_TABLE_DIR=$GCIN_TABLE_DIR"
 export GCIN_IM_CLIENT_NO_AUTO_EXEC=
 pkill gcin.test
 unset LC_CTYPE
-export LC_CTYPE=zh_TW.UTF-8
+#export LC_CTYPE=zh_TW.UTF-8
 #export LANG=zh_TW
 export XMODIFIERS=@im=gcin_test
 #export GCIN_OUTPUT_FILTER=./gcin_filter

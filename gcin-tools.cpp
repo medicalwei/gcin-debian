@@ -54,7 +54,7 @@ static void cb_tslearn()
 #if UNIX
   system("tslearn &");
 #else
-  win32exec("tslearn");
+  win32exec("tslearn.exe");
 #endif
   exit(0);
 }
@@ -96,14 +96,14 @@ static void cb_ts_export()
    if (button_order)
        file_selector = gtk_file_chooser_dialog_new(_(_L("請輸入要匯出的檔案名稱")),
                               GTK_WINDOW(main_window),
-                              GTK_FILE_CHOOSER_ACTION_OPEN,
+                              GTK_FILE_CHOOSER_ACTION_SAVE,
                               GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
                               GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                               NULL);
    else
        file_selector = gtk_file_chooser_dialog_new(_(_L("請輸入要匯出的檔案名稱")),
                               GTK_WINDOW(main_window),
-                              GTK_FILE_CHOOSER_ACTION_OPEN,
+                              GTK_FILE_CHOOSER_ACTION_SAVE,
                               GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                               GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
                               NULL);
@@ -136,7 +136,7 @@ static void cb_ts_export()
 #else
 	   char para[256];
        sprintf_s(para, sizeof(para), "\"%s\" -o \"%s\"", fname, selected_filename);
-	   win32exec_para("tsd2a32", para);
+	   win32exec_para("tsd2a32.exe", para);
 #endif
    }
    gtk_widget_destroy (file_selector);
@@ -354,7 +354,7 @@ static void cb_gb_output_toggle()
 static void cb_gb_translate_toggle()
 {
 #if WIN32
-  win32exec("sim2trad");
+  win32exec("sim2trad.exe");
 #else
   system(GCIN_BIN_DIR"/sim2trad &");
 #endif
@@ -365,7 +365,7 @@ static void cb_gb_translate_toggle()
 static void cb_juying_learn()
 {
 #if WIN32
-  win32exec("juyin-learn");
+  win32exec("juyin-learn.exe");
 #else
   system(GCIN_BIN_DIR"/juyin-learn &");
 #endif

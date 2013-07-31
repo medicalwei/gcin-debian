@@ -5,7 +5,7 @@ extern gboolean is_chs;
 
 int gcin_font_size, gcin_font_size_tsin_presel, gcin_font_size_symbol;
 int gcin_font_size_pho_near, gcin_font_size_gtab_in, gcin_font_size_win_kbm, gcin_font_size_win_kbm_en;
-int gcin_win_color_use, gcin_single_state;
+int gcin_win_color_use, gcin_single_state, gcin_ctrl_punc;
 int gcin_remote_client;
 char *default_input_method_str;
 int default_input_method;
@@ -14,6 +14,7 @@ int gcin_im_toggle_keys, gcin_bell_off;
 int gcin_capslock_lower, gcin_eng_phrase_enabled, gcin_init_im_enabled;
 int gcin_win_sym_click_close, gcin_edit_display, gcin_win32_icon;
 int gcin_on_the_spot_key, gcin_tray_hf_win_kbm, gcin_punc_auto_send, gcin_status_win;
+int gcin_escape_clear_edit_buffer;
 
 int gtab_dup_select_bell;
 int gtab_space_auto_first;
@@ -30,7 +31,7 @@ int gtab_in_row1;
 int gtab_capslock_in_eng;
 int gtab_vertical_select;
 int gtab_unique_auto_send;
-int gtab_que_wild_card, gtab_in_area_button;
+int gtab_que_wild_card, gtab_in_area_button, gtab_auto_space;
 
 int tsin_phrase_pre_select, tsin_tone_char_input;
 int tsin_capslock_upper, tsin_use_pho_near;
@@ -42,7 +43,7 @@ int tsin_chinese_english_toggle_key;
 int gcin_font_size_tsin_pho_in;
 int tsin_space_opt;
 int tsin_buffer_size, tsin_tail_select_key;
-int tsin_buffer_editing_mode, ini_tsin_pho_mode;
+int tsin_buffer_editing_mode, ini_tsin_pho_mode, tsin_shift_punc;
 int gcin_shift_space_eng_full;
 char *tsin_phrase_line_color;
 char *tsin_cursor_color, *gcin_sel_key_color;
@@ -65,7 +66,7 @@ int gcin_bell_volume;
 int gcin_sound_play_overlap, gcin_enable_ctrl_alt_switch;
 char *pho_kbm_name, *pho_selkey;
 int pho_candicate_col_N, pho_candicate_R2L;
-
+int gcin_buffer_select_char_auto_left;
 
 int get_gcin_conf_int(char *name, int default_value);
 
@@ -92,6 +93,8 @@ void load_setttings()
   gcin_eng_phrase_enabled = get_gcin_conf_int(GCIN_ENG_PHRASE_ENABLED, 1);
   gcin_tray_hf_win_kbm = get_gcin_conf_int(GCIN_TRAY_HF_WIN_KBM, 0);
   gcin_status_win = get_gcin_conf_int(GCIN_STATUS_WIN, 0);
+  gcin_escape_clear_edit_buffer = get_gcin_conf_int(GCIN_ESCAPE_CLEAR_EDIT_BUFFER, 0);
+  gcin_ctrl_punc = get_gcin_conf_int(GCIN_CTRL_PUNC, 1);
 
 #if UNIX
   gcin_init_im_enabled = get_gcin_conf_int(GCIN_INIT_IM_ENABLED, 0);
@@ -115,10 +118,15 @@ void load_setttings()
   gcin_status_tray = get_gcin_conf_int(GCIN_STATUS_TRAY, 1);
 #endif
   gcin_win_sym_click_close = get_gcin_conf_int(GCIN_WIN_SYM_CLICK_CLOSE, 1);
+  
 #if WIN32
-  gcin_win32_icon = 1;
+  gcin_win32_icon = GCIN_TRAY_WIN32;
 #else
-  gcin_win32_icon = get_gcin_conf_int(GCIN_WIN32_ICON, 1);
+  gcin_win32_icon = get_gcin_conf_int(GCIN_WIN32_ICON, GCIN_TRAY_WIN32);
+#if !USE_INDICATOR
+  if (gcin_win32_icon == GCIN_TRAY_INDICATOR)
+    gcin_win32_icon = GCIN_TRAY_WIN32;
+#endif  
 #endif
 
   gtab_dup_select_bell = get_gcin_conf_int(GTAB_DUP_SELECT_BELL, 0);
@@ -139,6 +147,7 @@ void load_setttings()
   gtab_que_wild_card = get_gcin_conf_int(GTAB_QUE_WILD_CARD, 0);
   gtab_phrase_pre_select = get_gcin_conf_int(GTAB_PHRASE_PRE_SELECT, 1);
   gtab_in_area_button = get_gcin_conf_int(GTAB_IN_AREA_BUTTON, 1);
+  gtab_auto_space = get_gcin_conf_int(GTAB_AUTO_SPACE, 0);
 
   tsin_phrase_pre_select = get_gcin_conf_int(TSIN_PHRASE_PRE_SELECT, 1);
   tsin_chinese_english_toggle_key = get_gcin_conf_int(TSIN_CHINESE_ENGLISH_TOGGLE_KEY,
@@ -151,6 +160,8 @@ void load_setttings()
   tsin_tail_select_key = get_gcin_conf_int(TSIN_TAIL_SELECT_KEY, 0);
   tsin_buffer_editing_mode = get_gcin_conf_int(TSIN_BUFFER_EDITING_MODE, 1);
   tsin_use_pho_near = get_gcin_conf_int(TSIN_USE_PHO_NEAR, 0);
+  tsin_shift_punc= get_gcin_conf_int(TSIN_SHIFT_PUNC, 1);
+  
   ini_tsin_pho_mode = get_gcin_conf_int(TSIN_PHO_MODE, 1);
 
   phonetic_char_dynamic_sequence = get_gcin_conf_int(PHONETIC_CHAR_DYNAMIC_SEQUENCE, 1);
@@ -177,6 +188,7 @@ void load_setttings()
   get_gcin_conf_str(GCIN_WIN_COLOR_BG, &gcin_win_color_bg, "#005BFF");
   gcin_win_color_use = get_gcin_conf_int(GCIN_WIN_COLOR_USE, 0);
   gcin_bell_off = get_gcin_conf_int(GCIN_BELL_OFF, 0);
+  gcin_buffer_select_char_auto_left = get_gcin_conf_int(GCIN_BUFFER_SELECT_CHAR_AUTO_LEFT, 0);
 
 
 #if USE_GCB
@@ -217,6 +229,8 @@ void load_setttings()
     char *kbm_str = is_chs?"pinyin "N1234" 1 1":"zo "N1234" 1 1";
     get_gcin_conf_fstr(PHONETIC_KEYBOARD, phokbm, kbm_str);
   }
+
+  dbg("phokbm %s\n", phokbm);
 
   char phokbm_name[32], selkey[32];
   pho_candicate_col_N=0; pho_candicate_R2L=0;

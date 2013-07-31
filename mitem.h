@@ -6,3 +6,5 @@ typedef struct {
   GtkWidget *item;
   gulong handler;
 } MITEM;
+
+GtkWidget *create_tray_menu(MITEM *mitems);

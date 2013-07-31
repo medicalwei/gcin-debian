@@ -156,6 +156,13 @@ static char kno[128];
 #pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 #endif
 
+void byte_swap(char *a, char *b)
+{
+	char t = *a;
+	*a = *b;
+	*b = t;
+}
+
 int main(int argc, char **argv)
 {
   int i;
@@ -174,6 +181,7 @@ int main(int argc, char **argv)
   int *phridx=NULL, phr_cou=0;
   char *phrbuf = NULL;
   int prbf_cou=0;
+  gboolean for_android = FALSE;
 
   if (!getenv("NO_GTK_INIT"))
     gtk_init(&argc, &argv);
@@ -187,10 +195,18 @@ int main(int argc, char **argv)
   } else strcpy(fname,argv[1]);
 
 
-  if (!strcmp(fname, "-v") || !strcmp(fname, "--version")) {
-    dbg("gcin2tab for gcin " GCIN_VERSION "\n");
-    exit(0);
+  for(i=1; i < argc;) {
+    if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
+      p_err("gcin2tab for gcin " GCIN_VERSION "\n");
+    } else
+    if (!strcmp(argv[i], "-android")) {
+		for_android = TRUE;
+        i++;
+    } else
+      strcpy(fname, argv[i++]);
   }
+
+
 
   char *p;
   if(p=strstr(fname, ".cin"))
@@ -306,6 +322,11 @@ int main(int argc, char **argv)
     if (sequ(cmd,"%flag_unique_auto_send")) {
       dbg("flag_unique_auto_send\n");
       th.flag |= FLAG_GTAB_UNIQUE_AUTO_SEND;
+      cmd_arg(&cmd, &arg);
+    } else
+    if (sequ(cmd,"%flag_keypad_input_key")) {
+      dbg("flag_unique_auto_send\n");
+      th.flag |= FLAG_GTAB_KEYPAD_INPUT_KEY;
       cmd_arg(&cmd, &arg);
     } else
       break;
@@ -495,6 +516,24 @@ int main(int argc, char **argv)
 
       bzero(out, sizeof(out));
       memcpy(out, arg, len);
+      
+
+//    for android gcin
+      if (for_android) {
+		  GError *error;
+		  gsize wn = 0;
+		  int *CH=(int *)g_convert(arg, -1, "UCS-4", "UTF-8", NULL, &wn, &error);
+		  char *p = CH;
+		  byte_swap(p, p+3);
+		  byte_swap(p+1, p+2);
+		  unsigned int ucs4 = *CH;
+		  g_free(CH);
+		  
+		  if (ucs4>0x20000) {
+			printf("ucs4 %s wn:%d %x\n", arg, wn, ucs4); 
+			continue;
+		  }
+      }
 
       if (key64)
         bchcpy(itar64[chno].ch, out);

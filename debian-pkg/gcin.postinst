@@ -9,7 +9,6 @@ ua_inst () {
         /etc/X11/xinit/xinput.d/$2 $3 ;
 }
 
-[ -x /usr/bin/gtk-query-immodules-3.0 ] && /usr/bin/gtk-query-immodules-3.0 --update-cache
 
 case "$1" in
     configure)

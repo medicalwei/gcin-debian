@@ -58,8 +58,11 @@ void pho_load()
 
   FILE *fr;
 
-  if ((fr=fopen(phofname,"rb"))==NULL)
-    p_err("err %s\n", phofname);
+  if ((fr=fopen(phofname,"rb"))==NULL) {
+//	char cwd[256];
+//	dbg("cwd %s\n", getcwd(cwd, sizeof(cwd)));
+    p_err("err fopen %s:%s\n", phofname, sys_err_strA());
+  }
 
   fread(&idxnum_pho,sizeof(u_short),1,fr);
   fread(&idxnum_pho,sizeof(u_short),1,fr);

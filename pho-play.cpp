@@ -13,7 +13,18 @@ int pho_play(phokey_t key)
     return 0;
   if (test_mode)
     return 0;
+    
+  static char ogg123[]="/usr/bin/ogg123";  
+  if (access(ogg123, R_OK)) {
+    box_warn("gcin speech needs 'ogg123' in 'vorbis-tools'");
+    exit(1);
+  }
 
+  if (access(GCIN_OGG_DIR, R_OK)) {
+	box_warn("You have install the speech data:'ogg.tgz'");
+    exit(1);
+  }
+        
   static int pid;
   static time_t last_time;
   time_t t = time(NULL);
@@ -22,24 +33,24 @@ int pho_play(phokey_t key)
       kill(pid, 9);
   }
   char *ph = phokey_to_str2(key, 1);
-  char tt[512];
-
-  last_time = t;
+  
+  static char tt[128];
   sprintf(tt, GCIN_OGG_DIR"/%s/%s", ph, phonetic_speak_sel);
-
-  if (access(tt, R_OK))
-    return 0;
-
+  last_time = t;        
+  
   if (pid = fork()) {
     if (pid < 0)
       dbg("cannot fork ?");
     return 1;
   }
 
+#if 1
   close(1);
   close(2);
-  execlp("ogg123", "ogg123", tt, NULL);
-  return 0;
+#endif
+
+  execl(ogg123, "ogg123", tt, NULL);
+  exit(1);
 }
 #else
 extern "C" {

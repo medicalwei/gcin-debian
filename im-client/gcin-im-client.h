@@ -52,10 +52,6 @@ void gcin_im_client_set_cursor_location(GCIN_client_handle *handle,
 int gcin_im_client_forward_key_press(GCIN_client_handle *handle,
                                           KeySym key, u_int state,
                                           char **rstr);
-// return some state bits instead of TRUE/FALSE
-int gcin_im_client_forward_key_press2(GCIN_client_handle *handle,
-                                          KeySym key, u_int state,
-                                          char **rstr);
 int gcin_im_client_forward_key_release(GCIN_client_handle *handle,
                                           KeySym key, u_int state,
                                           char **rstr);
@@ -77,6 +73,7 @@ int gcin_im_client_get_preedit(GCIN_client_handle *handle, char **str, GCIN_PREE
 Window find_gcin_window(Display *dpy);
 #else
 HWND find_gcin_window();
+void gcin_im_client_set_tsin_pho_mode(GCIN_client_handle *handle, int pho_mode);
 #endif
 
 

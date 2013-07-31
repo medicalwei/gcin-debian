@@ -110,6 +110,8 @@ int main(int argc, char **argv)
   init_TableDir();
 #endif
 
+  load_setttings();
+
   gtk_init (&argc, &argv);
 
 #if GCIN_i18n_message

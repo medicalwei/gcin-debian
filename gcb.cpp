@@ -7,7 +7,7 @@
 #include "gcin-conf.h"
 
 static GtkWidget *mainwin;
-static GtkClipboard *pclipboard, *pclipboard_prim;
+static GtkClipboard *pclipboard_clipboard, *pclipboard_primary;
 static GtkWidget **buttonArr;
 static gchar **buttonStr;
 static int maxButtonStrlen=9;
@@ -88,8 +88,14 @@ void set_win_title(const gchar *text)
    gtk_window_set_title (GTK_WINDOW (mainwin),titlestr);
 }
 
+gboolean timeout_resize_win(gpointer data)
+{
+   gtk_window_parse_geometry(GTK_WINDOW(mainwin),geomstr);
+   return FALSE;
+}
+
 /* Signal handler called when the selections owner returns the data */
-void disp_gcb_selection(const gchar *text)
+void disp_gcb_selection(GtkClipboard *pclip, const gchar *text)
 {
   // dbg("selection_received '%s'\n", text);
   char *tmpstr;
@@ -175,19 +181,32 @@ void disp_gcb_selection(const gchar *text)
    hist_strArr[0]=g_strdup(text);
 
    update_hist_button();
+   
+   if (textlen > 1) {
+     if (pclip == pclipboard_clipboard) {
+       if (pclipboard_primary)
+		 gtk_clipboard_set_text(pclipboard_primary, text, -1);
+     } else {
+	   if (pclipboard_clipboard)
+         gtk_clipboard_set_text(pclipboard_clipboard, text, -1);
+     }
+   }
+
+   g_timeout_add(100, timeout_resize_win, NULL);
 }
 
 
 void cb_selection_received(GtkClipboard *pclip, const gchar *text, gpointer data)
 {
 //  dbg("cb_selection_received %s\n", text);
-  disp_gcb_selection(text);
+  disp_gcb_selection(pclip, text);
 }
 
 
 void get_selection(GtkClipboard *pcli)
 {
-  gtk_clipboard_request_text(pcli, cb_selection_received,snoop_button);
+  if (pcli)
+    gtk_clipboard_request_text(pcli, cb_selection_received,snoop_button);
 }
 
 
@@ -228,8 +247,8 @@ static void get_mouse_button( GtkWidget *widget,GdkEventButton *event, gpointer 
       if (buttonArr[i]!=widget)
         continue;
       if (buttonStr[i]) {
-        gtk_clipboard_set_text(pclipboard, buttonStr[i], -1);
-        gtk_clipboard_set_text(pclipboard_prim, buttonStr[i], -1);
+        gtk_clipboard_set_text(pclipboard_clipboard, buttonStr[i], -1);
+        gtk_clipboard_set_text(pclipboard_primary, buttonStr[i], -1);
         set_win_title(buttonStr[i]);
       }
       break;
@@ -249,8 +268,8 @@ static void hist_get_mouse_button( GtkWidget *widget,GdkEventButton *event, gpoi
       if (hist_buttonArr[i]!=widget)
         continue;
       if (hist_strArr[i]) {
-        gtk_clipboard_set_text(pclipboard, hist_strArr[i], -1);
-        gtk_clipboard_set_text(pclipboard_prim, hist_strArr[i], -1);
+        gtk_clipboard_set_text(pclipboard_clipboard, hist_strArr[i], -1);
+        gtk_clipboard_set_text(pclipboard_primary, hist_strArr[i], -1);
       }
       break;
     }
@@ -456,22 +475,22 @@ void gcb_main()
   gtk_window_parse_geometry(GTK_WINDOW(mainwin),geomstr);
 #endif
 
-  pclipboard_prim = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
-  pclipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  pclipboard_primary = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
+  pclipboard_clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
 
 #if 0
   gtk_window_parse_geometry(GTK_WINDOW(mainwin),geomstr);
 #endif
 
   set_snoop_button(buttonArr[0]);
-  get_selection(pclipboard);
-  get_selection(pclipboard_prim);
+  get_selection(pclipboard_clipboard);
+  get_selection(pclipboard_primary);
   gtk_container_set_border_width(GTK_CONTAINER(hbox),0);
   gtk_container_set_border_width(GTK_CONTAINER(mainwin),0);
 
 #if GTK_CHECK_VERSION(2,6,0)
-  g_signal_connect(pclipboard, "owner-change", G_CALLBACK (cb_owner_change), NULL);
-  g_signal_connect(pclipboard_prim, "owner-change", G_CALLBACK (cb_owner_change), NULL);
+  g_signal_connect(pclipboard_clipboard, "owner-change", G_CALLBACK (cb_owner_change), NULL);
+  g_signal_connect(pclipboard_primary, "owner-change", G_CALLBACK (cb_owner_change), NULL);
 #endif
 
 #if 1

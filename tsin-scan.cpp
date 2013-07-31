@@ -192,6 +192,7 @@ empty:
 //    sel[selN].phidx = sti - 1;
     sel[selN].usecount = usecount;
     utf8cpyN(sel[selN].str, (char *)mtch, match_len);
+    bzero(sel[selN].phkey, sizeof(sel[selN].phkey));
     memcpy(sel[selN].phkey, mtk, match_len*ph_key_sz);
     selN++;
   }

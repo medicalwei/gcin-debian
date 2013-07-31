@@ -56,11 +56,13 @@ void load_pin_juyin();
 
 gboolean is_pinyin_kbm()
 {
+#if 0	
   char kbm_str[32];
-
   get_gcin_conf_fstr(PHONETIC_KEYBOARD, kbm_str, "zo-asdf");
+#endif
+  
 #if 1
-  b_pinyin = strstr(kbm_str, "pinyin") != NULL;
+  b_pinyin = strstr(pho_kbm_name, "pinyin") != NULL;
 #else
   b_pinyin = 1;
 #endif

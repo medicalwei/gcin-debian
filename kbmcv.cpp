@@ -104,10 +104,10 @@ int main(int argc, char **argv)
 
     int utf8sz = utf8_sz(s);
     chk=s[utf8sz + 1];
-
+#if 0
     if (chk>='A' && chk<='Z')
       chk+=32;
-
+#endif
     for(i=0;i<3;i++) {
       if (!phkb.phokbm[(int)chk][i].num) {
         phkb.phokbm[(int)chk][i].num=num;

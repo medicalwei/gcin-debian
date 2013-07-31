@@ -2,6 +2,13 @@
 #include "gcin.h"
 #include "pho.h"
 
+int qcmp_str(const void *aa, const void *bb)
+{
+  PIN_JUYIN	*a=(PIN_JUYIN *)aa, *b=(PIN_JUYIN *)bb;
+  
+  return strcmp(a->pinyin, b->pinyin);
+}
+
 int main()
 {
   FILE *fp;
@@ -41,6 +48,8 @@ int main()
 
   fclose(fp);
   dbg("zz pinjuN:%d\n", pinjuN);
+  
+  qsort(pinju, pinjuN, sizeof(PIN_JUYIN), qcmp_str);
 
   char fnameout[]="pin-juyin.xlt";
 

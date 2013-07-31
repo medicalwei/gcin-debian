@@ -4,13 +4,11 @@ export LC_CTYPE=zh_TW.UTF-8
 #export GTK_IM_MODULE=xim
 export GTK_IM_MODULE=IBus
 export XMODIFIERS=@im=IBus
-#scim -d &
-#scim-input-pad &
 #gedit --new-window &
 #mozilla-firefox
 #kedit
-gedit
-#leafpad
+#gedit
+leafpad
 #amsn
 #abiword
 #mozilla-thunderbird

@@ -17,12 +17,14 @@ int html_browser(char *fname);
 
 #define FURL_WIN32 "http://hyperrate.com/dir.php?eid=215"
 #define FURL_LINUX "http://hyperrate.com/dir.php?eid=67"
+#define FURL_ANDROID "http://hyperrate.com/dir.php?eid=255"
 
 #define LOG_URL "http://www.csie.nctu.edu.tw/~cp76/gcin/download/Changelog.html"
 #define ET26_URL "http://hyperrate.com/thread.php?tid=22661"
 #define PUNC_URL "http://hyperrate.com/thread.php?tid=19444#19444"
 #define ADD_PHRASE_URL "http://hyperrate.com/thread.php?tid=23991#23991"
 #define SPLIT_PHRASE_URL "http://hyperrate.com/thread.php?tid=26361"
+#define IE_URL "http://hyperrate.com/thread.php?tid=22898#22898"
 
 static void callback_url( GtkWidget *widget, gpointer   data)
 {
@@ -78,7 +80,7 @@ void create_about_window()
     gtk_box_pack_start(GTK_BOX(vbox), separator, FALSE, FALSE, 3);
 
 // this doesn't work on win32
-#if GTK_CHECK_VERSION(2,18,9) && UNIX && 1
+#if GTK_CHECK_VERSION(2,18,9) && UNIX && 0
    char tmp[1024];
    sprintf(tmp, "<a href='"FURL_LINUX"'>%s</a>\n"
                 "<a href='"FURL_WIN32"'>%s</a>\n"
@@ -100,47 +102,41 @@ void create_about_window()
    gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
     gtk_box_pack_start(GTK_BOX(vbox), label, FALSE, FALSE, 0);
 #else
-    GtkWidget *button_forum = gtk_button_new_with_label(_(_L("討論區")));
-    gtk_box_pack_start(GTK_BOX(vbox), button_forum, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (button_forum), "clicked",
-		      G_CALLBACK (callback_url), FURL_WIN32);
-
-    GtkWidget *button_linux = gtk_button_new_with_label(_(_L("gcin也有 Linux版")));
-    gtk_box_pack_start(GTK_BOX(vbox), button_linux, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (button_linux), "clicked",
-		      G_CALLBACK (callback_url), FURL_LINUX);
-
-
-    GtkWidget *button_changelog = gtk_button_new_with_label(_(_L("gcin改變記錄")));
-    gtk_box_pack_start(GTK_BOX(vbox), button_changelog, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (button_changelog), "clicked",
-		      G_CALLBACK (callback_url), LOG_URL);
-
-    GtkWidget *button_et26 = gtk_button_new_with_label(_(_L("推薦使用26鍵的注音鍵盤")));
-    gtk_box_pack_start(GTK_BOX(vbox), button_et26, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (button_et26), "clicked",
-		      G_CALLBACK (callback_url), ET26_URL);
-
-    GtkWidget *button_punc = gtk_button_new_with_label(_(_L("使用詞音輸入標點符號")));
-    gtk_box_pack_start(GTK_BOX(vbox), button_punc, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (button_punc), "clicked",
-		      G_CALLBACK (callback_url), PUNC_URL);
-
-    GtkWidget *button_add_phrase = gtk_button_new_with_label(_(_L("如何新增詞")));
-    gtk_box_pack_start(GTK_BOX(vbox), button_add_phrase, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (button_add_phrase), "clicked",
-		      G_CALLBACK (callback_url), ADD_PHRASE_URL);
-
-    GtkWidget *button_split_phrase = gtk_button_new_with_label(_(_L("如何手動斷詞")));
-    gtk_box_pack_start(GTK_BOX(vbox), button_split_phrase, FALSE, FALSE, 0);
-    g_signal_connect (G_OBJECT (button_split_phrase), "clicked",
-		      G_CALLBACK (callback_url), SPLIT_PHRASE_URL);
-
+static struct {
+		unich_t *label_str;
+		char *url;
+	} lab_url[] = {
+#if UNIX
+		{_L("討論區"), FURL_LINUX },
+        {_L("gcin也有 Windows版"), FURL_WIN32},
+#else	
+		{_L("討論區"), FURL_WIN32 },	
+		{_L("gcin也有 Linux版"), FURL_LINUX},
+#endif		
+		{_L("gcin也有 Android版"), FURL_ANDROID},
+		{_L("gcin改變記錄"), LOG_URL},
+		{_L("推薦使用26鍵的注音鍵盤"), ET26_URL},
+		{_L("使用詞音輸入標點符號"), PUNC_URL},
+		{_L("如何新增詞"), ADD_PHRASE_URL},
+		{_L("如何手動斷詞"), SPLIT_PHRASE_URL},
+#if WIN32
+		{_L("IE內使用gcin"), IE_URL},
+#endif
+		{NULL}
+	};
+	
+	int i;
+	for(i=0; lab_url[i].url; i++) {
+       GtkWidget *button = gtk_button_new_with_label(_(lab_url[i].label_str));
+       gtk_box_pack_start(GTK_BOX(vbox), button, FALSE, FALSE, 0);
+       g_signal_connect (G_OBJECT (button), "clicked",
+		      G_CALLBACK (callback_url), lab_url[i].url);
+	}	
 #endif
 
 
 #if UNIX
-    image = gtk_image_new_from_file (SYS_ICON_DIR"/gcin.png");
+    image = gtk_image_new_from_file (SYS_ICON_DIR"/hicolor/64x64/apps/gcin.png");
 #else
     char gcin_png[128];
     sys_icon_fname("gcin.png", gcin_png);

@@ -15,17 +15,26 @@ Source1:        gcin.conf
 BuildRequires:  qt-devel, gtk3-devel, gtk2-devel, desktop-file-utils
 BuildRequires:  libXtst-devel
 BuildRequires:  anthy-devel
-Requires:       im-chooser, imsettings
+Requires:       im-chooser, imsettings, gcin-gtk2
 Requires(post): %{_sbindir}/alternatives
 Requires(preun): %{_sbindir}/alternatives
 
 %description
 Gcin is an input method for Traditional Chinese with a GTK user interface.
 
+%package im_client
+Summary: gcin im client library 
+Group:  Applications/System
+Requires: gtk2
+Requires: %{name} = %{version}-%{release}
+
+%description im_client
+gcin im client
+
 %package gtk2
 Summary: Gtk2 support for gcin
 Group:  Applications/System
-Requires: gtk2
+Requires: gtk2 gcin-im_client
 Requires: %{name} = %{version}-%{release}
 
 %description gtk2
@@ -34,7 +43,7 @@ gtk2 support for gcin.
 %package gtk3
 Summary: Gtk3 support for gcin
 Group:  Applications/System
-Requires: gtk3
+Requires: gtk3 gcin-im_client
 Requires: %{name} = %{version}-%{release}
 
 %description gtk3
@@ -43,7 +52,7 @@ gtk3 support for gcin.
 %package qt4
 Summary: Qt support for gcin
 Group:   Applications/System
-Requires: qt4
+Requires: qt4 gcin-im_client
 Requires: %{name} = %{version}-%{release}
 
 %description qt4
@@ -118,11 +127,15 @@ fi
 %{_bindir}/sim2trad
 %{_bindir}/trad2sim
 %{_bindir}/ts*
+%{_bindir}/txt2gtab-phrase
 %{_datadir}/applications/fedora-gcin-tools.desktop
 %{_datadir}/gcin/
-%{_datadir}/icons/gcin/
-%{_datadir}/icons/gcin*.png
-%{_libdir}/gcin/*
+%{_datadir}/icons/*
+%{_libdir}/gcin/*module.so
+%{_libdir}/gcin/gcin*.so
+
+%files im_client
+%{_libdir}/gcin/libgcin*.so*
 
 %files gtk2
 %{_libdir}/gtk-2.0/immodules/im-gcin.so

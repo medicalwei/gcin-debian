@@ -59,7 +59,7 @@ static int myread(HANDLE fd, void *buf, int bufN)
 #else
   while (toN) {
     DWORD bytes = 0;
-     for(int loop=0;loop < 2; loop++) {
+     for(int loop=0;loop < 10000; loop++) {
        bytes = 0;
        if (PeekNamedPipe(fd, NULL, 0, NULL, &bytes, NULL)) {
 //         dbg("bytes %d\n", bytes);
@@ -69,14 +69,19 @@ static int myread(HANDLE fd, void *buf, int bufN)
        if (bytes > 0)
          break;
 
-       Sleep(5000);
+       Sleep(10);
      }
 
      if (!bytes)
        return -1;
 
+	dbg("bytes:%d %d\n", bytes, toN);
+
+	if (bytes > toN)
+		bytes = toN;
+
     DWORD rn;
-    BOOL r = ReadFile(fd, ((char *)buf) + ofs, toN, &rn, 0);
+    BOOL r = ReadFile(fd, ((char *)buf) + ofs, bytes, &rn, 0);
     if (!r)
       return -1;
     ofs+=rn;
@@ -145,13 +150,23 @@ int write_enc(HANDLE fd, void *p, int n)
 #endif
 {
 #if WIN32
-  DWORD wn;
-  BOOL r = WriteFile(fd, (char *)p, n, &wn, 0);
-  if (!r) {
-    perror("write_enc");
-	return -1;
+  int loop=0;
+  int twN=0;
+  while (n > 0 && loop < 50) {
+    DWORD wn;
+     BOOL r = WriteFile(fd, (char *)p, n, &wn, 0);
+     if (!r) {
+       dbg("write_enc %s\n", sys_err_strA());
+	   return -1;
+     }
+
+	 twN+=wn;
+	 n-=wn;
+	 loop++;
+	 p=(char *)p+wn;
   }
-  return wn;
+
+  return twN;
 #else
   if (!fd)
     return 0;
@@ -228,7 +243,7 @@ static void shutdown_client(HANDLE fd)
 void message_cb(char *message);
 void save_CS_temp_to_current();
 void disp_tray_icon();
-void set_tsin_pho_mode_ini(ClientState *cs);
+void gcin_set_tsin_pho_mode(ClientState *cs, gboolean pho_mode);
 #if WIN32
 extern int dpy_x_ofs, dpy_y_ofs;
 #endif
@@ -401,7 +416,10 @@ void process_client_req(HANDLE fd)
       to_gcin_endian_4(&req.keyeve.key);
       to_gcin_endian_4(&req.keyeve.state);
 
-//	  dbg("serv key eve %x %x predit:%d\n",req.keyeve.key, req.keyeve.state, cs->use_preedit);
+#if   DBG
+	  dbg("%s %x %x predit:%d\n", req.req_no == GCIN_req_test_key_press?"key_press":"key_release",
+	  req.keyeve.key, req.keyeve.state, cs->use_preedit);
+#endif	  
 
       if (req.req_no==GCIN_req_test_key_press)
         status = ProcessTestKeyPress(req.keyeve.key, req.keyeve.state);
@@ -467,7 +485,9 @@ void process_client_req(HANDLE fd)
       update_in_win_pos();
       break;
     case GCIN_req_set_flags:
-//      dbg("GCIN_req_set_flags\n");
+#if DBG    
+      dbg("GCIN_req_set_flags\n");
+#endif      
       if (BITON(req.flag, FLAG_GCIN_client_handle_raise_window)) {
 #if DBG
         dbg("********* raise * window\n");
@@ -502,20 +522,30 @@ void process_client_req(HANDLE fd)
         str[0]=0;
       }
       int len = strlen(str)+1; // including \0
-      write_enc(fd, &len, sizeof(len));
-      write_enc(fd, str, len);
+      if (write_enc(fd, &len, sizeof(len)) < 0)
+		  break;
+      if (write_enc(fd, str, len) < 0)
+		  break;
 //      dbg("attrN:%d\n", attrN);
-      write_enc(fd, &attrN, sizeof(attrN));
-      if (attrN > 0)
-        write_enc(fd, attr, sizeof(GCIN_PREEDIT_ATTR)*attrN);
-      write_enc(fd, &cursor, sizeof(cursor));
+      if (write_enc(fd, &attrN, sizeof(attrN)) < 0)
+		  break;
+      if (attrN > 0) {
+        if (write_enc(fd, attr, sizeof(GCIN_PREEDIT_ATTR)*attrN) < 0)
+			break;
+	  }
+      if (write_enc(fd, &cursor, sizeof(cursor)) < 0)
+		  break;
 #if WIN32 || 1
-      write_enc(fd, &sub_comp_len, sizeof(sub_comp_len));
+      if (write_enc(fd, &sub_comp_len, sizeof(sub_comp_len)) < 0)
+		  break;
 #endif
 //      dbg("uuuuuuuuuuuuuuuuu len:%d %d cursor:%d\n", len, attrN, cursor);
       }
       break;
     case GCIN_req_reset:
+#if DBG    
+      dbg("GCIN_req_reset\n");
+#endif      
       gcin_reset();
       break;
     case GCIN_req_message:
@@ -539,6 +569,11 @@ cli_down:
         }
       }
       break;
+#if WIN32
+	case GCIN_req_set_tsin_pho_mode:
+	  gcin_set_tsin_pho_mode(cs, req.flag);
+	  break;
+#endif
     default:
       dbg_time("Invalid request %x from:", req.req_no);
 #if UNIX
@@ -556,4 +591,3 @@ cli_down:
       break;
   }
 }
-

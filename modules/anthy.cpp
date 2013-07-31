@@ -734,7 +734,7 @@ static void disp_select()
     char buf[256];
     anthy_get_segment(ac, cursor, i, buf, sizeof(buf));
 //    printf("%d %s\n", i, buf);
-    gmf.mf_set_sele_text(seg[cursor].selN, i - pageidx, buf, -1);
+    gmf.mf_set_sele_text(i - pageidx, buf, -1);
   }
 
   if (pageidx)
@@ -886,10 +886,12 @@ gboolean module_feedkey(int kv, int kvstate)
       disp_input();
       return TRUE;
     case XK_F11:
-      system("kasumi &");
+      if (system("kasumi &") < 0)  {
+      }   
       return TRUE;
     case XK_F12:
-      system("kasumi -a &");
+      if (system("kasumi -a &") < 0) {
+      }
       return TRUE;
     case XK_Up:
       if (b_is_empty)

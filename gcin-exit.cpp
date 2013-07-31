@@ -7,7 +7,9 @@
 
 int main()
 {
+#if UNIX
   gdk_init(NULL, NULL);
+#endif
 
 #if UNIX
   Display *dpy = GDK_DISPLAY();
@@ -18,6 +20,7 @@ int main()
   if (!find_gcin_window())
     return 0;
   send_gcin_message(GCIN_EXIT_MESSAGE);
+  Sleep(2000);
 #endif
 
   return 0;

@@ -419,7 +419,7 @@ void gcin_im_client_close(GCIN_client_handle *handle)
 static void send_req_msg(GCIN_client_handle *handle)
 {
 #if WIN32
-	PostMessage(serverWnd, GCIN_CLIENT_MESSAGE_REQ, handle->server_idx, NULL);
+	PostMessageA(serverWnd, GCIN_CLIENT_MESSAGE_REQ, handle->server_idx, NULL);
 #endif
 }
 
@@ -479,25 +479,59 @@ static void error_proc(GCIN_client_handle *handle, char *msg)
 
 
 #if WIN32
-static int handle_read(GCIN_client_handle *handle, void *ptr, int n)
+static int handle_read(GCIN_client_handle *handle, void *ptr, int N)
 {
   BOOL r;
   HANDLE fd = handle->fd;
 
   if (!fd)
     return 0;
-  DWORD rn;
-  r = ReadFile(fd, (char *)ptr, n, &rn, 0);
+  int trN=0, loop=0;
+  int n = N;
 
-  if (!r)
+  while (n > 0 && loop < 10) {
+    DWORD bytes = 0;
+    for(int loop=0;loop < 1000; loop++) {
+       bytes = 0;
+       if (PeekNamedPipe(fd, NULL, 0, NULL, &bytes, NULL)) {
+//         dbg("bytes %d\n", bytes);
+       } else
+         dbg("PeekNamedPipe failed %s", sys_err_strA());
+
+       if (bytes > 0)
+         break;
+
+       Sleep(10);
+     }
+
+     if (!bytes) {
+	   dbg("no data\n");
+       return -1;
+	 }
+
+	dbg("bytes %d %d\n", n, bytes);
+
+	if (bytes > n)
+		bytes = n;
+
+    DWORD rn;
+    r = ReadFile(fd, (char *)ptr, bytes, &rn, 0);
+
+    if (!r)
 	  return -1;
 
-#if (DBG || 0)
-  if (r < 0)
-    perror("handle_read");
-#endif
+	n-=rn;
+	trN+=rn;
+	ptr = (char *)ptr + rn;
+	loop++;
+  }
 
-  return rn;
+  if (trN != N) {
+	dbg("trN != N %d,%d\n", trN, N);
+	return -1;
+  }
+
+  return trN;
 }
 #else
 typedef struct {
@@ -1036,6 +1070,28 @@ void gcin_im_client_message(GCIN_client_handle *handle, char *message)
   }
 }
 
+#if WIN32
+void gcin_im_client_set_tsin_pho_mode(GCIN_client_handle *handle, int pho_mode)
+{
+  dbg("gcin_im_client_set_tsin_pho_mode %d\n", pho_mode);
+  if (!handle)
+    return;
+
+  GCIN_req req;
+#if DBG
+  dbg("gcin_im_client_reset\n");
+#endif
+  if (!gen_req(handle, GCIN_req_set_tsin_pho_mode, &req))
+    return;
+
+  req.flag = pho_mode;
+
+  if (handle_write(handle, &req, sizeof(req)) <=0) {
+    error_proc(handle,"gcin_im_client_reset error");
+  }
+  send_req_msg(handle);
+}
+#endif
 
 #if TSF
 bool gcin_im_client_key_eaten(GCIN_client_handle *handle, int press_release,

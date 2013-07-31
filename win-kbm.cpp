@@ -137,6 +137,8 @@ static void cb_button_click(GtkWidget *wid, KEY *k)
 
   dbg("cb_button_click keysym %d\n", keysym);
 
+  gtk_window_present(GTK_WINDOW(gwin_kbm));
+
   if (k->flag & K_HOLD) {
     if (k->flag & K_PRESS) {
       clear_hold(k);
@@ -486,7 +488,11 @@ void update_win_kbm()
         if (!keyname[0])
           continue;
 
+#if 0
         if (loop==0 && !(keyname[0]&0x80))
+#else
+		if (loop==0 && !(keyname[0]&0x80) && toupper(i)==toupper(keyname[0]))
+#endif        
           continue;
 
         if (loop==1) {

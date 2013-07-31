@@ -30,6 +30,8 @@
 #define GCIN_SINGLE_STATE "gcin-single-state"
 #define GCIN_PUNC_AUTO_SEND "gcin-punc-auto-send"
 #define GCIN_STATUS_WIN "gcin-status-win"
+#define GCIN_BUFFER_SELECT_CHAR_AUTO_LEFT "gcin-buffer-select-char-auto-left"
+#define GCIN_CTRL_PUNC "gcin-ctrl-punc"
 
 #define GCIN_IM_TOGGLE_KEYS "gcin-im-toggle-keys"
 #define DEFAULT_INPUT_METHOD "default-input-method"
@@ -46,6 +48,7 @@
 #define GCIN_WIN_SYM_CLICK_CLOSE "gcin-win-sym-click-close"
 #define GCIN_SEL_KEY_COLOR "gcin-sel-key-color"
 #define GCIN_WIN32_ICON "gcin-win32-icon"
+#define GCIN_ESCAPE_CLEAR_EDIT_BUFFER "gcin-escape_clear-edit-buffer"
 
 #define GTAB_DUP_SELECT_BELL "gtab-dup-select-bell"
 #define GTAB_SPACE_AUTO_FIRST "gtab-space-auto-first"
@@ -66,6 +69,7 @@
 #define GTAB_QUE_WILD_CARD "gtab-que-wild-card"
 #define GTAB_PHRASE_PRE_SELECT "gtab-phrase-pre-select"
 #define GTAB_IN_AREA_BUTTON "gtab-in-area-button"
+#define GTAB_AUTO_SPACE "gtab-auto-space"
 
 
 #define TSIN_PHRASE_PRE_SELECT "tsin-phrase-pre-select"
@@ -80,6 +84,7 @@
 #define TSIN_BUFFER_EDITING_MODE "tsin-buffer-editing-mode"
 #define TSIN_USE_PHO_NEAR "tsin-use-pho-near"
 #define TSIN_PHO_MODE "tsin-pho-mode"
+#define TSIN_SHIFT_PUNC "tsin-shift-punc"
 
 #define PHO_HIDE_ROW2 "pho-hide-row2"
 #define PHO_IN_ROW1 "pho-in-row1"
@@ -105,11 +110,12 @@ extern int gcin_font_size, gcin_font_size_tsin_presel, gcin_font_size_symbol,
            gcin_inner_frame, gcin_single_state,
            gcin_remote_client, ini_tsin_pho_mode,
            gtab_disp_key_codes, gtab_disp_im_name, gcin_shift_space_eng_full,
-           gtab_invalid_key_in, gtab_hide_row2, gtab_in_row1, gtab_capslock_in_eng,
+           gtab_invalid_key_in, gtab_hide_row2, gtab_in_row1, gtab_capslock_in_eng, gtab_auto_space,
            gcin_capslock_lower, pho_hide_row2, pho_in_row1,
            gcin_eng_phrase_enabled, gtab_que_wild_card, gcin_win_sym_click_close,
            gcin_bell_volume, gcin_sound_play_overlap, gcin_enable_ctrl_alt_switch, gcin_on_the_spot_key,
-           gcin_status_win;
+           gcin_status_win, gcin_escape_clear_edit_buffer, gcin_buffer_select_char_auto_left,
+           tsin_shift_punc,gcin_ctrl_punc;
 
 extern int default_input_method;
 extern int left_right_button_tips;

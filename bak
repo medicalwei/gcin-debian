@@ -1,9 +1,11 @@
 wc -l *.[ch]
-cp ~/.gcin/tsin.src data
-cd ..
+#cp ~/.gcin/tsin.src data
+tsd2a32 -nousecount ~/.gcin/tsin32 > data/tsin.src
+cd
 rm -fr gcin.tmp
 cp -a gcin gcin.tmp
 cd gcin.tmp
+rm -fr debian
 make clean
 cd ..
 tar cvfj gcin.tbz gcin.tmp
