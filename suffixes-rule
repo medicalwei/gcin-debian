@@ -12,7 +12,8 @@
 	$(CCX) $(CFLAGS) -E -o $@ $<
 
 
-CFLAGS= -DUNIX=1 $(WALL) $(OPTFLAGS) $(GTKINC) -I./IMdkit/include -I./im-client -DDEBUG="0$(GCIN_DEBUG)" \
+CFLAGS+= \
+        -DUNIX=1 $(WALL) $(OPTFLAGS) $(GTKINC) -I./IMdkit/include -I./im-client -DDEBUG="0$(GCIN_DEBUG)" \
         -DGCIN_TABLE_DIR=\"$(GCIN_TABLE_DIR)\" \
         -DGCIN_OGG_DIR=\"$(GCIN_OGG_DIR)\" \
         -DDOC_DIR=\"$(DOC_DIR)\" \
