@@ -38,7 +38,10 @@ static GtkWidget *opt_im_toggle_keys, *check_button_gcin_remote_client,
        *check_button_gcin_eng_phrase_enabled,
        *check_button_gcin_win_sym_click_close,
        *check_button_gcin_punc_auto_send,
-       *check_button_ini_tsin_pho_mode;
+       *check_button_gcin_ctrl_punc,
+       *check_button_ini_tsin_pho_mode,
+       *check_button_gcin_escape_clear_edit_buffer,
+       *check_button_gcin_buffer_select_char_auto_left;
 #if USE_GCB
 static GtkWidget *spinner_gcb_position_x, *spinner_gcb_position_y;
 static GtkWidget *spinner_gcb_history_n, *spinner_gcb_button_n;
@@ -286,6 +289,16 @@ static void cb_ok (GtkWidget *button, gpointer data)
 
   save_gcin_conf_int(GCIN_PUNC_AUTO_SEND,
     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gcin_punc_auto_send)));
+    
+  save_gcin_conf_int(GCIN_ESCAPE_CLEAR_EDIT_BUFFER,
+    gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gcin_escape_clear_edit_buffer)));    
+
+  save_gcin_conf_int(GCIN_CTRL_PUNC,
+    gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gcin_ctrl_punc)));
+
+  save_gcin_conf_int(GCIN_BUFFER_SELECT_CHAR_AUTO_LEFT,
+    gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gcin_buffer_select_char_auto_left)));
+    
 #if UNIX
   save_gcin_conf_int(GCIN_SINGLE_STATE,
     gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check_button_gcin_single_state)));
@@ -322,6 +335,8 @@ static void cb_ok (GtkWidget *button, gpointer data)
 	  GDK_DISPLAY(),
 #endif
 	  "reload");
+	  	  
+   load_setttings();
 }
 
 static void cb_cancel (GtkWidget *widget, gpointer data)
@@ -829,6 +844,14 @@ void create_gtablist_window (void)
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_gcin_bell_off),
      gcin_bell_off);
 
+  GtkWidget *hbox_gcin_ctrl_punc = gtk_hbox_new (FALSE, 10);
+  gtk_box_pack_start (GTK_BOX (vboxR), hbox_gcin_ctrl_punc, FALSE, FALSE, 0);
+  GtkWidget *label_gcin_ctrl_punc = gtk_label_new(_(_L("Ctrl 輸入標點符號")));
+  gtk_box_pack_start (GTK_BOX (hbox_gcin_ctrl_punc), label_gcin_ctrl_punc,  FALSE, FALSE, 0);
+  check_button_gcin_ctrl_punc = gtk_check_button_new ();
+  gtk_box_pack_start (GTK_BOX (hbox_gcin_ctrl_punc),check_button_gcin_ctrl_punc,  FALSE, FALSE, 0);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_gcin_ctrl_punc),
+     gcin_ctrl_punc);
 
   GtkWidget *hbox_gcin_punc_auto_send = gtk_hbox_new (FALSE, 10);
   gtk_box_pack_start (GTK_BOX (vboxL), hbox_gcin_punc_auto_send, FALSE, FALSE, 0);
@@ -838,6 +861,24 @@ void create_gtablist_window (void)
   gtk_box_pack_start (GTK_BOX (hbox_gcin_punc_auto_send),check_button_gcin_punc_auto_send,  FALSE, FALSE, 0);
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_gcin_punc_auto_send),
      gcin_punc_auto_send);
+
+  GtkWidget *hbox_gcin_escape_clear_edit_buffer = gtk_hbox_new (FALSE, 10);
+  gtk_box_pack_start (GTK_BOX (vboxL), hbox_gcin_escape_clear_edit_buffer, FALSE, FALSE, 0);
+  GtkWidget *label_gcin_escape_clear_edit_buffer = gtk_label_new(_(_L("Esc清除編輯區內容")));
+  gtk_box_pack_start (GTK_BOX (hbox_gcin_escape_clear_edit_buffer), label_gcin_escape_clear_edit_buffer,  FALSE, FALSE, 0);
+  check_button_gcin_escape_clear_edit_buffer = gtk_check_button_new ();
+  gtk_box_pack_start (GTK_BOX (hbox_gcin_escape_clear_edit_buffer),check_button_gcin_escape_clear_edit_buffer,  FALSE, FALSE, 0);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_gcin_escape_clear_edit_buffer),
+     gcin_escape_clear_edit_buffer);
+
+  GtkWidget *hbox_gcin_buffer_select_char_auto_left = gtk_hbox_new (FALSE, 10);
+  gtk_box_pack_start (GTK_BOX (vboxL), hbox_gcin_buffer_select_char_auto_left, FALSE, FALSE, 0);
+  GtkWidget *label_gcin_buffer_select_char_auto_left = gtk_label_new(_(_L("選字後游標自動往左移")));
+  gtk_box_pack_start (GTK_BOX (hbox_gcin_buffer_select_char_auto_left), label_gcin_buffer_select_char_auto_left,  FALSE, FALSE, 0);
+  check_button_gcin_buffer_select_char_auto_left = gtk_check_button_new ();
+  gtk_box_pack_start (GTK_BOX (hbox_gcin_buffer_select_char_auto_left),check_button_gcin_buffer_select_char_auto_left,  FALSE, FALSE, 0);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button_gcin_buffer_select_char_auto_left),
+     gcin_buffer_select_char_auto_left);
 
 
 #if USE_GCB

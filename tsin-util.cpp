@@ -36,7 +36,7 @@ static void get_modify_time(TSIN_HANDLE *ptsin_hand)
   }
 }
 
-void load_tsin_db_ex(TSIN_HANDLE *ptsin_hand, char *infname, gboolean is_gtab_i, gboolean read_only, gboolean use_idx)
+gboolean load_tsin_db_ex(TSIN_HANDLE *ptsin_hand, char *infname, gboolean is_gtab_i, gboolean read_only, gboolean use_idx)
 {
   char tsidxfname[512];
   char *fmod = read_only?"rb":"rb+";
@@ -54,7 +54,8 @@ void load_tsin_db_ex(TSIN_HANDLE *ptsin_hand, char *infname, gboolean is_gtab_i,
 
   if (use_idx) {
     if ((fp_phidx=fopen(tsidxfname, fmod))==NULL) {
-      p_err("load_tsin_db_ex A Cannot open '%s'\n", tsidxfname);
+       dbg("load_tsin_db_ex A Cannot open '%s'\n", tsidxfname);
+       return FALSE;
     }
     ptsin_hand->fp_phidx = fp_phidx;
 
@@ -98,6 +99,7 @@ void load_tsin_db_ex(TSIN_HANDLE *ptsin_hand, char *infname, gboolean is_gtab_i,
     tsin_hash_shift = TSIN_HASH_SHIFT;
   }
   tsin_is_gtab = is_gtab_i;
+  return TRUE;
 }
 
 

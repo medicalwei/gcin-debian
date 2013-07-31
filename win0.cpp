@@ -397,7 +397,7 @@ GtkWidget *gwin_sym;
 
 void move_win0(int x, int y)
 {
-  dbg("--- gwin0:%x move_win0 %d,%d\n", gwin0, x,y);
+//  dbg("--- gwin0:%x move_win0 %d,%d\n", gwin0, x,y);
   best_win_x = x;
   best_win_y = y;
 
@@ -473,7 +473,7 @@ GtkWidget *create_no_focus_win()
   gtk_container_set_border_width (GTK_CONTAINER (win), 0);
   gtk_widget_realize (win);
 #if UNIX
-  GdkWindow *gdkwin = gtk_widget_get_window(win);
+//  GdkWindow *gdkwin = gtk_widget_get_window(win);
   set_no_focus(win);
 #else
   win32_init_win(win);

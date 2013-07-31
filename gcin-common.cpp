@@ -18,7 +18,7 @@ void bell()
   if (gcin_bell_off)
     return;
 
-#if UNIX
+#if UNIX && 1
   XBell(dpy, gcin_bell_volume);
 #else
   gdk_beep();

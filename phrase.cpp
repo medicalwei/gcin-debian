@@ -140,6 +140,9 @@ void free_phrase()
     free(tran[i].str);
 }
 
+#if WIN32
+extern char shift_sele[], noshi_sele[];
+#endif
 
 gboolean feed_phrase(KeySym ksym, int state)
 {
@@ -149,6 +152,15 @@ gboolean feed_phrase(KeySym ksym, int state)
   load_phrase("phrase.table", &file_modify_time, tran, tranN);
   load_phrase("phrase-ctrl.table", &ctrl_file_modify_time, tran_ctrl, tran_ctrlN);
 
+#if WIN32
+  if (state & ShiftMask) {
+	  char *p = strchr(noshi_sele, ksym);
+	  if (p) {
+		  int idx = p - noshi_sele;
+		  ksym = shift_sele[idx];
+	  }
+  }
+#endif
 
   if (ksym < 0x7f && isupper(ksym))
     ksym = tolower(ksym);
@@ -173,7 +185,6 @@ gboolean feed_phrase(KeySym ksym, int state)
     str = ((state & LockMask) && tr[i].str_caps) ? tr[i].str_caps : tr[i].str;
 
     if (str) {
-send_it:
 #if USE_TSIN
       if (current_method_type() == method_type_TSIN && current_CS->im_state == GCIN_STATE_CHINESE) {
         add_to_tsin_buf_str(str);

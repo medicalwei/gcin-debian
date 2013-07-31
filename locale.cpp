@@ -1,6 +1,6 @@
 #include "gcin.h"
 
-#if !GCIN_IME && !TSF
+#if !GCIN_IME && !TSF && !GCIN_EXIT
 void utf8_big5_n(char *s, int len, char out[])
 {
   out[0]=0;

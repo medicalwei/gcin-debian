@@ -32,9 +32,14 @@ static char typ_pho_len[]={5, 2, 4, 3};
 
 gboolean same_query_show_pho_win();
 
-gboolean typ_pho_empty()
+gboolean typ_pho_empty3()
 {
   return !poo.typ_pho[0] &&!poo.typ_pho[1] &&!poo.typ_pho[2] &&!poo.typ_pho[3];
+}
+
+gboolean typ_pho_empty()
+{
+  return typ_pho_empty3() &&!poo.typ_pho[3];
 }
 
 gboolean pho_has_input()
@@ -572,7 +577,7 @@ int feedkey_pho(KeySym xkey, int kbstate)
 
       goto llll3;
     case '<':
-       if (!poo.ityp3_pho) {
+       if (!poo.ityp3_pho && tsin_shift_punc) {
          return pre_punctuation(xkey);
        }
        if (poo.cpg >= phkbm.selkeyN)
@@ -611,7 +616,7 @@ int feedkey_pho(KeySym xkey, int kbstate)
       if (xkey >= 127 || xkey < ' ')
         return 0;
 
-      if (shift_m) {
+      if (shift_m && tsin_shift_punc) {
 //        return shift_char_proc(xkey, kbstate);
         if (pre_punctuation(xkey))
           return 1;

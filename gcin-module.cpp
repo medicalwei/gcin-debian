@@ -10,7 +10,7 @@
 void show_win_sym(),hide_win_sym(),move_win_sym(),toggle_win_sym();
 void init_tsin_selection_win(),disp_selections(int x, int y),hide_selections_win();
 void disp_arrow_up(),disp_arrow_down(), set_tsin_pho_mode();
-void set_sele_text(int tN, int i, char *text, int len);
+void set_sele_text(int i, char *text, int len);
 void tsin_set_eng_ch(int nmod);
 int get_widget_xy(GtkWidget *win, GtkWidget *widget, int *rx, int *ry);
 void get_win_size(GtkWidget *win, int *width, int *height);

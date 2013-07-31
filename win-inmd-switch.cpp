@@ -4,6 +4,7 @@
 
 static  GtkWidget *menu;
 gboolean init_in_method(int in_no);
+void set_tsin_pho_mode();
 
 void cb_update_menu_select(GtkWidget  *item,  gpointer data)
 {
@@ -16,6 +17,7 @@ void cb_update_menu_select(GtkWidget  *item,  gpointer data)
      current_CS->im_state = GCIN_STATE_CHINESE;
 
    init_in_method(idx);
+   set_tsin_pho_mode();
 }
 
 void get_icon_path(char *iconame, char fname[]);

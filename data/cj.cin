@@ -3,7 +3,6 @@
 #  This table also extended to include HKSCS encodings. For details, see
 #	http://www.info.gov.hk/digital21/chi/hkscs/index.html
 #
-%gen_inp
 %ename changjei
 %cname 倉頡
 %selkey 1234567890

@@ -358,7 +358,7 @@ void win32_init_win(GtkWidget *win)
 #endif
 #endif
 
-#if !GCIN_IME && !CLIENT_LIB
+#if !GCIN_IME && !CLIENT_LIB && !GCIN_EXIT
 void box_warn(char *fmt,...)
 {
   va_list args;

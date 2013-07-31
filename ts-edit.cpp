@@ -147,9 +147,11 @@ void load_ts_phrase()
 
     fread(&clen,1,1,fp);
 
-    if (clen > MAX_PHRASE_LEN)
-      p_err("bad tsin db clen %d > MAX_PHRASE_LEN %d\n", clen, MAX_PHRASE_LEN);
-
+    if (clen > MAX_PHRASE_LEN) {
+      box_warn("bad tsin db clen %d > MAX_PHRASE_LEN %d\n", clen, MAX_PHRASE_LEN);
+      break;
+    }
+    
     fread(&usecount,sizeof(usecount_t), 1, fp);
     fread(phbuf, ph_key_sz, clen, fp);
     int tlen = 0;
@@ -422,6 +424,7 @@ if (b_contrib) {
   exit(0);
 }
 
+#if 0
 #define MAX_SAME_CHAR_PHO (16)
 
 typedef struct {
@@ -429,7 +432,6 @@ typedef struct {
   int phokeysN;
   GtkWidget *opt_menu;
 } char_pho;
-
 
 
 static char_pho bigpho[MAX_PHRASE_LEN];
@@ -560,6 +562,7 @@ static void cb_button_add(GtkButton *button, gpointer user_data)
   gtk_widget_show_all(hbox_buttons);
 
 }
+#endif
 
 Display *dpy;
 
@@ -779,11 +782,12 @@ int main(int argc, char **argv)
     dbg("b_contrib\n");
 
   set_is_chs();
+  load_setttings();
+  
   init_TableDir();
   b_pinyin = is_pinyin_kbm();
 
   gtk_init (&argc, &argv);
-  load_setttings();
   load_gtab_list(TRUE);
 
   char gcin_dir[512];

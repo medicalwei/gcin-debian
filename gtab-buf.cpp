@@ -227,7 +227,7 @@ static void free_gbuf(int idx)
 }
 
 
-static void clear_gtab_buf_all()
+void clear_gtab_buf_all()
 {
   int i;
   for(i=0;i<ggg.gbufN;i++)
@@ -600,6 +600,14 @@ void set_gbuf_c_sel(int v)
   disp_gtab_sel("");
   gtab_parse();
   disp_gbuf();
+  
+  if (ggg.gbuf_cursor > 1 && gcin_buffer_select_char_auto_left) {
+	if (ggg.gbuf_cursor == ggg.gbufN) {
+	  gbuf_cursor_left();
+	  gbuf_cursor_left();
+	} else 
+      gbuf_cursor_left();
+  }      
 //  dbg("zzzsel v:%d\n", pbuf->c_sel);
 }
 
@@ -1013,7 +1021,7 @@ void init_tsin_table()
 extern u_char scanphr_e(int chpho_idx, int plen, gboolean pho_incr, int *rselN);
 void init_pre_sel();
 void clear_sele();
-void set_sele_text(int tN, int i, char *text, int len);
+void set_sele_text(int i, char *text, int len);
 void get_win_gtab_geom();
 void disp_selections(int x, int y);
 
@@ -1087,7 +1095,7 @@ void gtab_scan_pre_select(gboolean b_incr)
 
     int i;
     for(i=0;i<tss.pre_selN; i++)
-       set_sele_text(tss.pre_selN,i,tss.pre_sel[i].str, -1);
+       set_sele_text(i,tss.pre_sel[i].str, -1);
     get_win_gtab_geom();
     disp_selections(-1, -1);
     return;

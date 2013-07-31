@@ -71,17 +71,23 @@ void send_fake_key_eve(KeySym key)
 {
 #if WIN32
   win32_FakeKey(key, true);
+  Sleep(10);
   win32_FakeKey(key, false);
 #else
   KeyCode kc = XKeysymToKeycode(dpy, key);
   XTestFakeKeyEvent(dpy, kc, True, CurrentTime);
+  usleep(10000);
   XTestFakeKeyEvent(dpy, kc, False, CurrentTime);
 #endif
 }
 
 void fake_shift()
 {
+#if 0
+  send_fake_key_eve(XK_Control_L);
+#else
   send_fake_key_eve(XK_Shift_L);
+#endif
 }
 
 void swap_ptr(char **a, char **b)
@@ -94,7 +100,7 @@ void swap_ptr(char **a, char **b)
 int force_preedit=0;
 void force_preedit_shift()
 {
-  send_fake_key_eve(XK_Shift_L);
+  fake_shift();
   force_preedit=1;
 }
 
@@ -236,7 +242,8 @@ direct:
     if (pid) {
       close(pfdw[0]);
       close(pfdr[1]);
-      write(pfdw[1], text, len);
+      if (write(pfdw[1], text, len) < 0) {
+      }
       close(pfdw[1]);
       int rn = read(pfdr[0], filter_text, sizeof(filter_text) - 1);
       filter_text[rn] = 0;
@@ -356,7 +363,9 @@ int current_in_win_x = -1, current_in_win_y = -1;  // request x/y
 
 void reset_current_in_win_xy()
 {
+#if 0
   current_in_win_x = current_in_win_y = -1;
+#endif
 }
 
 GCIN_module_callback_functions *module_cb1(ClientState *cs)
@@ -653,10 +662,15 @@ extern void destroy_tray_icon();
 #if UNIX
 void destroy_tray()
 {
-  if (current_gcin_win32_icon)
+  if (current_gcin_win32_icon==GCIN_TRAY_WIN32)
     destroy_tray_win32();
   else
+  if (current_gcin_win32_icon==GCIN_TRAY_UNIX)
     destroy_tray_icon();
+#if USE_INDICATOR
+  else
+    destroy_tray_indicator();
+#endif
 }
 #endif
 
@@ -671,13 +685,17 @@ void disp_tray_icon()
 
   current_gcin_win32_icon = gcin_win32_icon;
 
-  if (gcin_win32_icon)
+  if (gcin_win32_icon==GCIN_TRAY_WIN32)
 #endif
-
     load_tray_icon_win32();
 #if UNIX
   else
+  if (gcin_win32_icon==GCIN_TRAY_UNIX)
     load_tray_icon();
+#if USE_INDICATOR
+  else
+    load_tray_icon_indicator();
+#endif
 #endif
 }
 #endif
@@ -731,6 +749,8 @@ void init_state_chinese(ClientState *cs, gboolean tsin_pho_mode)
 gboolean output_gbuf();
 void update_win_kbm();
 void flush_edit_buffer();
+void tsin_set_eng_ch(int nmod);
+int current_kbd_state;
 
 void toggle_im_enabled()
 {
@@ -739,6 +759,12 @@ void toggle_im_enabled()
 
     if (current_CS->in_method < 0)
       p_err("err found");
+
+    int status=0;
+
+//  dbg("feedkey_pp %x %x\n", xkey, kbstate);
+//  if (xkey=='1')
+//    dbg("aaa\n");
 
 
     if (current_CS->im_state != GCIN_STATE_DISABLED) {
@@ -759,13 +785,12 @@ void toggle_im_enabled()
 
       update_win_kbm();
 
-#if TRAY_ENABLED
       disp_tray_icon();
-#endif
     } else {
       if (!current_method_type())
         init_gtab(current_CS->in_method);
 
+	  ClrIn();
 
       init_state_chinese(current_CS, TRUE);
       reset_current_in_win_xy();
@@ -779,9 +804,11 @@ void toggle_im_enabled()
 
       update_win_kbm();
 
-#if TRAY_ENABLED
+      if (tsin_chinese_english_toggle_key == TSIN_CHINESE_ENGLISH_TOGGLE_KEY_CapsLock) {
+        tsin_set_eng_ch(!(current_kbd_state&LockMask));
+      }
+
       disp_tray_icon();
-#endif
     }
 
     save_CS_current_to_temp();
@@ -843,25 +870,8 @@ gboolean win_is_visible()
 void disp_gtab_half_full(gboolean hf);
 void tsin_toggle_half_full();
 
-void toggle_half_full_char()
+void toggle_half_full_char_sub()
 {
-#if WIN32
-  if (test_mode)
-    return;
-#endif
-
-  check_CS();
-
-  if (!gcin_shift_space_eng_full) {
-    current_CS->b_half_full_char = 0;
-    tss.tsin_half_full=0;
-    disp_im_half_full();
-    return;
-  }
-
-
-//  dbg("toggle_half_full_char\n");
-
   if (current_method_type() == method_type_TSIN && current_CS->im_state == GCIN_STATE_CHINESE) {
     tsin_toggle_half_full();
   }
@@ -883,7 +893,26 @@ void toggle_half_full_char()
   }
 
   save_CS_current_to_temp();
-//  dbg("half full toggle\n");
+}
+
+void toggle_half_full_char()
+{
+#if WIN32
+  if (test_mode)
+    return;
+#endif
+
+  check_CS();
+
+  if (!gcin_shift_space_eng_full) {
+    current_CS->b_half_full_char = 0;
+    tss.tsin_half_full=0;
+    disp_im_half_full();
+    return;
+  }
+
+//  dbg("toggle_half_full_char\n");
+  toggle_half_full_char_sub() ;
 }
 
 void init_tab_pp(gboolean init);
@@ -947,7 +976,8 @@ gboolean init_in_method2(ClientState *cs, int in_no)
     case method_type_TSIN:
       set_wselkey(pho_selkey);
       cs->in_method = in_no;
-      init_tab_pp(init_im);
+      if (cs==current_CS || !current_CS)
+		init_tab_pp(init_im);
       break;
     case method_type_SYMBOL_TABLE:
       toggle_symbol_table();
@@ -967,7 +997,7 @@ gboolean init_in_method2(ClientState *cs, int in_no)
         }
       }
 
-      if (inmd[in_no].mod_cb_funcs->module_init_win(&gmf)) {
+      if ((cs==current_CS || !current_CS) && inmd[in_no].mod_cb_funcs->module_init_win(&gmf)) {
         cs->in_method = in_no;
         module_cb()->module_show_win();
         if (cs==current_CS)
@@ -987,7 +1017,9 @@ gboolean init_in_method2(ClientState *cs, int in_no)
     case method_type_GTAB:
     {
       dbg("method_type_GTAB\n");
-      init_gtab(in_no);
+      if (cs==current_CS || !current_CS)
+		init_gtab(in_no);
+
       if (!inmd[in_no].DefChars)
         return FALSE;
       cs->in_method = in_no;
@@ -1011,9 +1043,6 @@ gboolean init_in_method2(ClientState *cs, int in_no)
 #endif
 
   if (cs==current_CS) {
-#if TRAY_ENABLED
-    disp_tray_icon();
-#endif
 
     if (inmd[current_CS->in_method].selkey) {
       set_wselkey(inmd[current_CS->in_method].selkey);
@@ -1022,6 +1051,7 @@ gboolean init_in_method2(ClientState *cs, int in_no)
     }
     update_in_win_pos();
     update_win_kbm_inited();
+    disp_tray_icon();
   }
 
   return TRUE;
@@ -1165,6 +1195,7 @@ void destroy_phrase_save_menu();
 int gcin_switch_keys_lookup(int key);
 gboolean b_menu_key_pressed;
 void cb_trad_sim_toggle();
+void set_tsin_pho_mode();
 
 // return TRUE if the key press is processed
 gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
@@ -1172,6 +1203,8 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
 #if 0
   dbg("key press %x %x\n", keysym, kev_state);
 #endif
+
+  current_kbd_state = kev_state;
   destroy_phrase_save_menu();
 
   disp_win_kbm_capslock();
@@ -1190,8 +1223,9 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
     return TRUE;
   }
 
-  if (force_preedit) {
-    force_preedit=0;
+  if (force_preedit==1) {
+	dbg("orce_preedit==1\n");
+    force_preedit = 2;
     return 1;
   }
 
@@ -1219,7 +1253,7 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
       ((kev_state & ShiftMask) && gcin_im_toggle_keys==Shift_Space) ||
       ((kev_state & Mod4Mask) && gcin_im_toggle_keys==Windows_Space)
     ) {
-      if (current_method_type() == method_type_TSIN) {
+      if (current_method_type() == method_type_TSIN && tsin_chinese_english_toggle_key != TSIN_CHINESE_ENGLISH_TOGGLE_KEY_CapsLock) {
         tsin_set_eng_ch(1);
       }
 
@@ -1247,6 +1281,11 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
       return feed_phrase(keysym, kev_state);
     else
       return 0;
+  }
+
+  if (gcin_ctrl_punc && (kev_state&(Mod1Mask|Mod5Mask|ShiftMask|ControlMask))==ControlMask && keysym < 127) {
+    if (feed_phrase(keysym, kev_state))
+      return TRUE;
   }
 
 //  dbg("state %x\n", kev_state);
@@ -1286,12 +1325,12 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
 #endif
 
     int kidx = gcin_switch_keys_lookup(keysym);
-    if (kidx < 0)
-      return FALSE;
     last_keysym = 0;
+    if (kidx < 0) {
+      return FALSE;
+    }
 
     if (inmd[kidx].method_type == method_type_SYMBOL_TABLE) {
-
       toggle_symbol_table();
       return TRUE;
     }
@@ -1303,7 +1342,10 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
 #if WIN32
     if (!test_mode)
 #endif
+    {
       init_in_method(kidx);
+      set_tsin_pho_mode();
+    }
 
     return TRUE;
   }
@@ -1332,18 +1374,12 @@ gboolean ProcessKeyPress(KeySym keysym, u_int kev_state)
     timeout_handle = g_timeout_add(200, timeout_raise_window, NULL);
   }
 
-  if (kev_state & ControlMask) {
-    if (feed_phrase(keysym, kev_state))
-      return TRUE;
-  }
 
   switch(current_method_type()) {
     case method_type_PHO:
       return feedkey_pho(keysym, kev_state);
-#if USE_TSIN
     case method_type_TSIN:
       return feedkey_tsin(keysym, kev_state);
-#endif
     case method_type_MODULE:
       if (!module_cb())
         return FALSE;
@@ -1363,9 +1399,18 @@ int feedkey_gtab_release(KeySym xkey, int kbstate);
 // return TRUE if the key press is processed
 gboolean ProcessKeyRelease(KeySym keysym, u_int kev_state)
 {
+  check_CS();
+  current_kbd_state = kev_state;
+
+  if (force_preedit==2) {
+	dbg("orce_preedit==2\n");
+	force_preedit = 0;
+	return TRUE;
+  }
+
   disp_win_kbm_capslock();
 
-  check_CS();
+//  check_CS();
 #if 0
   dbg_time("key release %x %x\n", keysym, kev_state);
 #endif
@@ -1375,6 +1420,8 @@ gboolean ProcessKeyRelease(KeySym keysym, u_int kev_state)
 
 
 #if 1
+//  dbg("last_keysym %x\n", last_keysym);
+
   if (current_CS->b_gcin_protocol && (last_keysym == XK_Shift_L ||
   last_keysym == XK_Shift_R || last_keysym == XK_Control_L || last_keysym == XK_Control_R)) {
     if (((keysym == XK_Control_L || keysym == XK_Control_R)
@@ -1436,31 +1483,45 @@ int xim_ForwardEventHandler(IMForwardEventStruct *call_data)
 }
 #endif
 
-#if UNIX
-int skip_window(Window win)
-{
-  XWindowAttributes att;
-  XGetWindowAttributes(dpy, win, &att);
-#if 0
-  dbg("hhh %d %d class:%d all:%x %x\n", att.width, att.height, att.class,
-    att.all_event_masks, att.your_event_mask);
-#endif
-  if (att.override_redirect)
-    return 1;
-
-  return 0;
-}
-#endif
 
 void gcin_reset();
 
+#if UNIX
+gboolean is_tip_window(Window inpwin)
+{
+   // Dirty fix for chrome, doesn't work well.
+   if (!inpwin)
+     return FALSE;
+   XWindowAttributes att;
+   XGetWindowAttributes(dpy, inpwin, &att);
+
+   dbg("%d, %d\n", att.width, att.height);
+// chrome window is override_redirect
+//   if (att.override_redirect)
+//     return;
+
+   return att.override_redirect && att.height < 24;
+}
+#endif
+
 int gcin_FocusIn(ClientState *cs)
 {
-  dbg("gcin_FocusIn %x\n", cs);
+  dbg("gcin_FocusIn %p\n", cs);
+  if (!cs) {
+    dbg("cs is null");
+    return FALSE;
+  } else {
+//    dbg("gcin_FocusIn %x\n", cs);
+  }
+
   Window win = cs->client_win;
   if (!win)
     return FALSE;
-
+#if UNIX
+  if (is_tip_window(win)) {
+	return FALSE;
+  }
+#endif
   reset_current_in_win_xy();
 
   if (cs) {
@@ -1468,6 +1529,7 @@ int gcin_FocusIn(ClientState *cs)
 
     if (focus_win != win) {
 #if 1
+      dbg("reset %x,%x\n", focus_win, win);
       gcin_reset();
 #endif
       hide_in_win(current_CS);
@@ -1484,8 +1546,10 @@ int gcin_FocusIn(ClientState *cs)
     if (cs->im_state != GCIN_STATE_DISABLED) {
       show_in_win(cs);
       move_IC_in_win(cs);
-    } else
+    } else {
       hide_in_win(cs);
+      move_IC_in_win(cs);
+    }
   }
 
   if (inmd[cs->in_method].selkey)
@@ -1497,9 +1561,9 @@ int gcin_FocusIn(ClientState *cs)
   }
 
   update_win_kbm();
-#if TRAY_ENABLED
+
   disp_tray_icon();
-#endif
+
 #if 0
   dbg_time("gcin_FocusIn %x %x\n",cs, current_CS);
 #endif
@@ -1543,8 +1607,20 @@ int gcin_FocusOut(ClientState *cs)
   if (cs != current_CS)
      return FALSE;
 
+  if (!cs) {
+	 dbg("gcin_FocusOut is null\n");
+	 return FALSE;
+  }
+
   if (!cs->client_win)
     return FALSE;
+
+#if UNIX
+  if (is_tip_window(cs->client_win)) {
+	return FALSE;
+  }
+#endif
+
 
   if (t - last_focus_out_time < 100000) {
     last_focus_out_time = t;
@@ -1617,7 +1693,7 @@ void gcin_reset()
 #if 1
   if (!current_CS)
     return;
-  dbg("gcin_reset\n");
+//  dbg("gcin_reset\n");
 
   switch(current_method_type()) {
     case method_type_PHO:
@@ -1639,6 +1715,19 @@ void gcin_reset()
 #endif
 }
 
+#if WIN32
+void show_tsin_stat();
+void gcin_set_tsin_pho_mode(ClientState *cs, gboolean pho_mode)
+{
+	set_tsin_pho_mode0(cs, pho_mode);
+
+	if (!pho_mode) {
+		cs->b_half_full_char = 0;
+		tss.tsin_half_full = 0;
+	}
+	show_tsin_stat();
+}
+#endif
 
 #if USE_XIM
 int xim_gcin_FocusOut(IMChangeFocusStruct *call_data)

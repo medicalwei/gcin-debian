@@ -10,7 +10,7 @@ static int wselkeyN;
 //Window xwin1;
 
 #define SELEN (15)
-
+int win1_rowN;
 static GtkWidget *labels_sele[SELEN], *labels_seleR[SELEN];
 static GtkWidget *eve_sele[SELEN], *eve_seleR[SELEN];
 static GtkWidget *arrow_up, *arrow_down;
@@ -25,15 +25,13 @@ static int current_config()
     pho_candicate_R2L;
 }
 
-static int idx_to_x(int tN, int i)
+static int idx_to_y(int i)
 {
-    if (tN > pho_candicate_col_N)
-      tN = pho_candicate_col_N;
-
-    int x = i % tN;
-    if (pho_candicate_R2L)
-      x = tN - 1 - x;
-    return x;
+	return i % win1_rowN;
+}
+static int idx_to_x(int i)
+{
+	return i / win1_rowN;
 }
 
 static gboolean button_scroll_event_tsin(GtkWidget *widget,GdkEventScroll *event, gpointer user_data)
@@ -78,9 +76,13 @@ static void mouse_button_callback( GtkWidget *widget,GdkEventButton *event, gpoi
   switch (event->button) {
     case 1:
       v = GPOINTER_TO_INT(data);
+#if 1
       if (cb_sele_by_idx)
         cb_sele_by_idx(v);
       force_preedit_shift();
+#else
+      send_fake_key_eve(pho_selkey[v]);
+#endif
       break;
   }
 }
@@ -110,6 +112,8 @@ void create_win1_gui()
     return;
 //  dbg("create_win1_gui %s\n", wselkey);
 
+  win1_rowN = (wselkeyN + pho_candicate_col_N - 1 ) / pho_candicate_col_N;
+
   frame = gtk_frame_new(NULL);
   gtk_container_add (GTK_CONTAINER(gwin1), frame);
 
@@ -138,8 +142,8 @@ void create_win1_gui()
   int i;
   for(i=0; i < wselkeyN; i++)
   {
-    int y = i/pho_candicate_col_N;
-    int x = idx_to_x(SELEN+1, i);
+	int y = idx_to_y(i);
+	int x = idx_to_x(i);
 
     if (!tsin_tail_select_key)
       x*=2;
@@ -227,7 +231,7 @@ void clear_sele()
 
 char *htmlspecialchars(char *s, char out[]);
 
-void set_sele_text(int tN, int i, char *text, int len)
+void set_sele_text(int i, char *text, int len)
 {
   if (len < 0)
     len=strlen(text);
@@ -252,7 +256,7 @@ void set_sele_text(int tN, int i, char *text, int len)
 
   sprintf(selma, "<span %s>%s</span>", ul, htmlspecialchars(cc, uu));
 
-  int x = idx_to_x(tN, i);
+  int x = idx_to_x(i);
   char *sep= x?" ":"";
 
   if (tsin_tail_select_key) {
@@ -331,6 +335,9 @@ void disp_selections(int x, int y)
 
   if (y + win1_yl > dpy_yl)
     y = win_y - win1_yl;
+    
+  if (y < 0)
+    y = 0;
 
   gtk_window_move(GTK_WINDOW(gwin1), x, y);
 

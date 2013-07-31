@@ -8,11 +8,12 @@
 
 int html_browser(char *fname)
 {
+dbg("html_browser %s\n", fname);
 #if WIN32
   LONG r = (LONG)ShellExecuteA(NULL, "open", fname, NULL, NULL, SW_SHOWNORMAL);
   return r;
 #else
-#if 0
+#if 1
   static char html_browse[]=GCIN_SCRIPT_DIR"/html-browser";
   char tt[256];
   sprintf(tt, "%s %s", html_browse, fname);

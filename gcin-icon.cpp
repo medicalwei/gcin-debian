@@ -39,6 +39,6 @@ void set_window_gcin_icon(GtkWidget *window)
   sys_icon_fname("gcin.png", tt);
   gtk_window_set_icon_from_file(GTK_WINDOW(window), tt, NULL);
 #else
-  gtk_window_set_icon_from_file(GTK_WINDOW(window), SYS_ICON_DIR"/gcin.png", NULL);
+  gtk_window_set_icon_from_file(GTK_WINDOW(window), SYS_ICON_DIR"/hicolor/64x64/apps/gcin.png", NULL);
 #endif
 }

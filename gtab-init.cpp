@@ -175,7 +175,7 @@ void init_gtab(int inmdno)
 #if WIN32
       sprintf(exe, "\"%s\" \"%s\" \"%s\"", ttt, append_user, append_user_gtab);
       dbg("exe %s\n", exe);
-      win32exec_para("gtab-merge", exe);
+      win32exec_para("gtab-merge.exe", exe);
       Sleep(1000);
 #else
       sprintf(exe, GCIN_BIN_DIR"/gtab-merge %s %s %s", ttt, append_user, append_user_gtab);
@@ -263,13 +263,8 @@ void init_gtab(int inmdno)
   fread(inp->keyname, CH_SZ, th.KeyS, fp);
   inp->WILD_QUES=th.KeyS+1;
   inp->WILD_STAR=th.KeyS+2;
-#if 0
-  utf8cpy(&inp->keyname[inp->WILD_QUES*CH_SZ], _(_L("？")));  /* for wild card */
-  utf8cpy(&inp->keyname[inp->WILD_STAR*CH_SZ], _(_L("＊")));
-#else
   utf8cpy(&inp->keyname[inp->WILD_QUES*CH_SZ], "?");  /* for wild card */
   utf8cpy(&inp->keyname[inp->WILD_STAR*CH_SZ], "*");
-#endif
 
   // for boshiamy
   gboolean all_full_ascii = TRUE;
@@ -335,7 +330,14 @@ void init_gtab(int inmdno)
 
 //  dbg("MaxPress:%d  M_DUP_SEL:%d\n", th.MaxPress, th.M_DUP_SEL);
 
+  int maxv = 0;
+  for(i=0;i<th.KeyS;i++)
+	if (maxv < ttt[i])
+		maxv = ttt[i];
+  maxv++;
+
   free(inp->keymap);
+          
   inp->keymap = tzmalloc(char, 128);
 
   if (!(th.flag & FLAG_GTAB_SYM_KBM)) {

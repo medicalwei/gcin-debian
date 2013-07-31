@@ -18,7 +18,7 @@ gboolean is_pinyin_kbm();
 char *sys_err_strA();
 void init_TableDir();
 extern char *tsin32_f;
-void load_tsin_db_ex(TSIN_HANDLE *ptsin_hand, char *infname, gboolean is_gtab_i, gboolean read_only, gboolean use_idx);
+gboolean load_tsin_db_ex(TSIN_HANDLE *ptsin_hand, char *infname, gboolean is_gtab_i, gboolean read_only, gboolean use_idx);
 
 void swap_ptr(char **a, char **b)
 {
@@ -53,6 +53,8 @@ int main(int argc, char **argv)
 
   gtk_init(&argc, &argv);
 
+  set_is_chs();
+  load_setttings();
 
   init_TableDir();
 
@@ -102,10 +104,16 @@ int main(int argc, char **argv)
   if (fnames_minusN) {
     set_is_chs();
 
+    int nfnames_minusN=0;
     for(i=0;i<fnames_minusN;i++) {
       dbg("fnames_minus %d] %s\n", i, fnames_minus[i]);
-      load_tsin_db_ex(&tsin_hands[i], fnames_minus[i], FALSE, TRUE, TRUE);
+      
+      TSIN_HANDLE t;
+      bzero(&t, sizeof(t));
+      if (load_tsin_db_ex(&t, fnames_minus[i], FALSE, TRUE, TRUE))
+    	  tsin_hands[nfnames_minusN++] = t;
     }
+    fnames_minusN = nfnames_minusN;
 
     if (!fname) {
       get_gcin_user_fname(tsin32_f, ts_user_fname);

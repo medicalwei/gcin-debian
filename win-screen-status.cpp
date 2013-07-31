@@ -34,17 +34,23 @@ static gboolean timeout_hide(gpointer data)
 }
 
 gboolean win_is_visible();
+static int old_x, old_y;
 
 void disp_win_screen_status(char *in_method, char *half_status)
 {
-
+  dbg("disp_win_screen_status\n");
   if (
 //  tss.c_len || ggg.gbufN ||
-#if 1
   cur_file_hf && !strcmp(cur_file_hf, half_status) &&
-#endif
-  cur_file_inmd && !strcmp(cur_file_inmd, in_method))
+  cur_file_inmd && !strcmp(cur_file_inmd, in_method) 
+#if 0  
+  && old_x==current_in_win_x && old_y==current_in_win_y
+#endif  
+  )
     return;
+    
+  old_x = current_in_win_x;
+  old_y = current_in_win_y;
 
   clear_timeout();
   free(cur_file_hf); cur_file_hf = strdup(half_status);
@@ -54,12 +60,12 @@ void disp_win_screen_status(char *in_method, char *half_status)
     win_screen_status = create_no_focus_win();
     GtkWidget *hbox = gtk_hbox_new (FALSE, 0);
     gtk_container_add(GTK_CONTAINER(win_screen_status), hbox);
+    icon_inmd = gtk_image_new_from_file(in_method);
+    gtk_box_pack_start (GTK_BOX (hbox), icon_inmd, FALSE, FALSE, 0);
 #if 1
     icon_hf = gtk_image_new_from_file(half_status);
     gtk_box_pack_start (GTK_BOX (hbox), icon_hf, FALSE, FALSE, 0);
-#endif
-    icon_inmd = gtk_image_new_from_file(in_method);
-    gtk_box_pack_start (GTK_BOX (hbox), icon_inmd, FALSE, FALSE, 0);
+#endif    
   } else {
 #if 1
     gtk_image_set_from_file(GTK_IMAGE(icon_hf), half_status);

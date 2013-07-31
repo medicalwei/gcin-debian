@@ -478,10 +478,15 @@ gboolean delayed_start_cb(gpointer data)
 #if TRAY_ENABLED
   if (gcin_status_tray) {
 #if UNIX
-    if (gcin_win32_icon)
+    if (gcin_win32_icon==GCIN_TRAY_WIN32)
       init_tray_win32();
     else
+    if (gcin_win32_icon==GCIN_TRAY_UNIX)
       init_tray();
+#if USE_INDICATOR      
+    else
+      init_tray_indicator();
+#endif      
 #endif
   }
 #endif
@@ -533,9 +538,9 @@ int main(int argc, char **argv)
   static char css[]=
 "GtkButton\n"
 "{\n"
-"  border-width: 0;\n"
-"  padding: 0;\n"
-"  -GtkButton-inner-border: 0;\n"
+"  border-width: 0 0 0 0\n"
+"  padding: 0 0 0 0\n"
+"  -GtkButton-inner-border: 0\n"
 "}";
   GtkCssProvider *provider = gtk_css_provider_new();
   gtk_css_provider_load_from_data(provider, css, -1, NULL);
