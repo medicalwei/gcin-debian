@@ -1,10 +1,18 @@
 gcin (2.8.1+dfsg-1) unstable; urgency=low
 
   * Imported Upstream version 2.8.1+dfsg
-  * debian/patches: add patch to pass LDFLAGS for hardening
+  * debian/patches:
+    * add patch to pass LDFLAGS for hardening
+    * add keyword entry to gcin-tools.desktop
+    * add manpage for txt2gtab-phrases
+  * debian/gcin.svg:
+    replace non-rectangle gcin.png, warned by lintian, with rectangle vector
+    icon
   * debian/rules: add hardening options
+  * Remove gcin-chewing because it is not supported and is commented out
+    in the upstream build scripts.
 
- -- Yao Wei (魏銘廷) <mwei@lxde.org>  Sun, 01 Jul 2012 10:37:18 +0800
+ -- Yao Wei (魏銘廷) <mwei@lxde.org>  Fri, 02 Aug 2013 21:41:35 +0800
 
 gcin (2.7.6.1+dfsg-1) unstable; urgency=low
 
