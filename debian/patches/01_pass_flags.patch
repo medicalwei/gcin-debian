@@ -8,20 +8,21 @@ Forwarded: http://hyperrate.com/thread.php?tid=27601
 Last-Update: 2012-07-07
 --- a/configure
 +++ b/configure
-@@ -36,7 +36,7 @@
+@@ -37,7 +37,7 @@
    FREEBSD=1
  fi
  
 -SO_FLAGS="-Wl,--as-needed -shared"
-+SO_FLAGS="$LDFLAGS -Wl,--as-needed -shared"
++SO_FLAGS="$CFLAGS $LDFLAGS -fPIC -Wl,--as-needed -shared"
  MAC_OS=0
  uname | grep Darwin > /dev/null 2> /dev/null
  if [ $? = 0 ]; then
-@@ -303,7 +303,8 @@
+@@ -313,7 +313,9 @@
  echo "libdir=\$(DESTDIR)$libdir" >> config.mak
  echo "gcinlibdir=\$(DESTDIR)$gcinlibdir" >> config.mak
  echo "includedir=\$(DESTDIR)$includedir" >> config.mak
 -echo "LDFLAGS=-Wl,--as-needed $GTKLDFLAGS -lX11 -ldl -lm" >> config.mak
++echo "CFLAGS=$CFLAGS" >> config.mak
 +echo "LDFLAGS_ENV=$LDFLAGS" >> config.mak
 +echo "LDFLAGS=$LDFLAGS -Wl,--as-needed $GTKLDFLAGS -lX11 -ldl -lm" >> config.mak
  echo "GCIN_VERSION=$GCIN_VERSION" >> config.mak
@@ -50,3 +51,58 @@ Last-Update: 2012-07-07
          -DGCIN_TABLE_DIR=\"$(GCIN_TABLE_DIR)\" \
          -DGCIN_OGG_DIR=\"$(GCIN_OGG_DIR)\" \
          -DDOC_DIR=\"$(DOC_DIR)\" \
+--- a/gtk-im/Makefile
++++ b/gtk-im/Makefile
+@@ -13,7 +13,7 @@
+ endif
+ 
+ .SUFFIXES:	.c .o .E
+-CFLAGS = $(OPTFLAGS) $(EXTRA_INC) $(GTKINC) -I../im-client -I.. -DUNIX=1 \
++CFLAGS += $(OPTFLAGS) $(EXTRA_INC) $(GTKINC) -I../im-client -I.. -DUNIX=1 \
+ -I../IMdkit/include -DCLIENT_LIB=1 -DMAC_OS=$(MAC_OS) -DFREEBSD=$(FREEBSD)
+ 
+ .c.o:
+--- a/gtk3-im/Makefile
++++ b/gtk3-im/Makefile
+@@ -14,7 +14,7 @@
+ endif
+ 
+ .SUFFIXES:	.c .o .E
+-CFLAGS = $(OPTFLAGS) $(EXTRA_INC) $(GTKINC) -I../im-client -I.. -DUNIX=1 \
++CFLAGS += $(OPTFLAGS) $(EXTRA_INC) $(GTKINC) -I../im-client -I.. -DUNIX=1 \
+ -I../IMdkit/include -DCLIENT_LIB=1 -DMAC_OS=$(MAC_OS) -DFREEBSD=$(FREEBSD)
+ 
+ .c.o:
+--- a/data/Makefile
++++ b/data/Makefile
+@@ -1,7 +1,7 @@
+ include ../config.mak
+ 
+ .SUFFIXES:	.kbmsrc .kbm .cin .gtab
+-CFLAGS= -DUNIX=1 $(WALL) $(OPTFLAGS) $(GTKINC) -I.. -DDEBUG="0$(GCIN_DEBUG)"
++CFLAGS += -DUNIX=1 $(WALL) $(OPTFLAGS) $(GTKINC) -I.. -DDEBUG="0$(GCIN_DEBUG)"
+ export NO_GTK_INIT=
+ export GCIN_NO_RELOAD=
+ 
+--- a/im-client/Makefile
++++ b/im-client/Makefile
+@@ -5,7 +5,7 @@
+ 
+ .SUFFIXES:      .c .o .E .cpp
+ WALL=-Wall
+-CFLAGS= -DUNIX=1 $(WALL) $(OPTFLAGS) -I. -I.. -I../IMdkit/include $(GTKINC) \
++CFLAGS += -DUNIX=1 $(WALL) $(OPTFLAGS) -I. -I.. -I../IMdkit/include $(GTKINC) \
+         -DCLIENT_LIB=1 -DGCIN_BIN_DIR=\"$(GCIN_BIN_DIR)\" -DUNIX=1 \
+         -DDEBUG="0$(GCIN_DEBUG)" -DGCIN_TABLE_DIR=\"$(GCIN_TABLE_DIR)\" \
+         -DFREEBSD=$(FREEBSD) -fPIC
+--- a/IMdkit/lib/Makefile
++++ b/IMdkit/lib/Makefile
+@@ -1,7 +1,7 @@
+ include ../../config.mak
+ 
+ #CFLAGS =  -c -O2 -fno-strength-reduce -Dlinux -D__i386__ -D_POSIX_C_SOURCE=199309L -D_POSIX_SOURCE -D_XOPEN_SOURCE=500L -D_BSD_SOURCE -D_SVID_SOURCE   -DFUNCPROTO=15 -DNARROWPROTO   -DUNIXCONN -DTCPCONN -DXIM_t -DTRANS_SERVER
+-CFLAGS =  -c $(OPTFLAGS) -fno-strength-reduce -DXIM_t -DTRANS_SERVER
++CFLAGS +=  -c $(OPTFLAGS) -fno-strength-reduce -DXIM_t -DTRANS_SERVER
+ INC = -I../include -I/usr/X11R6/include
+ 
+ 
