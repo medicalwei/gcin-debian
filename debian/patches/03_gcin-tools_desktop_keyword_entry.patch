@@ -1,0 +1,11 @@
+Description: Add keyword entry to gcin configuration tool
+ Not yet pushed to upstream
+Author: Yao Wei (魏銘廷) <mwei@lxde.org>
+Last-Update: 2013-08-02
+--- a/menu/gcin-tools.desktop
++++ b/menu/gcin-tools.desktop
+@@ -13,3 +13,4 @@
+ Type=Application
+ StartupNotify=true
+ Categories=Settings;
++Keywords=input;ime;gcin;keyboard;
