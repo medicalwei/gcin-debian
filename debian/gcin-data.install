@@ -1,2 +1,3 @@
 usr/share/gcin/script
-usr/share/icons
+usr/share/icons/gcin
+debian/gcin.svg usr/share/icons/hicolor/64x64/apps
