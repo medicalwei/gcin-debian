@@ -4,14 +4,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-DPKG_EXPORT_BUILDFLAGS = 1
-include /usr/share/dpkg/buildflags.mk
-CFLAGS+=$(CPPFLAGS)
-CXXFLAGS+=$(CPPFLAGS)
-
-GTK2VER = $(shell pkg-config --variable=gtk_binary_version gtk+-2.0)
-GTK3VER = $(shell pkg-config --variable=gtk_binary_version gtk+-3.0)
-
+GTK2VER := $(shell pkg-config --variable=gtk_binary_version gtk+-2.0)
+GTK3VER := $(shell pkg-config --variable=gtk_binary_version gtk+-3.0)
 DEB_HOST_MULTIARCH := $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 %:
