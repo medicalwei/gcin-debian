@@ -1,3 +1,10 @@
+gcin (2.8.1+dfsg-2) unstable; urgency=low
+
+  * multiarch libraries for GTK+2 and GTK+3, closes: #693052
+  * update debian helper compat to 9
+
+ -- Yao Wei (魏銘廷) <mwei@lxde.org>  Mon, 16 Sep 2013 23:03:47 +0800
+
 gcin (2.8.1+dfsg-1) unstable; urgency=low
 
   * Imported Upstream version 2.8.1+dfsg
