@@ -14,7 +14,7 @@ Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-ime/gcin.git;a=summary
 Package: gcin
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, gcin-data, gcin-tables
-Recommends: im-config | im-switch, gcin-gtk3-immodule, gcin-gtk2-immodule
+Recommends: im-config, gcin-gtk3-immodule, gcin-gtk2-immodule
 Suggests: gcin-anthy, gcin-qt4-immodule
 Multi-Arch: foreign
 Description: GTK+ based input method for Chinese users
