@@ -1,5 +1,4 @@
 usr/bin
-usr/lib/*/gtk-2.0
 usr/lib/gcin/gcin1.so
 usr/lib/gcin/gcin2.so
 usr/lib/gcin/intcode-module.so
