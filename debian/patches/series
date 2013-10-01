@@ -1,3 +1,4 @@
 01_pass_flags.patch
 02_txt2gtab-phrase_manpage.patch
 03_gcin-tools_desktop_keyword_entry.patch
+04_fix-sparc-build.patch
